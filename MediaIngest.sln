@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Contracts", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Contracts.Tests", "tests\MediaIngest.Contracts.Tests\MediaIngest.Contracts.Tests.csproj", "{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Workflow", "src\MediaIngest.Workflow\MediaIngest.Workflow.csproj", "{364E25B4-363F-4D78-9D9F-4058BC769BFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Workflow.Tests", "tests\MediaIngest.Workflow.Tests\MediaIngest.Workflow.Tests.csproj", "{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

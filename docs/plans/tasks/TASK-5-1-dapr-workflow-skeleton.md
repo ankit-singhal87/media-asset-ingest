@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Completed
 
 ## Linked Work
 
@@ -34,6 +34,8 @@ Agents may edit only these files unless they escalate:
 - `src/MediaIngest.Workflow`
 - `tests/MediaIngest.Workflow.Tests`
 - `deploy/dapr`
+- `MediaIngest.sln`
+- `scripts/dev/test-dotnet.sh`
 - `docs/plans/task-index.md`
 - `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`

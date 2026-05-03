@@ -51,6 +51,9 @@ messages or paste command output unless it explains a decision.
   the solution build.
 - Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
   task plans after clearing the native GitHub dependencies.
+- Added the TASK-5-1 workflow skeleton that starts a package workflow from an
+  accepted package ingest request and prepares the initial scan, classify, and
+  dispatch child work plan.
 
 ## Update Rule
 
