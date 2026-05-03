@@ -33,6 +33,7 @@ mirror.
 | `.worktrees/USER-STORY-16-local-ingest-docs` | `USER-STORY-16-local-ingest-docs` | #26 | USER-STORY-16 | Forge | `README.md`, `docs/product/backlog.md`, `docs/status/current-status.md`, `docs/status/work-log.md`, `docs/plans/active-worktrees.md` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/44 |
 | `.worktrees/USER-STORY-12-local-ingest-start-ui` | `USER-STORY-12-local-ingest-start-ui` | #22 | USER-STORY-12 | Canvas | `web/ingest-control-plane`, `docs/plans/active-worktrees.md` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/43 |
 | `.worktrees/parallel-system-components-terminal-scripts` | `USER-STORY-16-parallel-system-components-terminal-scripts` | none | USER-STORY-16 | Forge | `docs/automation/README.md`, `docs/automation/terminal-scripts.md`, `docs/plans/parallel-system-components.md`, `docs/plans/active-worktrees.md`, `.terminals` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/46 |
+| `.worktrees/parallel-02-vault-postgresql-persistence` | `USER-STORY-8-vault-postgresql-persistence` | #18 | USER-STORY-8 | Vault | `src/MediaIngest.Persistence`, `tests/MediaIngest.Persistence.Tests`, `docs/plans/active-worktrees.md` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/56 |
 
 ## Update Rule
 
