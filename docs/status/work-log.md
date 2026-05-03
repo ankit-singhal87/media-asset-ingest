@@ -61,6 +61,9 @@ messages or paste command output unless it explains a decision.
   dispatch child work plan.
 - Added TASK-6-1 specialized video, audio, text, and other agent skeletons with
   smoke tests proving each worker owns only its assigned media category.
+- Added TASK-7-1 observability correlation field foundation with a canonical
+  field catalog, correlation context, and smoke-test coverage in
+  `make test-dotnet`.
 
 ## Update Rule
 
