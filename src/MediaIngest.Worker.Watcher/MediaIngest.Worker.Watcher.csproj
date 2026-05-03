@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Worker.Watcher</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.Watcher</AssemblyName>
+  </PropertyGroup>
+</Project>
