@@ -6,9 +6,8 @@
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
   across watcher, persistence/outbox, workflow, command routing, observability,
-  and the React control plane. The local manifest ingest demo docs now describe
-  the in-process API/UI workflow prepared by the backend and UI slice branches
-  over ignored `input/` and `output/` runtime folders.
+  and the React control plane. Draft local ingest docs are tracking the sibling
+  backend and UI PRs until those branches merge.
 
 ## Completed
 
@@ -67,9 +66,10 @@
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
   validation targets, an agent preflight command, and a repo-local ignored
   Docker .NET cache for faster repeated validation.
-- README quickstart now documents the local manifest ingest demo flow:
-  run the local API host and UI, add `manifest.json` plus
-  `manifest.json.checksum` under `input/<asset>/`, press **Start ingest**, and
+- Draft README quickstart text documents the intended local manifest ingest
+  flow: run the API host on the fixed development port, run the UI with `/api`
+  proxied to that API, press **Start ingest** to begin watching, then add
+  `manifest.json` plus `manifest.json.checksum` under `input/<asset>/` and
   expect both manifest files under `output/<asset>/`.
 
 ## Ready For Review
@@ -78,8 +78,9 @@
 
 ## Next
 
-- Integrate the backend and UI slice branches that provide the documented local
-  ingest API host and **Start ingest** UI.
+- Keep the local ingest docs PR in draft until the backend and UI slice PRs
+  merge the API host, UI **Start ingest** action, Vite `/api` proxy, and runtime
+  folder ignore setup.
 
 ## Update Rule
 

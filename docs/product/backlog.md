@@ -7,8 +7,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-2 / USER-STORY-16: scaffold .NET solution, shared contracts, and
   canonical .NET validation.
-- MILESTONE-2 / USER-STORY-16: document the local manifest ingest demo workflow
-  and its in-process runtime boundary.
+- MILESTONE-2 / USER-STORY-16: keep the draft local manifest ingest demo docs
+  aligned with the backend and UI draft PRs.
 - MILESTONE-3 / USER-STORY-1: add ingest watcher scanner foundation.
 - MILESTONE-4 / USER-STORY-8: add persistence and transactional outbox
   foundation.
@@ -23,8 +23,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-2 / USER-STORY-17: define local container runtime and Kubernetes
   readiness boundary.
-- MILESTONE-2 / USER-STORY-16: integrate the backend/UI slice branches that
-  provide the documented local manifest ingest demo.
+- MILESTONE-2 / USER-STORY-16: merge the local ingest docs after the backend and
+  UI draft PRs provide the documented API host, UI start action, and runtime
+  ignore setup.
 - MILESTONE-3 / USER-STORY-2 / USER-STORY-3 / USER-STORY-4: implement manifest
   gating, physical file enumeration, and done-marker reconciliation.
 - MILESTONE-3 / USER-STORY-5: implement essence classification.

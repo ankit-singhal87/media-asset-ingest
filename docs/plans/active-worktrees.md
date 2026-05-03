@@ -29,7 +29,7 @@ mirror.
 | `.worktrees/TASK-6-1-specialized-agent-skeletons` | `TASK-6-1-specialized-agent-skeletons` | #34 | USER-STORY-7 | Essence | Superseded media-agent skeleton paths; command routing now lives in `src/MediaIngest.Contracts/Commands` and contract tests | Cleaned Up | Local merge to `main` |
 | `.worktrees/TASK-7-1-observability-correlation` | `TASK-7-1-observability-correlation` | #37 | USER-STORY-11 | Beacon | `src/MediaIngest.Observability`, `tests/MediaIngest.Observability.Tests`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh`, `docs/architecture/004-observability-and-ui.md`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Cleaned Up | Local merge to `main` |
 | `.worktrees/TASK-8-1-react-control-plane` | `TASK-8-1-react-control-plane` | #33 | USER-STORY-12 | Canvas | `web/ingest-control-plane`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md`, `docs/standards/typescript-react.md` | Cleaned Up | Local merge to `main` |
-| `.worktrees/USER-STORY-16-local-ingest-docs` | `USER-STORY-16-local-ingest-docs` | #26 | USER-STORY-16 | Forge | `.gitignore`, `README.md`, `docs/product/backlog.md`, `docs/status/current-status.md`, `docs/status/work-log.md`, `docs/plans/active-worktrees.md` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/44 |
+| `.worktrees/USER-STORY-16-local-ingest-docs` | `USER-STORY-16-local-ingest-docs` | #26 | USER-STORY-16 | Forge | `README.md`, `docs/product/backlog.md`, `docs/status/current-status.md`, `docs/status/work-log.md`, `docs/plans/active-worktrees.md` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/44 |
 
 ## Update Rule
 

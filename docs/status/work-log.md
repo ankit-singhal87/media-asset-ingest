@@ -80,11 +80,11 @@ messages or paste command output unless it explains a decision.
   repeated agent validation time.
 - Added a dedicated optional host-tool installer for .NET SDK, kubectl, Helm,
   Dapr CLI, and Azure CLI with confirmation and post-install verification.
-- Documented the local manifest ingest demo workflow in the README, including
-  local host and UI startup, `input/<asset>/manifest.json` plus checksum setup,
-  expected `output/<asset>/` manifest files, ignored runtime folders, and the
-  in-process scope boundary before real Dapr, PostgreSQL, and Azure Service Bus
-  integration.
+- Drafted the local manifest ingest demo workflow in the README, including the
+  fixed local API port, UI `/api` proxy expectation, **Start ingest** watcher
+  sequence, `input/<asset>/manifest.json` plus checksum setup, expected
+  `output/<asset>/` manifest files, and the in-process scope boundary before
+  real Dapr, PostgreSQL, and Azure Service Bus integration.
 
 ## Update Rule
 
