@@ -16,7 +16,14 @@ task status and relationships.
 
 | Task ID | GitHub issue | Title | Primary lane | Task file | Local status |
 | --- | --- | --- | --- | --- | --- | --- |
-| None | - | No task files created yet | - | - | - |
+| TASK-2-1 | #30 | Create .NET solution skeleton | Forge | `docs/plans/tasks/TASK-2-1-create-dotnet-solution.md` | In Progress |
+| TASK-2-2 | #32 | Define shared backend and UI contracts | Forge | `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md` | In Progress |
+| TASK-3-1 | #35 | Add ingest watcher and scanner foundation | Mount | `docs/plans/tasks/TASK-3-1-ingest-watcher-scanner.md` | Planned |
+| TASK-4-1 | #36 | Add persistence and outbox foundation | Vault | `docs/plans/tasks/TASK-4-1-persistence-outbox-foundation.md` | Planned |
+| TASK-5-1 | #31 | Add Dapr workflow skeleton | Pulse | `docs/plans/tasks/TASK-5-1-dapr-workflow-skeleton.md` | Planned |
+| TASK-6-1 | #34 | Add specialized agent worker skeletons | Essence | `docs/plans/tasks/TASK-6-1-specialized-agent-skeletons.md` | Planned |
+| TASK-7-1 | #37 | Add observability correlation foundation | Beacon | `docs/plans/tasks/TASK-7-1-observability-correlation.md` | Planned |
+| TASK-8-1 | #33 | Scaffold React workflow control plane | Canvas | `docs/plans/tasks/TASK-8-1-react-control-plane.md` | Planned |
 
 ## Update Rule
 

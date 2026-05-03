@@ -33,6 +33,9 @@ messages or paste command output unless it explains a decision.
   context/mirrors.
 - Tightened PR checklist and active worktree mirror after GitHub Projects
   cleanup.
+- Created the first parallel execution task issues and local task files for
+  .NET foundation, shared contracts, Dapr workflow, React UI, watcher,
+  persistence/outbox, observability, and specialized agent lanes.
 
 ## Update Rule
 

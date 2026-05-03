@@ -21,6 +21,8 @@ mirror.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `.worktrees/story-planning` | `docs/story-planning` | #26 | Product planning docs | Atlas | `AGENTS.md`, `README.md`, `docs/product`, `docs/plans`, `docs/bugs`, `docs/automation`, `docs/standards`, `docs/status`, `Makefile`, `package.json`, `scripts/dev` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/28 |
 | `.worktrees/link-and-commit-standards` | `USER-STORY-16-link-and-commit-standards` | #26 | USER-STORY-16 | Forge | `AGENTS.md`, `docs/automation`, `docs/product/task-workflow.md`, `docs/status`, `docs/standards/tooling.md`, `Makefile`, `package.json`, `scripts/dev/check-docs.mjs` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/29 |
+| `.worktrees/TASK-2-1-create-dotnet-solution` | `TASK-2-1-create-dotnet-solution` | #30 | USER-STORY-16 | Forge | `MediaIngest.sln`, `src`, `tests`, `Makefile`, `package.json`, `scripts/dev`, `docs/automation/commands.md`, `docs/automation/validation.md`, `docs/standards/tooling.md`, `docs/status`, `docs/plans` | Active | Not opened |
+| `.worktrees/TASK-2-2-shared-contracts` | `TASK-2-2-shared-contracts` | #32 | USER-STORY-16 | Forge | `src/MediaIngest.Contracts`, `tests/MediaIngest.Contracts.Tests`, `docs/architecture`, `docs/status`, `docs/plans` | Active | Not opened |
 
 ## Update Rule
 

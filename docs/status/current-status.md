@@ -4,8 +4,8 @@
 
 - Phase: planning and repository foundation.
 - Current branch: `main`.
-- Current focus: durable project documentation, automation guidance, standards,
-  and toolchain bootstrap.
+- Current focus: MILESTONE-2 .NET solution foundation and shared contract
+  setup for parallel backend, workflow, and UI work.
 
 ## Completed
 
@@ -34,6 +34,8 @@
   the GitHub Projects tracker model.
 - Markdown link validation, safe docs fix commands, and Git branch/commit/PR
   naming conventions were merged in PR #29.
+- Task issues #30 through #37 were created for the first parallel execution
+  lanes, with #30 and #32 active as the foundation worktrees.
 
 ## Ready For Review
 
@@ -41,7 +43,8 @@
 
 ## Next
 
-- Create implementation plan for the next USER-STORY-16 local tooling slice.
+- Complete TASK-2-1 and TASK-2-2 before starting contract-consuming parallel
+  implementation worktrees.
 
 ## Known Agent Execution Gaps
 
@@ -50,8 +53,8 @@
   issues yet.
 - Project custom fields are populated for current issues, but helper scripts do
   not verify required field completeness across all items.
-- Task and bug templates now reference GitHub issues, but no implementation task
-  issues have been created under story issues yet.
+- GitHub dependency links between tasks still need a safe helper or manual
+  update path; task files currently document intended blocked-by relationships.
 - There is no automated check that issue bodies avoid duplicated relationship
   metadata.
 - There is no standardized PR creation helper that updates GitHub Project fields
