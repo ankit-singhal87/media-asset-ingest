@@ -64,6 +64,9 @@ messages or paste command output unless it explains a decision.
 - Added TASK-7-1 observability correlation field foundation with a canonical
   field catalog, correlation context, and smoke-test coverage in
   `make test-dotnet`.
+- Scaffolded the React workflow control plane for TASK-8-1 with mocked
+  workflow graph data, accessible node status labels, and focused Vitest
+  coverage for the operator graph scenario.
 
 ## Update Rule
 

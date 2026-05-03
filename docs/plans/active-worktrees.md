@@ -28,6 +28,7 @@ mirror.
 | `.worktrees/TASK-5-1-dapr-workflow-skeleton` | `TASK-5-1-dapr-workflow-skeleton` | #31 | USER-STORY-9 | Pulse | `MediaIngest.sln`, `src/MediaIngest.Workflow`, `tests/MediaIngest.Workflow.Tests`, `deploy/dapr`, `scripts/dev/test-dotnet.sh`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Merged | Local merge to `main` |
 | `.worktrees/TASK-6-1-specialized-agent-skeletons` | `TASK-6-1-specialized-agent-skeletons` | #34 | USER-STORY-7 | Essence | `src/MediaIngest.Agents.Video`, `src/MediaIngest.Agents.Audio`, `src/MediaIngest.Agents.Text`, `src/MediaIngest.Agents.Other`, `tests/MediaIngest.Agents.*.Tests`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Merged | Local merge to `main` |
 | `.worktrees/TASK-7-1-observability-correlation` | `TASK-7-1-observability-correlation` | #37 | USER-STORY-11 | Beacon | `src/MediaIngest.Observability`, `tests/MediaIngest.Observability.Tests`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh`, `docs/architecture/004-observability-and-ui.md`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Merged | Local merge to `main` |
+| `.worktrees/TASK-8-1-react-control-plane` | `TASK-8-1-react-control-plane` | #33 | USER-STORY-12 | Canvas | `web/ingest-control-plane`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md`, `docs/standards/typescript-react.md` | Merged | Local merge to `main` |
 
 ## Update Rule
 
