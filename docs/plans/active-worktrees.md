@@ -33,7 +33,7 @@ mirror.
 | `.worktrees/USER-STORY-16-local-ingest-docs` | `USER-STORY-16-local-ingest-docs` | #26 | USER-STORY-16 | Forge | `README.md`, `docs/product/backlog.md`, `docs/status/current-status.md`, `docs/status/work-log.md`, `docs/plans/active-worktrees.md` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/44 |
 | `.worktrees/USER-STORY-12-local-ingest-start-ui` | `USER-STORY-12-local-ingest-start-ui` | #22 | USER-STORY-12 | Canvas | `web/ingest-control-plane`, `docs/plans/active-worktrees.md` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/43 |
 | `.worktrees/parallel-system-components-terminal-scripts` | `USER-STORY-16-parallel-system-components-terminal-scripts` | none | USER-STORY-16 | Forge | `docs/automation/README.md`, `docs/automation/terminal-scripts.md`, `docs/plans/parallel-system-components.md`, `docs/plans/active-worktrees.md`, `.terminals` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/46 |
-| `.worktrees/parallel-09-gauge-e2e-smoke` | `parallel-09-gauge-e2e-smoke` | none | none | Gauge | `scripts/dev/local-e2e-smoke.sh`, `docs/automation/local-smoke-tests.md`, `docs/automation/commands.md`, `docs/automation/validation.md`, `docs/automation/README.md`, `docs/plans/active-worktrees.md` | Ready For PR | none |
+| `.worktrees/parallel-09-gauge-e2e-smoke` | `parallel-09-gauge-e2e-smoke` | none | none | Gauge | `scripts/dev/local-e2e-smoke.sh`, `docs/automation/local-smoke-tests.md`, `docs/automation/commands.md`, `docs/automation/validation.md`, `docs/automation/README.md`, `docs/plans/active-worktrees.md` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/53 |
 
 ## Update Rule
 
