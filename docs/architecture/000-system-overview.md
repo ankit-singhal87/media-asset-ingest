@@ -1,0 +1,47 @@
+# System Overview
+
+## Purpose
+
+Media Asset Ingest is a portfolio-grade cloud-native .NET backend for ingesting
+media asset packages from a mounted filesystem path, coordinating asynchronous
+processing through workflows and queues, and exposing operational visibility
+through a workflow graph UI.
+
+## Target Architecture
+
+- Runtime: Docker containers on Kubernetes.
+- Cloud: Azure only.
+- Orchestration: Dapr Workflow.
+- Messaging: Azure Service Bus.
+- Persistence: PostgreSQL.
+- Reliability: transactional outbox.
+- Observability: structured JSON logs, OpenTelemetry traces, and business
+  progress/timeline state.
+- UI: workflow graph control plane with nested workflow drilldown and node logs.
+
+## Core Flow
+
+1. A watcher monitors a configured directory such as `/mnt/ingest`.
+2. Each immediate child directory is treated as an ingest package.
+3. Work starts only after `manifest.json` exists.
+4. The package scanner enumerates every file physically present in the directory.
+5. The classifier maps files to essence/work categories.
+6. The package workflow emits commands through the outbox to Azure Service Bus.
+7. Specialized agents consume only their assigned queues.
+8. Agents record business progress and logs with shared correlation fields.
+9. The done marker triggers reconciliation for late files.
+10. The package workflow finalizes after required work completes.
+
+## Key Separation
+
+Dapr Workflow coordinates package state transitions. Azure Service Bus distributes
+work. Agents execute specialized processing. PostgreSQL stores business truth.
+Dapr stores workflow runtime state in its own state store.
+
+## Deferred Decisions
+
+- Production mount backing: Azure Files, Blob CSI, or another Azure-backed option.
+- Exact relational schema.
+- Exact UI framework details beyond graph rendering requirements.
+- Full Azure deployment and cost profile.
+

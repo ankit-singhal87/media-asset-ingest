@@ -1,0 +1,12 @@
+{
+  "name": "media-asset-ingest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloud-native media asset ingest backend planning and repository tooling.",
+  "scripts": {
+    "docs:check": "node scripts/dev/check-docs.mjs",
+    "tools:check": "sh scripts/dev/check-tools.sh"
+  },
+  "devDependencies": {}
+}
+
