@@ -40,6 +40,8 @@ messages or paste command output unless it explains a decision.
   native sub-issue links, and native blocked-by dependency links.
 - Added tested GitHub tracker helpers for required field audits, issue-body
   relationship linting, and PR creation with Project/worktree state updates.
+- Documented serialized GitHub Project operations so parallel agents do not
+  exhaust the shared GraphQL rate-limit budget.
 
 ## Update Rule
 

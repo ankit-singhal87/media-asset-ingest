@@ -108,6 +108,32 @@ Default rule:
 - `gh` or Make for GitHub Projects, native relationship wiring, and repo-local
   tracker validation.
 
+## Rate Limit Strategy
+
+GitHub Projects operations are GraphQL-backed and can exhaust the account's
+GraphQL point budget quickly, especially when several agents run `gh project`
+commands at the same time. Treat Project reads and writes as serialized
+coordination checkpoints, not as a polling mechanism.
+
+Agent rules:
+
+- Use local task files, `docs/plans/active-worktrees.md`, and the GitHub plugin
+  for normal in-task context.
+- Do not run GitHub Project commands from multiple terminals at the same time.
+- Run Project writes only at task boundaries: start, blocked, ready for PR, PR
+  opened, merged, or cleanup.
+- Batch all fields for one issue before moving to the next issue.
+- Prefer one coordinating agent to perform tracker audits and bulk Project
+  cleanup after parallel agents finish their local validation.
+- If GitHub returns a GraphQL rate-limit error, stop Project operations and
+  query `gh api graphql -f query='query { rateLimit { remaining resetAt } }'`.
+  Resume only after the reset time or after the coordinator approves a smaller
+  retry.
+
+Remote tracker validation should normally run once before dispatch and once
+after handoff. During implementation, agents should rely on local validation and
+issue/PR reads instead of repeated Project scans.
+
 Plugin smoke test evidence from 2026-05-03:
 
 - `_get_user_login` returned `ankit-singhal87`.

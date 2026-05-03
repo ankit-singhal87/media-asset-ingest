@@ -64,3 +64,24 @@ Do not merge competing edits manually without a new plan.
 Parallel agents normally run in separate terminals with separate worktrees. Each
 agent owns cleanup for the worktree it created; do not leave merged worktrees
 behind unless cleanup is blocked, and report the blocker in the handoff.
+
+## Tracker Coordination
+
+GitHub Project commands must be serialized across terminals. Parallel agents may
+work on local files at the same time, but they must not run Project field writes,
+Project audits, or bulk tracker validation concurrently.
+
+Recommended pattern:
+
+1. One coordinator runs tracker checks before dispatch.
+2. Each agent works locally and validates locally.
+3. Agents update local docs and prepare handoff.
+4. The coordinator serially updates GitHub Project fields and opens PRs, or one
+   agent at a time performs those steps after confirming no other tracker
+   command is running.
+5. The coordinator runs final Project audits after all tracker writes complete.
+
+Use the GitHub plugin for ordinary issue, PR, review, diff, commit, and CI
+inspection. Reserve `gh project`, `make github-project-*`, and
+`scripts/dev/github-projects.sh` for checkpoint updates because those commands
+consume the shared GitHub GraphQL budget.
