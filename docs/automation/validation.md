@@ -9,6 +9,7 @@
 | Tooling change | `make validate` and `make check-tools` when host tools are expected | `make print-install-tools` review | no | no | cheap |
 | GitHub tracker change | `make github-project-summary` and `make github-project-active` | targeted `gh issue view`, `make github-project-hierarchy` only when parent/child navigation changed | no | no | cheap |
 | .NET code change | focused `make test-dotnet-*` target for the touched component | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
+| Local ingest smoke script change | `sh -n scripts/dev/local-e2e-smoke.sh` and `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Run `dotnet run --project src/MediaIngest.Api --urls http://127.0.0.1:5000`, then `sh scripts/dev/local-e2e-smoke.sh` from another terminal | no | no | cheap |
 | Docker/Kubernetes change | relevant local smoke test once scripts exist | full local runtime validation | yes | no | moderate |
 | Azure deployment change | static manifest/terraform validation only | manual cloud validation after approval | maybe | yes | paid/approval |
 
