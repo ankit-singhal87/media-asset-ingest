@@ -5,13 +5,15 @@ using MediaIngest.Worker.Watcher;
 using MediaIngest.Workflow;
 
 var repoRoot = Path.Combine(Path.GetTempPath(), "media-ingest-api-tests", Guid.NewGuid().ToString("N"));
-var inputPath = Path.Combine(repoRoot, "input");
-var outputPath = Path.Combine(repoRoot, "output");
-Directory.CreateDirectory(outputPath);
 
 try
 {
-    await using var runtimeService = CreateRuntimeService(inputPath, outputPath);
+    var inputPath = Path.Combine(repoRoot, "success-input");
+    var outputPath = Path.Combine(repoRoot, "success-output");
+    Directory.CreateDirectory(outputPath);
+
+    await using var runtime = CreateRuntimeService(inputPath, outputPath);
+    var runtimeService = runtime.Service;
     var startResult = await runtimeService.StartAsync();
 
     AssertFalse(startResult.HasConflict, "initial start has conflict");
@@ -51,6 +53,39 @@ try
     AssertFalse(repeatedStartResult.HasConflict, "repeated start has conflict");
     AssertEqual("Succeeded", repeatedStartStatus.Packages[0].Status, "repeated start status");
     AssertEqual("different", File.ReadAllText(Path.Combine(outputPath, "asset-001", "manifest.json")), "repeated start output preserved");
+
+    var conflictInputPath = Path.Combine(repoRoot, "conflict-input");
+    var conflictOutputPath = Path.Combine(repoRoot, "conflict-output");
+    var conflictOutputPackagePath = Path.Combine(conflictOutputPath, "asset-001");
+    Directory.CreateDirectory(conflictOutputPackagePath);
+    File.WriteAllText(Path.Combine(conflictOutputPackagePath, "manifest.json"), "existing output");
+
+    await using var conflictRuntime = CreateRuntimeService(conflictInputPath, conflictOutputPath);
+    await conflictRuntime.Service.StartAsync();
+
+    var conflictPackagePath = Path.Combine(conflictInputPath, "asset-001");
+    Directory.CreateDirectory(conflictPackagePath);
+    File.WriteAllText(Path.Combine(conflictPackagePath, "manifest.json"), "new input");
+    File.WriteAllText(Path.Combine(conflictPackagePath, "manifest.json.checksum"), "opaque checksum");
+
+    await WaitForAsync(
+        () => conflictRuntime.Service.GetStatus().Packages.SingleOrDefault()?.Status == "Failed",
+        "conflicting package created after start to fail");
+
+    var conflictStatus = conflictRuntime.Service.GetStatus();
+    AssertEqual(1, conflictStatus.Packages.Count, "conflict package count");
+    AssertEqual("Failed", conflictStatus.Packages[0].Status, "conflict package status");
+    AssertEqual("existing output", File.ReadAllText(Path.Combine(conflictOutputPackagePath, "manifest.json")), "conflict output preserved");
+
+    var stateCountAfterFailure = conflictRuntime.Store.PackageStates.Count;
+    var messageCountAfterFailure = conflictRuntime.Store.OutboxMessages.Count;
+    await Task.Delay(TimeSpan.FromMilliseconds(250));
+
+    var conflictStatusAfterDelay = conflictRuntime.Service.GetStatus();
+    AssertEqual("Failed", conflictStatusAfterDelay.Packages[0].Status, "conflict status after watcher intervals");
+    AssertEqual("existing output", File.ReadAllText(Path.Combine(conflictOutputPackagePath, "manifest.json")), "conflict output preserved after watcher intervals");
+    AssertEqual(stateCountAfterFailure, conflictRuntime.Store.PackageStates.Count, "conflict state count after watcher intervals");
+    AssertEqual(messageCountAfterFailure, conflictRuntime.Store.OutboxMessages.Count, "conflict outbox message count after watcher intervals");
 }
 finally
 {
@@ -62,18 +97,20 @@ finally
 
 Console.WriteLine("MediaIngest API smoke tests passed.");
 
-static IngestRuntimeService CreateRuntimeService(string inputPath, string outputPath)
+static TestRuntime CreateRuntimeService(string inputPath, string outputPath)
 {
     var store = new InMemoryIngestPersistenceStore();
     var publisher = new LocalManifestTransferPublisher();
 
-    return new IngestRuntimeService(
+    var service = new IngestRuntimeService(
         new IngestRuntimePaths(inputPath, outputPath),
         new IngestMountScanner(),
         new ManifestReadinessGate(),
         new PackageWorkflowStarter(),
         store,
         new OutboxDispatcher(store, publisher));
+
+    return new TestRuntime(service, store);
 }
 
 static async Task WaitForAsync(Func<bool> condition, string name)
@@ -115,4 +152,11 @@ static void AssertFalse(bool condition, string name)
     {
         throw new InvalidOperationException($"{name}: expected false.");
     }
+}
+
+internal sealed record TestRuntime(
+    IngestRuntimeService Service,
+    InMemoryIngestPersistenceStore Store) : IAsyncDisposable
+{
+    public ValueTask DisposeAsync() => Service.DisposeAsync();
 }

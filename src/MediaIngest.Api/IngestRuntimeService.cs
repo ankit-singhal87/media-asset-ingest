@@ -17,7 +17,7 @@ public sealed class IngestRuntimeService(
     private static readonly TimeSpan WatchInterval = TimeSpan.FromMilliseconds(100);
 
     private readonly object watcherLock = new();
-    private readonly HashSet<string> succeededPackageIds = new(StringComparer.Ordinal);
+    private readonly HashSet<string> terminalPackageIds = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim scanLock = new(1, 1);
     private CancellationTokenSource? watcherCancellation;
     private Task? watcherTask;
@@ -78,7 +78,7 @@ public sealed class IngestRuntimeService(
             {
                 var packageId = Path.GetFileName(candidate.PackagePath);
 
-                if (succeededPackageIds.Contains(packageId))
+                if (terminalPackageIds.Contains(packageId))
                 {
                     continue;
                 }
@@ -106,14 +106,19 @@ public sealed class IngestRuntimeService(
                     await store.SaveAsync(new PersistenceBatch(
                         [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
                         []), cancellationToken);
-                    succeededPackageIds.Add(packageId);
+                    terminalPackageIds.Add(packageId);
                 }
                 catch (LocalManifestTransferConflictException)
                 {
                     hadTransferConflict = true;
+                    await store.MarkOutboxMessageDispatchedAsync(
+                        message.MessageId,
+                        DateTimeOffset.UtcNow,
+                        cancellationToken);
                     await store.SaveAsync(new PersistenceBatch(
                         [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
                         []), cancellationToken);
+                    terminalPackageIds.Add(packageId);
                 }
             }
 
