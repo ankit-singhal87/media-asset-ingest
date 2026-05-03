@@ -9,6 +9,8 @@ Planning artifacts turn product stories into executable implementation work.
 - `docs/plans/task-index.md` - local task-plan mirror.
 - `docs/plans/active-worktrees.md` - optional local active worktree and
   parallel-agent coordination mirror.
+- `docs/plans/parallel-system-components.md` - current parallel
+  system-component track plan.
 - `docs/plans/milestones/` - milestone-level implementation plans.
 - `docs/plans/tasks/` - small task files created from milestone plans.
 - `docs/bugs/` - defect reports and bug-fix tracking.
