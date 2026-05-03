@@ -23,7 +23,7 @@ visibility through a workflow graph UI.
 
 1. A watcher monitors a configured directory such as `/mnt/ingest`.
 2. Each immediate child directory is treated as an ingest package.
-3. Work starts only after `manifest.json` exists.
+3. Work starts only after `manifest.json` and `manifest.json.checksum` exist.
 4. The package scanner enumerates every file physically present in the directory.
 5. The classifier records file metadata needed by command-routing policy.
 6. The package workflow emits semantic commands through the outbox to Azure Service Bus.

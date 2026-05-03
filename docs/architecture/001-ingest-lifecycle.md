@@ -8,9 +8,9 @@ production can later bind the same path to Azure-backed storage.
 
 ## Start Conditions
 
-An ingest package is not eligible for work until `manifest.json` exists. The
-manifest is a start signal and metadata source, not the authoritative list of
-files to ingest.
+An ingest package is not eligible for work until `manifest.json` and
+`manifest.json.checksum` exist. The manifest is a start signal and metadata
+source, not the authoritative list of files to ingest.
 
 ## File Enumeration
 

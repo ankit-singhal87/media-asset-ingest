@@ -8,7 +8,7 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | ID | Title | Milestone | Domain | Primary lane | Status |
 | --- | --- | --- | --- | --- | --- |
 | USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | In Progress |
-| USER-STORY-2 | Start only when manifest exists | MILESTONE-3 | Manifest | Mount | Planned |
+| USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Planned |
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | Planned |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |
@@ -59,10 +59,11 @@ Dependencies:
 
 - MILESTONE-2 local runtime foundation.
 
-## USER-STORY-2: Start Only When Manifest Exists
+## USER-STORY-2: Start Only When Manifest Is Ready
 
-As an ingest producer, I want ingest to start only after `manifest.json` exists,
-so that incomplete package directories are not processed prematurely.
+As an ingest producer, I want ingest to start only after `manifest.json` and
+`manifest.json.checksum` exist, so that incomplete package directories are not
+processed prematurely.
 
 Milestone: MILESTONE-3
 
@@ -86,7 +87,9 @@ Components involved:
 Acceptance themes:
 
 - Package directory without `manifest.json` is observed but not processed.
-- Package work starts after `manifest.json` appears.
+- Package directory with only `manifest.json` is observed but not processed.
+- Package work starts after `manifest.json` and `manifest.json.checksum`
+  appear.
 - Manifest is treated as metadata and a start signal.
 
 Dependencies:

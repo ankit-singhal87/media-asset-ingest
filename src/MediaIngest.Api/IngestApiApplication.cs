@@ -81,6 +81,7 @@ public sealed class IngestApiApplication : IAsyncDisposable
             Path.GetFullPath(inputPath),
             Path.GetFullPath(outputPath)));
         services.AddSingleton<IngestMountScanner>();
+        services.AddSingleton<ManifestReadinessGate>();
         services.AddSingleton<PackageWorkflowStarter>();
         services.AddSingleton<InMemoryIngestPersistenceStore>();
         services.AddSingleton<IIngestPersistenceStore>(serviceProvider =>

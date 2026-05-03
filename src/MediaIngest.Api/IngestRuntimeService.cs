@@ -9,65 +9,129 @@ namespace MediaIngest.Api;
 public sealed class IngestRuntimeService(
     IngestRuntimePaths paths,
     IngestMountScanner scanner,
+    ManifestReadinessGate readinessGate,
     PackageWorkflowStarter workflowStarter,
     InMemoryIngestPersistenceStore store,
-    OutboxDispatcher outboxDispatcher)
+    OutboxDispatcher outboxDispatcher) : IAsyncDisposable
 {
+    private static readonly TimeSpan WatchInterval = TimeSpan.FromMilliseconds(100);
+
+    private readonly object watcherLock = new();
+    private readonly HashSet<string> succeededPackageIds = new(StringComparer.Ordinal);
+    private readonly SemaphoreSlim scanLock = new(1, 1);
+    private CancellationTokenSource? watcherCancellation;
+    private Task? watcherTask;
+
     public async Task<IngestStartResult> StartAsync(CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(paths.InputPath);
         Directory.CreateDirectory(paths.OutputPath);
 
-        var candidates = scanner.FindPackageCandidates(paths.InputPath);
-        var startedPackages = new List<StartedIngestPackageResponse>();
-        var hadTransferConflict = false;
+        var result = await ScanOnceAsync(cancellationToken);
+        StartWatcher();
 
-        foreach (var candidate in candidates)
+        return result;
+    }
+
+    private void StartWatcher()
+    {
+        lock (watcherLock)
         {
-            var packageId = Path.GetFileName(candidate.PackagePath);
-            var acceptedAt = DateTimeOffset.UtcNow;
-            var workflowStart = workflowStarter.Start(new PackageIngestRequest(
-                PackageId: packageId,
-                PackagePath: candidate.PackagePath,
-                CorrelationId: $"correlation-{packageId}",
-                AcceptedAt: acceptedAt));
+            if (watcherTask is { IsCompleted: false })
+            {
+                return;
+            }
 
-            var message = CreateLocalTransferMessage(workflowStart, paths.OutputPath);
+            watcherCancellation?.Dispose();
+            watcherCancellation = new CancellationTokenSource();
+            watcherTask = WatchAsync(watcherCancellation.Token);
+        }
+    }
 
-            await store.SaveAsync(new PersistenceBatch(
-                [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", acceptedAt)],
-                [message]), cancellationToken);
-
-            startedPackages.Add(new StartedIngestPackageResponse(
-                packageId,
-                workflowStart.WorkflowInstanceId));
-
+    private async Task WatchAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
             try
             {
-                await outboxDispatcher.DispatchPendingAsync(cancellationToken);
-                await store.SaveAsync(new PersistenceBatch(
-                    [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
-                    []), cancellationToken);
+                await ScanOnceAsync(cancellationToken);
+                await Task.Delay(WatchInterval, cancellationToken);
             }
-            catch (LocalManifestTransferConflictException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                hadTransferConflict = true;
-                await store.SaveAsync(new PersistenceBatch(
-                    [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
-                    []), cancellationToken);
+                return;
             }
         }
+    }
 
-        return new IngestStartResult(
-            new IngestStartResponse(startedPackages),
-            hadTransferConflict);
+    private async Task<IngestStartResult> ScanOnceAsync(CancellationToken cancellationToken)
+    {
+        await scanLock.WaitAsync(cancellationToken);
+
+        try
+        {
+            var candidates = scanner.FindPackageCandidates(paths.InputPath);
+            var startedPackages = new List<StartedIngestPackageResponse>();
+            var hadTransferConflict = false;
+
+            foreach (var candidate in candidates.Where(readinessGate.IsReady))
+            {
+                var packageId = Path.GetFileName(candidate.PackagePath);
+
+                if (succeededPackageIds.Contains(packageId))
+                {
+                    continue;
+                }
+
+                var acceptedAt = DateTimeOffset.UtcNow;
+                var workflowStart = workflowStarter.Start(new PackageIngestRequest(
+                    PackageId: packageId,
+                    PackagePath: candidate.PackagePath,
+                    CorrelationId: $"correlation-{packageId}",
+                    AcceptedAt: acceptedAt));
+
+                var message = CreateLocalTransferMessage(workflowStart, paths.OutputPath);
+
+                await store.SaveAsync(new PersistenceBatch(
+                    [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", acceptedAt)],
+                    [message]), cancellationToken);
+
+                startedPackages.Add(new StartedIngestPackageResponse(
+                    packageId,
+                    workflowStart.WorkflowInstanceId));
+
+                try
+                {
+                    await outboxDispatcher.DispatchPendingAsync(cancellationToken);
+                    await store.SaveAsync(new PersistenceBatch(
+                        [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
+                        []), cancellationToken);
+                    succeededPackageIds.Add(packageId);
+                }
+                catch (LocalManifestTransferConflictException)
+                {
+                    hadTransferConflict = true;
+                    await store.SaveAsync(new PersistenceBatch(
+                        [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
+                        []), cancellationToken);
+                }
+            }
+
+            return new IngestStartResult(
+                new IngestStartResponse(startedPackages),
+                hadTransferConflict);
+        }
+        finally
+        {
+            scanLock.Release();
+        }
     }
 
     public IngestStatusResponse GetStatus()
     {
         var packages = store.PackageStates
             .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
-            .Select(group => group.OrderByDescending(packageState => packageState.UpdatedAt).First())
+            .Select(group => group.Last())
             .OrderBy(packageState => packageState.PackageId, StringComparer.Ordinal)
             .Select(packageState => new IngestPackageStatusResponse(
                 packageState.PackageId,
@@ -77,6 +141,42 @@ public sealed class IngestRuntimeService(
             .ToArray();
 
         return new IngestStatusResponse(packages);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        CancellationTokenSource? cancellation;
+        Task? task;
+
+        lock (watcherLock)
+        {
+            cancellation = watcherCancellation;
+            task = watcherTask;
+            watcherCancellation = null;
+            watcherTask = null;
+        }
+
+        if (cancellation is null)
+        {
+            scanLock.Dispose();
+            return;
+        }
+
+        await cancellation.CancelAsync();
+
+        if (task is not null)
+        {
+            try
+            {
+                await task;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        cancellation.Dispose();
+        scanLock.Dispose();
     }
 
     private static OutboxMessage CreateLocalTransferMessage(

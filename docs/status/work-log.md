@@ -80,6 +80,9 @@ messages or paste command output unless it explains a decision.
   repeated agent validation time.
 - Added a dedicated optional host-tool installer for .NET SDK, kubectl, Helm,
   Dapr CLI, and Azure CLI with confirmation and post-install verification.
+- Updated PR #45 local manifest ingest behavior so package discovery observes
+  all immediate child directories, readiness requires both manifest files, and
+  start ingest launches a background watcher loop.
 
 ## Update Rule
 
