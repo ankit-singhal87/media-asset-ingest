@@ -35,6 +35,7 @@ Each parallel agent must receive:
 - validation command
 - expected handoff format
 - requirement to update `docs/plans/active-worktrees.md`
+- requirement to clean up its own local worktree after the PR merges
 - requirement to update GitHub Projects when tracker state changes
 
 ## Conflict Protocol
@@ -57,5 +58,9 @@ Do not merge competing edits manually without a new plan.
 5. Mark the local row `Ready For PR` after validation passes.
 6. Create PR when authorized.
 7. Mark the GitHub Project item and local row `PR Open`.
-8. After merge, mark `Merged`, clean up local worktree, then mark `Cleaned Up`
-   in a follow-up cleanup change if needed.
+8. After merge, the owning agent must remove its local worktree, then update
+   `docs/plans/active-worktrees.md` to `Cleaned Up`.
+
+Parallel agents normally run in separate terminals with separate worktrees. Each
+agent owns cleanup for the worktree it created; do not leave merged worktrees
+behind unless cleanup is blocked, and report the blocker in the handoff.

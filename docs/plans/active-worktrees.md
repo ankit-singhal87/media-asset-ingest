@@ -36,6 +36,8 @@ Agents must update this file when:
 
 Agents must also update GitHub Projects when tracker state changes. Do not use
 this file as the only record of issue, task, bug, milestone, or PR state.
+When a PR merges, the owning agent must remove its local worktree and mark the
+row `Cleaned Up`, unless cleanup is blocked and reported in the handoff.
 
 ## Parallel Safety Rule
 
