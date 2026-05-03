@@ -39,20 +39,46 @@ case "$args" in
   *"project field-list 2 --owner ankit-singhal87"*".name == \"Status\""*".options[]"*".name == \"PR Open\""*)
     printf '%s\n' "PR_OPEN"
     ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Type\""*".options[]"*".name == \"Task\""*)
+    printf '%s\n' "TYPE_TASK"
+    ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Lane\""*".options[]"*".name == \"Forge\""*)
+    printf '%s\n' "LANE_FORGE"
+    ;;
   *"project field-list 2 --owner ankit-singhal87"*".name == \"Status\""*".id")
     printf '%s\n' "STATUS_FIELD"
     ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Type\""*".id")
+    printf '%s\n' "TYPE_FIELD"
+    ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Lane\""*".id")
+    printf '%s\n' "LANE_FIELD"
+    ;;
   *"project field-list 2 --owner ankit-singhal87"*".name == \"Worktree / Branch\""*".id")
     printf '%s\n' "WORKTREE_FIELD"
+    ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Target Files\""*".id")
+    printf '%s\n' "TARGET_FILES_FIELD"
+    ;;
+  *"project field-list 2 --owner ankit-singhal87"*".name == \"Validation\""*".id")
+    printf '%s\n' "VALIDATION_FIELD"
     ;;
   *"project field-list 2 --owner ankit-singhal87"*".name == \"PR\""*".id")
     printf '%s\n' "PR_FIELD"
     ;;
   "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id STATUS_FIELD --single-select-option-id STATUS_IN_PROGRESS")
     ;;
+  "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id TYPE_FIELD --single-select-option-id TYPE_TASK")
+    ;;
+  "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id LANE_FIELD --single-select-option-id LANE_FORGE")
+    ;;
   "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id STATUS_FIELD --single-select-option-id PR_OPEN")
     ;;
   "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id WORKTREE_FIELD --text TASK-2-1 / .worktrees/TASK-2-1")
+    ;;
+  "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id TARGET_FILES_FIELD --text src; tests")
+    ;;
+  "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id VALIDATION_FIELD --text make validate")
     ;;
   "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id PR_FIELD --text https://github.com/ankit-singhal87/media-asset-ingest/pull/30")
     ;;
@@ -90,6 +116,10 @@ PATH="$fake_bin:$PATH" GH_TEST_LOG="$log_file" \
   sh scripts/dev/github-projects.sh set-text 30 "Worktree / Branch" "TASK-2-1 / .worktrees/TASK-2-1"
 
 PATH="$fake_bin:$PATH" GH_TEST_LOG="$log_file" \
+  sh scripts/dev/github-projects.sh set-task-fields \
+    30 Forge "In Progress" "TASK-2-1 / .worktrees/TASK-2-1" "src; tests" "make validate"
+
+PATH="$fake_bin:$PATH" GH_TEST_LOG="$log_file" \
   sh scripts/dev/github-projects.sh add-sub-issue 26 30 >/dev/null
 
 PATH="$fake_bin:$PATH" GH_TEST_LOG="$log_file" \
@@ -120,7 +150,11 @@ PATH="$fake_bin:$PATH" GH_TEST_LOG="$log_file" GH_TEST_BODY="$body_file" \
     "$active_worktrees_file" >/dev/null
 
 grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id STATUS_FIELD --single-select-option-id STATUS_IN_PROGRESS" "$log_file" >/dev/null
+grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id TYPE_FIELD --single-select-option-id TYPE_TASK" "$log_file" >/dev/null
+grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id LANE_FIELD --single-select-option-id LANE_FORGE" "$log_file" >/dev/null
 grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id WORKTREE_FIELD --text TASK-2-1 / .worktrees/TASK-2-1" "$log_file" >/dev/null
+grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id TARGET_FILES_FIELD --text src; tests" "$log_file" >/dev/null
+grep -F "project item-edit --project-id PROJECT_ID --id ITEM_30 --field-id VALIDATION_FIELD --text make validate" "$log_file" >/dev/null
 grep -F "repos/ankit-singhal87/media-asset-ingest/issues/26/sub_issues" "$log_file" >/dev/null
 grep -F "sub_issue_id=4372284132" "$log_file" >/dev/null
 grep -F "repos/ankit-singhal87/media-asset-ingest/issues/31/dependencies/blocked_by" "$log_file" >/dev/null

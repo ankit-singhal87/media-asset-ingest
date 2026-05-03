@@ -21,6 +21,7 @@ Commands:
   set-type         Set GitHub Project Type for an issue.
   set-lane         Set GitHub Project Lane for an issue.
   set-text         Set a GitHub Project text field for an issue.
+  set-task-fields  Set common task Project fields in one serialized call.
   add-sub-issue    Add a native GitHub sub-issue relationship.
   add-blocked-by   Add a native GitHub blocked-by dependency.
 
@@ -127,26 +128,86 @@ lint_issue_bodies() {
 }
 
 project_id() {
-  gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json --jq '.id'
+  if [ -z "${PROJECT_ID_CACHE:-}" ]; then
+    PROJECT_ID_CACHE=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json --jq '.id')
+  fi
+  printf '%s\n' "$PROJECT_ID_CACHE"
 }
 
 project_item_id_for_issue() {
   issue_number=$1
-  gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json \
-    --jq ".items[] | select(.content.number == $issue_number) | .id"
+  cache_var="PROJECT_ITEM_ID_${issue_number}"
+  eval "cached=\${$cache_var:-}"
+  if [ -z "$cached" ]; then
+    cached=$(
+      gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json \
+        --jq ".items[] | select(.content.number == $issue_number) | .id"
+    )
+    eval "$cache_var=\$cached"
+  fi
+  printf '%s\n' "$cached"
 }
 
 project_field_id() {
   field_name=$1
-  gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
-    --jq ".fields[] | select(.name == \"$field_name\") | .id"
+  case "$field_name" in
+    Type) cache_var=PROJECT_FIELD_TYPE ;;
+    Lane) cache_var=PROJECT_FIELD_LANE ;;
+    Status) cache_var=PROJECT_FIELD_STATUS ;;
+    "Worktree / Branch") cache_var=PROJECT_FIELD_WORKTREE ;;
+    "Target Files") cache_var=PROJECT_FIELD_TARGET_FILES ;;
+    Validation) cache_var=PROJECT_FIELD_VALIDATION ;;
+    PR) cache_var=PROJECT_FIELD_PR ;;
+    *)
+      printf 'Unsupported cached Project field: %s\n' "$field_name" >&2
+      exit 2
+      ;;
+  esac
+
+  eval "cached=\${$cache_var:-}"
+  if [ -z "$cached" ]; then
+    cached=$(
+      gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
+        --jq ".fields[] | select(.name == \"$field_name\") | .id"
+    )
+    eval "$cache_var=\$cached"
+  fi
+  printf '%s\n' "$cached"
 }
 
 project_option_id() {
   field_name=$1
   option_name=$2
-  gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
-    --jq ".fields[] | select(.name == \"$field_name\") | .options[] | select(.name == \"$option_name\") | .id"
+  case "$field_name:$option_name" in
+    Type:Task) cache_var=PROJECT_OPTION_TYPE_TASK ;;
+    Status:"In Progress") cache_var=PROJECT_OPTION_STATUS_IN_PROGRESS ;;
+    Status:"PR Open") cache_var=PROJECT_OPTION_STATUS_PR_OPEN ;;
+    Lane:Atlas) cache_var=PROJECT_OPTION_LANE_ATLAS ;;
+    Lane:Mount) cache_var=PROJECT_OPTION_LANE_MOUNT ;;
+    Lane:Pulse) cache_var=PROJECT_OPTION_LANE_PULSE ;;
+    Lane:Courier) cache_var=PROJECT_OPTION_LANE_COURIER ;;
+    Lane:Vault) cache_var=PROJECT_OPTION_LANE_VAULT ;;
+    Lane:Essence) cache_var=PROJECT_OPTION_LANE_ESSENCE ;;
+    Lane:Beacon) cache_var=PROJECT_OPTION_LANE_BEACON ;;
+    Lane:Canvas) cache_var=PROJECT_OPTION_LANE_CANVAS ;;
+    Lane:Forge) cache_var=PROJECT_OPTION_LANE_FORGE ;;
+    Lane:Gauge) cache_var=PROJECT_OPTION_LANE_GAUGE ;;
+    Lane:Shield) cache_var=PROJECT_OPTION_LANE_SHIELD ;;
+    *)
+      printf 'Unsupported cached Project option: %s=%s\n' "$field_name" "$option_name" >&2
+      exit 2
+      ;;
+  esac
+
+  eval "cached=\${$cache_var:-}"
+  if [ -z "$cached" ]; then
+    cached=$(
+      gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
+        --jq ".fields[] | select(.name == \"$field_name\") | .options[] | select(.name == \"$option_name\") | .id"
+    )
+    eval "$cache_var=\$cached"
+  fi
+  printf '%s\n' "$cached"
 }
 
 require_arg() {
@@ -200,6 +261,22 @@ set_text_field() {
     --id "$item" \
     --field-id "$field" \
     --text "$text_value"
+}
+
+set_task_fields() {
+  issue_number=$1
+  lane=$2
+  status=$3
+  worktree_branch=$4
+  target_files=$5
+  validation=$6
+
+  set_single_select_field "$issue_number" "Type" "Task"
+  set_single_select_field "$issue_number" "Lane" "$lane"
+  set_single_select_field "$issue_number" "Status" "$status"
+  set_text_field "$issue_number" "Worktree / Branch" "$worktree_branch"
+  set_text_field "$issue_number" "Target Files" "$target_files"
+  set_text_field "$issue_number" "Validation" "$validation"
 }
 
 mark_active_worktree_pr_open() {
@@ -327,6 +404,15 @@ case "${1:-}" in
     require_arg "${3:-}" "field-name"
     require_arg "${4:-}" "text"
     set_text_field "$2" "$3" "$4"
+    ;;
+  set-task-fields)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "lane"
+    require_arg "${4:-}" "status"
+    require_arg "${5:-}" "worktree-branch"
+    require_arg "${6:-}" "target-files"
+    require_arg "${7:-}" "validation"
+    set_task_fields "$2" "$3" "$4" "$5" "$6" "$7"
     ;;
   add-sub-issue)
     require_arg "${2:-}" "parent-issue-number"
