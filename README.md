@@ -56,6 +56,46 @@ At this stage validation checks documentation and shell script syntax. Runtime
 build/test targets will be added as the .NET solution and containers are
 introduced.
 
+## Local Manifest Ingest Demo
+
+This slice is an in-process local demo. It exercises the manifest start path
+through local folders and does not yet use real Dapr Workflow runtime,
+PostgreSQL, Azure Service Bus, or command runner services.
+
+Start the local ingest host:
+
+```bash
+dotnet run --project src/MediaIngest.Api
+```
+
+Start the UI in another terminal:
+
+```bash
+cd web/ingest-control-plane
+npm run dev
+```
+
+Create a package under the local runtime input folder. The manifest contents are
+opaque to this slice; the presence of `manifest.json` and
+`manifest.json.checksum` is the start signal.
+
+```bash
+mkdir -p input/asset-001
+printf '%s\n' '{"asset":"asset-001"}' > input/asset-001/manifest.json
+printf '%s\n' 'local-demo-checksum' > input/asset-001/manifest.json.checksum
+```
+
+Open the Vite URL printed by the UI and press **Start ingest**. The expected
+local output is:
+
+```text
+output/asset-001/manifest.json
+output/asset-001/manifest.json.checksum
+```
+
+The `input/` and `output/` directories are local runtime folders and are ignored
+by Git.
+
 ## Agent Tooling
 
 This repository is operated with
