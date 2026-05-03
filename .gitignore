@@ -1,4 +1,5 @@
 .worktrees/
+.cache/
 
 # .NET build output
 **/bin/

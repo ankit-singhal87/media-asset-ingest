@@ -62,6 +62,9 @@
   lightweight status only.
 - Command routing now uses semantic command topics and light, medium, or heavy
   execution classes instead of media-specific agent projects.
+- Agent execution tooling now includes focused .NET smoke-test targets, focused
+  validation targets, an agent preflight command, and a repo-local ignored
+  Docker .NET cache for faster repeated validation.
 
 ## Ready For Review
 

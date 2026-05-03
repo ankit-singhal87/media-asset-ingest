@@ -6,6 +6,13 @@
   "scripts": {
     "docs:check": "node scripts/dev/check-docs.mjs",
     "docs:fix": "node scripts/dev/check-docs.mjs --fix",
+    "dotnet:test:contracts": "sh scripts/dev/test-dotnet.sh contracts",
+    "dotnet:test:foundation": "sh scripts/dev/test-dotnet.sh foundation",
+    "dotnet:test:observability": "sh scripts/dev/test-dotnet.sh observability",
+    "dotnet:test:outbox": "sh scripts/dev/test-dotnet.sh outbox",
+    "dotnet:test:persistence": "sh scripts/dev/test-dotnet.sh persistence",
+    "dotnet:test:watcher": "sh scripts/dev/test-dotnet.sh watcher",
+    "dotnet:test:workflow": "sh scripts/dev/test-dotnet.sh workflow",
     "dotnet:test": "sh scripts/dev/test-dotnet.sh",
     "github-project:active": "sh scripts/dev/github-projects.sh active",
     "github-project:audit-fields": "sh scripts/dev/github-projects.sh audit-fields",
@@ -14,6 +21,8 @@
     "github-project:issue-body-lint": "sh scripts/dev/github-projects.sh lint-issue-bodies",
     "github-project:script-test": "sh scripts/dev/test-github-projects.sh",
     "github-project:summary": "sh scripts/dev/github-projects.sh summary",
+    "tools:install:optional": "sh scripts/dev/install-optional-tools.sh",
+    "tools:print-install:optional": "sh scripts/dev/install-optional-tools.sh --print-only",
     "tools:check": "sh scripts/dev/check-tools.sh"
   },
   "devDependencies": {}
