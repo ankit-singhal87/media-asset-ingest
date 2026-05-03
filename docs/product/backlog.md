@@ -10,6 +10,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-2 / USER-STORY-16: keep the draft local manifest ingest demo docs
   aligned with the backend and UI draft PRs.
 - MILESTONE-3 / USER-STORY-1: add ingest watcher scanner foundation.
+- MILESTONE-3 / USER-STORY-3: enumerate every physical file under a ready
+  package directory without wiring discovery into copy behavior.
 - MILESTONE-4 / USER-STORY-8: add persistence and transactional outbox
   foundation.
 - MILESTONE-5 / USER-STORY-9: add Dapr workflow skeleton.
@@ -26,8 +28,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-2 / USER-STORY-16: merge the local ingest docs after the backend and
   UI draft PRs provide the documented API host, UI start action, and runtime
   ignore setup.
-- MILESTONE-3 / USER-STORY-2 / USER-STORY-3 / USER-STORY-4: implement manifest
-  gating, physical file enumeration, and done-marker reconciliation.
+- MILESTONE-3 / USER-STORY-2 / USER-STORY-3 / USER-STORY-4: wire manifest
+  gating, discovered files, and done-marker reconciliation into package work.
 - MILESTONE-3 / USER-STORY-5: implement essence classification.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.
