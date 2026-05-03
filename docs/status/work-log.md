@@ -51,6 +51,9 @@ messages or paste command output unless it explains a decision.
   the solution build.
 - Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
   task plans after clearing the native GitHub dependencies.
+- Added TASK-4-1 persistence and outbox foundation with a shared persistence
+  batch for business state and outbox messages plus a dispatcher for pending
+  outbox records.
 
 ## Update Rule
 

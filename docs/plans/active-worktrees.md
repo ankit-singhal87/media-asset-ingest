@@ -23,6 +23,7 @@ mirror.
 | `.worktrees/link-and-commit-standards` | `USER-STORY-16-link-and-commit-standards` | #26 | USER-STORY-16 | Forge | `AGENTS.md`, `docs/automation`, `docs/product/task-workflow.md`, `docs/status`, `docs/standards/tooling.md`, `Makefile`, `package.json`, `scripts/dev/check-docs.mjs` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/29 |
 | `.worktrees/TASK-2-1-create-dotnet-solution` | `TASK-2-1-create-dotnet-solution` | #30 | USER-STORY-16 | Forge | `MediaIngest.sln`, `src`, `tests`, `Makefile`, `package.json`, `scripts/dev`, `docs/automation/commands.md`, `docs/automation/validation.md`, `docs/standards/tooling.md`, `docs/status`, `docs/plans` | Cleaned Up | https://github.com/ankit-singhal87/media-asset-ingest/pull/39 |
 | `.worktrees/TASK-2-2-shared-contracts` | `TASK-2-2-shared-contracts` | #32 | USER-STORY-16 | Forge | `MediaIngest.sln`, `src/MediaIngest.Contracts`, `tests/MediaIngest.Contracts.Tests`, `scripts/dev/test-dotnet.sh`, `docs/architecture`, `docs/status`, `docs/plans` | Cleaned Up | Local merge to `main` |
+| `.worktrees/TASK-4-1-persistence-outbox-foundation` | `TASK-4-1-persistence-outbox-foundation` | #36 | USER-STORY-8 | Vault | `src/MediaIngest.Persistence`, `src/MediaIngest.Worker.Outbox`, `tests/MediaIngest.Persistence.Tests`, `tests/MediaIngest.Worker.Outbox.Tests`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh` | Ready For PR | none |
 
 ## Update Rule
 

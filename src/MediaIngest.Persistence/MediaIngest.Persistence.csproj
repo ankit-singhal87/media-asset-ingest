@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Persistence</RootNamespace>
+    <AssemblyName>MediaIngest.Persistence</AssemblyName>
+  </PropertyGroup>
+</Project>

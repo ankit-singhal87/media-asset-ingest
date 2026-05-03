@@ -2,7 +2,7 @@
 set -eu
 
 solution="MediaIngest.sln"
-test_projects="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj"
+test_projects="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.Tests.csproj tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Tests.csproj"
 sdk_image="${DOTNET_SDK_IMAGE:-mcr.microsoft.com/dotnet/sdk:10.0}"
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
