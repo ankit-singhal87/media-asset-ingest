@@ -7,8 +7,10 @@
     "docs:check": "node scripts/dev/check-docs.mjs",
     "docs:fix": "node scripts/dev/check-docs.mjs --fix",
     "github-project:active": "sh scripts/dev/github-projects.sh active",
+    "github-project:audit-fields": "sh scripts/dev/github-projects.sh audit-fields",
     "github-project:check": "sh scripts/dev/github-projects.sh check-auth",
     "github-project:hierarchy": "sh scripts/dev/github-projects.sh hierarchy",
+    "github-project:issue-body-lint": "sh scripts/dev/github-projects.sh lint-issue-bodies",
     "github-project:script-test": "sh scripts/dev/test-github-projects.sh",
     "github-project:summary": "sh scripts/dev/github-projects.sh summary",
     "tools:check": "sh scripts/dev/check-tools.sh"

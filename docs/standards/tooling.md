@@ -15,6 +15,8 @@ Use:
 - `make docs-fix` to apply safe docs formatting fixes before committing.
 - `make github-projects-script-test` to test GitHub tracker helper wrappers
   without network access.
+- `make github-project-audit-fields` and `make github-issue-body-lint` for
+  tracker consistency checks before PR handoff.
 - `make github-project-check` to verify GitHub CLI auth and Project access.
 - `make github-project-summary` to summarize tracker counts.
 - `make github-project-hierarchy` to verify epic/story hierarchy.
@@ -22,6 +24,8 @@ Use:
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:fix` for safe docs formatting fixes.
 - `npm run github-project:script-test` for tracker helper wrapper tests.
+- `npm run github-project:audit-fields` and
+  `npm run github-project:issue-body-lint` for tracker consistency checks.
 - `npm run tools:check` for host tool checks through npm.
 
 ## Tooling Strategy

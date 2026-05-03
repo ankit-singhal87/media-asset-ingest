@@ -91,10 +91,16 @@ sh scripts/dev/github-projects.sh set-lane 30 Forge
 sh scripts/dev/github-projects.sh set-text 30 "Worktree / Branch" "TASK-2-1 / .worktrees/TASK-2-1"
 sh scripts/dev/github-projects.sh add-sub-issue 26 30
 sh scripts/dev/github-projects.sh add-blocked-by 31 30
+sh scripts/dev/github-projects.sh audit-fields
+sh scripts/dev/github-projects.sh lint-issue-bodies
+sh scripts/dev/github-projects.sh open-pr 30 TASK-2-1-create-dotnet-solution \
+  "TASK-2-1: Create .NET solution skeleton" /tmp/pr-body.md docs/plans/active-worktrees.md
 ```
 
 Run `make github-projects-script-test` to test those wrappers locally without
-network access.
+network access. `open-pr` creates the PR, marks the Project item `PR Open`,
+sets the Project `PR` text field, and updates the matching branch row in
+`docs/plans/active-worktrees.md`.
 
 Default rule:
 

@@ -1,4 +1,4 @@
-.PHONY: help check-tools install-tools print-install-tools validate docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active
+.PHONY: help check-tools install-tools print-install-tools validate docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -14,6 +14,8 @@ help:
 	@printf '%s\n' "  make github-project-summary   Print GitHub tracker counts"
 	@printf '%s\n' "  make github-project-hierarchy Print epic/story hierarchy"
 	@printf '%s\n' "  make github-project-active    Print in-progress project items"
+	@printf '%s\n' "  make github-project-audit-fields Verify required Project fields"
+	@printf '%s\n' "  make github-issue-body-lint   Check issue bodies for duplicated relationships"
 
 check-tools:
 	@sh scripts/dev/check-tools.sh
@@ -52,3 +54,9 @@ github-project-hierarchy:
 
 github-project-active:
 	@sh scripts/dev/github-projects.sh active
+
+github-project-audit-fields:
+	@sh scripts/dev/github-projects.sh audit-fields
+
+github-issue-body-lint:
+	@sh scripts/dev/github-projects.sh lint-issue-bodies

@@ -38,6 +38,9 @@
   lanes, with #30 and #32 active as the foundation worktrees.
 - GitHub tracker helper commands now cover Project field updates, native
   sub-issue links, and native blocked-by dependency links.
+- GitHub tracker helper commands now also cover required Project field audits,
+  issue-body relationship linting, and PR creation with Project/worktree state
+  updates.
 
 ## Ready For Review
 
@@ -47,15 +50,6 @@
 
 - Complete TASK-2-1 and TASK-2-2 before starting contract-consuming parallel
   implementation worktrees.
-
-## Known Agent Execution Gaps
-
-- Project custom fields are populated for current issues, but helper scripts do
-  not verify required field completeness across all items.
-- There is no automated check that issue bodies avoid duplicated relationship
-  metadata.
-- There is no standardized PR creation helper that updates GitHub Project fields
-  and `docs/plans/active-worktrees.md` together.
 
 ## Update Rule
 

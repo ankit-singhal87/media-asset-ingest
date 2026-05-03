@@ -32,11 +32,20 @@ Automatic PR creation still requires all checks in this file.
 
 ## PR Creation Command
 
-Use GitHub CLI after validation and authorization:
+Use the repo helper after validation and authorization:
 
 ```bash
-gh pr create --base main --head <branch> --title "<title>" --body "<body>"
+sh scripts/dev/github-projects.sh open-pr \
+  <issue-number> \
+  <branch> \
+  "<title>" \
+  <body-file> \
+  docs/plans/active-worktrees.md
 ```
+
+Use `gh pr create` directly only when the helper is insufficient for the PR.
+If so, update the GitHub Project item and `docs/plans/active-worktrees.md`
+manually before reporting completion.
 
 The PR body must include:
 

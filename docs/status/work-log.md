@@ -38,6 +38,8 @@ messages or paste command output unless it explains a decision.
   persistence/outbox, observability, and specialized agent lanes.
 - Added tested GitHub tracker helper commands for Project field updates,
   native sub-issue links, and native blocked-by dependency links.
+- Added tested GitHub tracker helpers for required field audits, issue-body
+  relationship linting, and PR creation with Project/worktree state updates.
 
 ## Update Rule
 

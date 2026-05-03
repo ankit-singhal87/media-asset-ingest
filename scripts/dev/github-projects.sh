@@ -14,6 +14,9 @@ Commands:
   summary          Print project, milestone, issue, and item counts.
   hierarchy        Print epic sub-issue hierarchy.
   active           Print in-progress project items.
+  audit-fields     Verify required Project fields are populated.
+  lint-issue-bodies Verify issue bodies avoid duplicated relationship metadata.
+  open-pr          Create a PR and update tracker/worktree PR state.
   set-status       Set GitHub Project Status for an issue.
   set-type         Set GitHub Project Type for an issue.
   set-lane         Set GitHub Project Lane for an issue.
@@ -67,6 +70,60 @@ hierarchy() {
 active() {
   gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json \
     --jq '.items[] | select(.status == "In Progress") | "#\(.content.number) \(.title)"'
+}
+
+audit_fields() {
+  missing=$(
+    gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json \
+      --jq '
+        def required:
+          if .type == "Task" then
+            {
+              "Type": .type,
+              "Lane": .lane,
+              "Status": .status,
+              "Worktree / Branch": .["worktree / Branch"],
+              "Target Files": .["target Files"],
+              "Validation": .validation
+            }
+          else
+            {
+              "Type": .type,
+              "Lane": .lane,
+              "Status": .status
+            }
+          end;
+        .items[]
+        | (required | to_entries | map(select((.value // "") == "")) | map(.key)) as $missingFields
+        | select($missingFields | length > 0)
+        | "#\(.content.number) \(.title) missing: \($missingFields | join(", "))"
+      '
+  )
+
+  if [ -n "$missing" ]; then
+    printf '%s\n' "$missing" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "GitHub Project field audit passed."
+}
+
+lint_issue_bodies() {
+  violations=$(
+    gh issue list --repo "$REPO" --state all --limit 200 --json number,title,body \
+      --jq '
+        .[]
+        | select((.body // "") | test("(?im)^##[[:space:]]+(Parent Epic|Dependencies|Related Epic|Related Milestone|Related Story|Related Task|Related Milestone)\\b"))
+        | "#\(.number) \(.title): Relationship metadata belongs in GitHub native fields, not issue body sections."
+      '
+  )
+
+  if [ -n "$violations" ]; then
+    printf '%s\n' "$violations" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "GitHub issue body relationship lint passed."
 }
 
 project_id() {
@@ -145,6 +202,55 @@ set_text_field() {
     --text "$text_value"
 }
 
+mark_active_worktree_pr_open() {
+  branch=$1
+  pr_url=$2
+  active_worktrees_file=$3
+  tmp_file="${active_worktrees_file}.tmp"
+
+  awk -v branch="| \`$branch\` |" -v pr_url="$pr_url" '
+    index($0, branch) {
+      sub(/\| Ready For PR \| [^|]* \|$/, "| PR Open | " pr_url " |")
+      sub(/\| Active \| [^|]* \|$/, "| PR Open | " pr_url " |")
+    }
+    { print }
+  ' "$active_worktrees_file" >"$tmp_file"
+  mv "$tmp_file" "$active_worktrees_file"
+}
+
+open_pr() {
+  issue_number=$1
+  head_branch=$2
+  title=$3
+  body_file=$4
+  active_worktrees_file=$5
+
+  if [ ! -f "$body_file" ]; then
+    printf 'PR body file not found: %s\n' "$body_file" >&2
+    exit 1
+  fi
+
+  if [ ! -f "$active_worktrees_file" ]; then
+    printf 'Active worktrees file not found: %s\n' "$active_worktrees_file" >&2
+    exit 1
+  fi
+
+  pr_url=$(
+    gh pr create \
+      --repo "$REPO" \
+      --base main \
+      --head "$head_branch" \
+      --title "$title" \
+      --body-file "$body_file"
+  )
+
+  set_single_select_field "$issue_number" "Status" "PR Open"
+  set_text_field "$issue_number" "PR" "$pr_url"
+  mark_active_worktree_pr_open "$head_branch" "$pr_url" "$active_worktrees_file"
+
+  printf '%s\n' "$pr_url"
+}
+
 rest_issue_id() {
   issue_number=$1
   gh api "repos/$REPO/issues/$issue_number" --jq '.id'
@@ -186,6 +292,20 @@ case "${1:-}" in
     ;;
   active)
     active
+    ;;
+  audit-fields)
+    audit_fields
+    ;;
+  lint-issue-bodies)
+    lint_issue_bodies
+    ;;
+  open-pr)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "head-branch"
+    require_arg "${4:-}" "title"
+    require_arg "${5:-}" "body-file"
+    require_arg "${6:-}" "active-worktrees-file"
+    open_pr "$2" "$3" "$4" "$5" "$6"
     ;;
   set-status)
     require_arg "${2:-}" "issue-number"

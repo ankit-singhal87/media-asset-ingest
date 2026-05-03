@@ -17,12 +17,16 @@
 | `make github-project-summary` | Print GitHub Project, issue, milestone, and item counts. | cheap | no | no |
 | `make github-project-hierarchy` | Print epic/story sub-issue hierarchy. | cheap | no | no |
 | `make github-project-active` | Print in-progress GitHub Project items. | cheap | no | no |
+| `make github-project-audit-fields` | Verify required GitHub Project fields are populated. | cheap | no | no |
+| `make github-issue-body-lint` | Check issue bodies avoid duplicated relationship metadata. | cheap | no | no |
 | `npm run docs:check` | Check docs for unfinished placeholders. | cheap | no | no |
 | `npm run docs:fix` | Apply safe docs formatting fixes. | cheap | no | no |
 | `npm run github-project:check` | Verify GitHub CLI auth and project access through npm. | cheap | no | no |
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
 | `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |
 | `npm run github-project:active` | Print in-progress GitHub tracker items through npm. | cheap | no | no |
+| `npm run github-project:audit-fields` | Verify required GitHub Project fields through npm. | cheap | no | no |
+| `npm run github-project:issue-body-lint` | Check issue body relationship metadata through npm. | cheap | no | no |
 | `npm run github-project:script-test` | Test GitHub tracker helper wrappers through npm. | cheap | no | no |
 | `npm run tools:check` | Verify required Linux development tools through npm. | cheap | no | no |
 
