@@ -2,12 +2,31 @@ namespace MediaIngest.Persistence;
 
 public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
 {
+    private readonly object storeLock = new();
     private readonly List<IngestPackageState> packageStates = [];
     private readonly List<OutboxMessage> outboxMessages = [];
 
-    public IReadOnlyList<IngestPackageState> PackageStates => packageStates;
+    public IReadOnlyList<IngestPackageState> PackageStates
+    {
+        get
+        {
+            lock (storeLock)
+            {
+                return packageStates.ToArray();
+            }
+        }
+    }
 
-    public IReadOnlyList<OutboxMessage> OutboxMessages => outboxMessages;
+    public IReadOnlyList<OutboxMessage> OutboxMessages
+    {
+        get
+        {
+            lock (storeLock)
+            {
+                return outboxMessages.ToArray();
+            }
+        }
+    }
 
     public Task SaveAsync(PersistenceBatch batch, CancellationToken cancellationToken = default)
     {
@@ -16,8 +35,11 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
 
         Validate(batch);
 
-        packageStates.AddRange(batch.PackageStates);
-        outboxMessages.AddRange(batch.OutboxMessages);
+        lock (storeLock)
+        {
+            packageStates.AddRange(batch.PackageStates);
+            outboxMessages.AddRange(batch.OutboxMessages);
+        }
 
         return Task.CompletedTask;
     }
@@ -26,9 +48,14 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        IReadOnlyList<OutboxMessage> pendingMessages = outboxMessages
-            .Where(message => message.DispatchedAt is null)
-            .ToArray();
+        IReadOnlyList<OutboxMessage> pendingMessages;
+
+        lock (storeLock)
+        {
+            pendingMessages = outboxMessages
+                .Where(message => message.DispatchedAt is null)
+                .ToArray();
+        }
 
         return Task.FromResult(pendingMessages);
     }
@@ -45,14 +72,17 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
             throw new ArgumentException("Outbox message id is required.", nameof(messageId));
         }
 
-        var messageIndex = outboxMessages.FindIndex(message => message.MessageId == messageId);
-
-        if (messageIndex < 0)
+        lock (storeLock)
         {
-            throw new InvalidOperationException($"Outbox message '{messageId}' was not found.");
-        }
+            var messageIndex = outboxMessages.FindIndex(message => message.MessageId == messageId);
 
-        outboxMessages[messageIndex] = outboxMessages[messageIndex] with { DispatchedAt = dispatchedAt };
+            if (messageIndex < 0)
+            {
+                throw new InvalidOperationException($"Outbox message '{messageId}' was not found.");
+            }
+
+            outboxMessages[messageIndex] = outboxMessages[messageIndex] with { DispatchedAt = dispatchedAt };
+        }
 
         return Task.CompletedTask;
     }
