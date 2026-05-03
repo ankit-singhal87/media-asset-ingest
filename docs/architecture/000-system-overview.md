@@ -44,4 +44,3 @@ Dapr stores workflow runtime state in its own state store.
 - Exact relational schema.
 - Exact UI framework details beyond graph rendering requirements.
 - Full Azure deployment and cost profile.
-

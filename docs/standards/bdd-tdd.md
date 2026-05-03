@@ -45,4 +45,3 @@ A feature, behavior change, or bug fix is not complete until:
 - tests or validation prove the behavior
 - impacted docs are updated
 - validation evidence is reported
-

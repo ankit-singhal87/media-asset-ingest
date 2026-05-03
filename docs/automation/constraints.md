@@ -12,4 +12,3 @@
 - Do not pollute human docs with agent chatter.
 - Keep automation docs compact; put durable explanations in architecture,
   product, ADR, or standards docs.
-

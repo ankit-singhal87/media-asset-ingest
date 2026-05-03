@@ -37,4 +37,3 @@ If validation fails for an unclear reason:
 2. Capture command and relevant failure lines.
 3. Investigate only within assigned scope.
 4. Escalate if the cause crosses ownership lanes.
-

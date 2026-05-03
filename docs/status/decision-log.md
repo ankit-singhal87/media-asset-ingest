@@ -14,4 +14,3 @@ Architecture-significant decisions belong in `docs/adr`.
 
 Agents must add an entry here when a decision affects workflow, tooling,
 documentation structure, or development process but does not justify a full ADR.
-

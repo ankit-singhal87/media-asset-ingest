@@ -20,4 +20,3 @@ work distribution backbone.
 - Queue names define ownership boundaries.
 - The outbox remains central to reliable command/event publication.
 - Dapr activities are used selectively; agent work is primarily message-driven.
-

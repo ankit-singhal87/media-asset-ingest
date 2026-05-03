@@ -45,4 +45,3 @@ conceptual boundaries.
 - Do not store UI status only in logs.
 - Do not make workflow runtime state the business source of truth.
 - Keep idempotency explicit at message and agent boundaries.
-

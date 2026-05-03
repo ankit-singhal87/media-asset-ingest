@@ -3,7 +3,7 @@
 ## Project State
 
 - Phase: planning and repository foundation.
-- Current branch: `docs/story-planning`.
+- Current branch: `USER-STORY-16-link-and-commit-standards`.
 - Current focus: durable project documentation, automation guidance, standards,
   and toolchain bootstrap.
 
@@ -32,17 +32,16 @@
 - Read-only GitHub tracker helper commands added for agent verification.
 - Local task, bug, worktree, checklist, and definition-of-done docs aligned with
   the GitHub Projects tracker model.
+- Markdown link validation, safe docs fix commands, and Git branch/commit/PR
+  naming conventions are being added under USER-STORY-16.
 
 ## Ready For Review
 
-- Product traceability, parallel worktree documentation, and GitHub Projects
-  tracker setup are validated and ready for commit/PR when authorized.
+- Link and commit standards cleanup is validated in PR #29.
 
 ## Next
 
-- Review and refine documentation.
-- Commit planning foundation after user approval.
-- Create implementation plan for local foundation.
+- Merge PR #29 after checks complete.
 
 ## Known Agent Execution Gaps
 

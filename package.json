@@ -5,6 +5,7 @@
   "description": "Cloud-native media asset ingest backend planning and repository tooling.",
   "scripts": {
     "docs:check": "node scripts/dev/check-docs.mjs",
+    "docs:fix": "node scripts/dev/check-docs.mjs --fix",
     "github-project:active": "sh scripts/dev/github-projects.sh active",
     "github-project:check": "sh scripts/dev/github-projects.sh check-auth",
     "github-project:hierarchy": "sh scripts/dev/github-projects.sh hierarchy",

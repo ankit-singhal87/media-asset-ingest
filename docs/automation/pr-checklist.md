@@ -15,6 +15,8 @@ Automatic PR creation still requires all checks in this file.
 ## Required
 
 - [ ] Branch is up to date with target branch or conflict-free.
+- [ ] Branch name, commit subject, and PR title follow `docs/automation/git-conventions.md`.
+- [ ] `make docs-fix` was run when docs formatting/link checks reported fixable issues.
 - [ ] `make validate` passes.
 - [ ] `git diff --check` passes.
 - [ ] GitHub Project item status, fields, labels, milestones, and relationships are updated.

@@ -22,4 +22,3 @@ necessary.
 - Agents can scale independently by queue.
 - RabbitMQ is deferred because it would require self-management on AKS or a
   third-party managed service.
-

@@ -66,4 +66,3 @@ Owns test strategy, integration tests, smoke tests, and validation evidence.
 ### Shield - Security
 
 Owns secrets policy, identity boundaries, container safety, and cloud security review.
-
