@@ -70,6 +70,7 @@ h2 {
 }
 
 .workflow-metadata div,
+.local-ingest-panel,
 .summary-band,
 .graph-section {
   border: 1px solid #d6dde5;
@@ -91,6 +92,48 @@ h2 {
 .workflow-metadata dd {
   margin: 2px 0 0;
   font-weight: 700;
+}
+
+.local-ingest-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 auto 24px;
+  max-width: 1180px;
+  padding: 16px;
+}
+
+.local-ingest-panel p {
+  margin: 4px 0 0;
+  color: #516170;
+  font-weight: 700;
+}
+
+.start-ingest-button {
+  min-width: 132px;
+  border: 0;
+  border-radius: 8px;
+  background: #116149;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 800;
+}
+
+.start-ingest-button:hover:not(:disabled) {
+  background: #0b4d39;
+}
+
+.start-ingest-button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.start-ingest-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .summary-band {
@@ -229,6 +272,11 @@ h2 {
 @media (max-width: 560px) {
   .control-plane-shell {
     padding: 18px;
+  }
+
+  .local-ingest-panel {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .workflow-metadata,
