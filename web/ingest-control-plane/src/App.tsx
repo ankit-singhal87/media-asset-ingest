@@ -1,4 +1,8 @@
+import { useState } from "react";
+
 import { mockedWorkflowGraph, summarizeStatuses, type WorkflowNode } from "./workflowGraph";
+
+type LocalWatcherStatus = "idle" | "starting" | "watching" | "error";
 
 const progressedStatuses = new Set<WorkflowNode["status"]>([
   "Running",
@@ -36,10 +40,28 @@ function NodeCard({ node }: { node: WorkflowNode }) {
 
 export function App() {
   const graph = mockedWorkflowGraph;
+  const [localWatcherStatus, setLocalWatcherStatus] =
+    useState<LocalWatcherStatus>("idle");
   const statusSummary = summarizeStatuses(graph.nodes);
   const progressedNodeCount = graph.nodes.filter((node) =>
     progressedStatuses.has(node.status)
   ).length;
+
+  async function startLocalIngest() {
+    setLocalWatcherStatus("starting");
+
+    try {
+      const response = await fetch("/api/ingest/start", { method: "POST" });
+
+      if (!response.ok) {
+        throw new Error(`Ingest start failed with ${response.status}`);
+      }
+
+      setLocalWatcherStatus("watching");
+    } catch {
+      setLocalWatcherStatus("error");
+    }
+  }
 
   return (
     <main className="control-plane-shell">
@@ -59,6 +81,21 @@ export function App() {
           </div>
         </dl>
       </header>
+
+      <section className="local-ingest-panel" aria-label="local ingest watcher">
+        <div>
+          <h2>Local ingest</h2>
+          <p>Local watcher: {localWatcherStatus}</p>
+        </div>
+        <button
+          type="button"
+          className="start-ingest-button"
+          disabled={localWatcherStatus === "starting"}
+          onClick={startLocalIngest}
+        >
+          Start ingest
+        </button>
+      </section>
 
       <section className="summary-band" aria-label="workflow progress summary">
         <strong>
