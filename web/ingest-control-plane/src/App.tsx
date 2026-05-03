@@ -1,8 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { mockedWorkflowGraph, summarizeStatuses, type WorkflowNode } from "./workflowGraph";
 
 type LocalWatcherStatus = "idle" | "starting" | "watching" | "error";
+type PackageStatusLoadState = "loading" | "ready" | "error";
+
+type IngestPackageStatus = {
+  packageId: string;
+  workflowInstanceId: string;
+  status: string;
+  updatedAt: string;
+};
+
+type IngestStatusResponse = {
+  packages: IngestPackageStatus[];
+};
 
 const progressedStatuses = new Set<WorkflowNode["status"]>([
   "Running",
@@ -24,6 +36,14 @@ function formatStatus(status: WorkflowNode["status"]) {
   return status.toLowerCase();
 }
 
+function formatUpdatedAt(updatedAt: string) {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC"
+  }).format(new Date(updatedAt));
+}
+
 function NodeCard({ node }: { node: WorkflowNode }) {
   return (
     <li
@@ -42,10 +62,46 @@ export function App() {
   const graph = mockedWorkflowGraph;
   const [localWatcherStatus, setLocalWatcherStatus] =
     useState<LocalWatcherStatus>("idle");
+  const [packageStatusLoadState, setPackageStatusLoadState] =
+    useState<PackageStatusLoadState>("loading");
+  const [packageStatuses, setPackageStatuses] = useState<IngestPackageStatus[]>([]);
   const statusSummary = summarizeStatuses(graph.nodes);
   const progressedNodeCount = graph.nodes.filter((node) =>
     progressedStatuses.has(node.status)
   ).length;
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadPackageStatuses() {
+      try {
+        const response = await fetch("/api/ingest/status");
+
+        if (!response.ok) {
+          throw new Error(`Ingest status failed with ${response.status}`);
+        }
+
+        const statusResponse = (await response.json()) as IngestStatusResponse;
+
+        if (!isCurrent) {
+          return;
+        }
+
+        setPackageStatuses(statusResponse.packages);
+        setPackageStatusLoadState("ready");
+      } catch {
+        if (isCurrent) {
+          setPackageStatusLoadState("error");
+        }
+      }
+    }
+
+    void loadPackageStatuses();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   async function startLocalIngest() {
     setLocalWatcherStatus("starting");
@@ -95,6 +151,34 @@ export function App() {
         >
           Start ingest
         </button>
+      </section>
+
+      <section className="package-status-panel" aria-label="real package status">
+        <div className="section-heading">
+          <h2>Package status</h2>
+          <span>Live API data</span>
+        </div>
+        {packageStatusLoadState === "loading" && <p>Loading package status...</p>}
+        {packageStatusLoadState === "error" && (
+          <p role="status">Package status unavailable</p>
+        )}
+        {packageStatusLoadState === "ready" && packageStatuses.length === 0 && (
+          <p>No packages reported yet</p>
+        )}
+        {packageStatusLoadState === "ready" && packageStatuses.length > 0 && (
+          <ol className="package-status-list">
+            {packageStatuses.map((packageStatus) => (
+              <li key={packageStatus.packageId} className="package-status-item">
+                <span className="package-status-item__state">
+                  {packageStatus.status}
+                </span>
+                <strong>{packageStatus.packageId}</strong>
+                <code>{packageStatus.workflowInstanceId}</code>
+                <span>Updated {formatUpdatedAt(packageStatus.updatedAt)}</span>
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
 
       <section className="summary-band" aria-label="workflow progress summary">

@@ -7,6 +7,10 @@ messages or paste command output unless it explains a decision.
 
 - Added the parallel track 07 Pulse workflow boundary with in-process package
   lifecycle states for observed, ready, started, succeeded, and failed.
+- Added the Track 08 Beacon runtime diagnostic event-name catalog for scan,
+  readiness, copy, outbox dispatch, success, and failure observability records.
+- Added the parallel Essence checksum validator component with focused tests for
+  valid, missing, malformed, and mismatched raw SHA-256 manifest checksums.
 
 ## 2026-05-03
 
@@ -93,6 +97,14 @@ messages or paste command output unless it explains a decision.
 - Updated PR #45 local manifest ingest behavior so package discovery observes
   all immediate child directories, readiness requires both manifest files, and
   start ingest launches a background watcher loop.
+- 2026-05-04: Added a Gauge local manifest ingest E2E smoke script with dry-run
+  validation docs and a manual API-plus-script command path.
+
+## 2026-05-04
+
+- Added Mount file discovery for USER-STORY-3 so the watcher enumerates every
+  physical file under a ready package directory with stable package-relative
+  paths, without wiring discovery into copy, persistence, or workflow behavior.
 
 ## Update Rule
 
