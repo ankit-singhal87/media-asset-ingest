@@ -4,8 +4,11 @@ namespace MediaIngest.Worker.Outbox;
 
 public sealed class OutboxDispatcher(
     IIngestPersistenceStore persistenceStore,
-    IOutboxMessagePublisher publisher)
+    IOutboxMessagePublisher publisher,
+    TimeProvider? timeProvider = null)
 {
+    private readonly TimeProvider dispatchClock = timeProvider ?? TimeProvider.System;
+
     public async Task<int> DispatchPendingAsync(CancellationToken cancellationToken = default)
     {
         var pendingMessages = await persistenceStore.GetPendingOutboxMessagesAsync(cancellationToken);
@@ -16,7 +19,7 @@ public sealed class OutboxDispatcher(
             await publisher.PublishAsync(message, cancellationToken);
             await persistenceStore.MarkOutboxMessageDispatchedAsync(
                 message.MessageId,
-                DateTimeOffset.UtcNow,
+                dispatchClock.GetUtcNow(),
                 cancellationToken);
 
             dispatchedCount++;
