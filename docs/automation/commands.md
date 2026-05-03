@@ -11,6 +11,7 @@
 | `make install-tools` | Install supported Linux host tools after local confirmation. | moderate | no | no |
 | `make print-install-tools` | Print installation commands without running them. | cheap | no | no |
 | `make validate` | Run cheap repository validation. | cheap | no | no |
+| `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
 | `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |
 | `make github-projects-script-test` | Test GitHub tracker helper wrappers without network. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |
@@ -21,6 +22,7 @@
 | `make github-issue-body-lint` | Check issue bodies avoid duplicated relationship metadata. | cheap | no | no |
 | `npm run docs:check` | Check docs for unfinished placeholders. | cheap | no | no |
 | `npm run docs:fix` | Apply safe docs formatting fixes. | cheap | no | no |
+| `npm run dotnet:test` | Build and smoke-test the .NET solution through npm. | moderate | yes when host `dotnet` is unavailable | no |
 | `npm run github-project:check` | Verify GitHub CLI auth and project access through npm. | cheap | no | no |
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
 | `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |

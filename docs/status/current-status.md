@@ -41,6 +41,8 @@
 - GitHub tracker helper commands now also cover required Project field audits,
   issue-body relationship linting, and PR creation with Project/worktree state
   updates.
+- TASK-2-1 added the initial buildable .NET solution skeleton and canonical
+  `make test-dotnet` validation entrypoint.
 
 ## Ready For Review
 
@@ -48,8 +50,8 @@
 
 ## Next
 
-- Complete TASK-2-1 and TASK-2-2 before starting contract-consuming parallel
-  implementation worktrees.
+- Complete TASK-2-2 before starting contract-consuming parallel implementation
+  worktrees, then open PRs for the MILESTONE-2 foundation tasks.
 
 ## Update Rule
 
