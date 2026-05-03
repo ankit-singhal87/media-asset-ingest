@@ -40,10 +40,12 @@ task boundaries when visibility actually changes.
 
 ## Tool Choice
 
-Use the GitHub plugin for issues, PRs, comments, labels, and merges.
+Prefer the GitHub plugin for structured repository, issue, PR, review, diff,
+commit, comment, label, CI, and merge operations.
 
 Use `gh` or Make helpers only when the plugin cannot cover the specific action,
-especially for Project status board reads or CLI auth checks.
+especially for Project status board reads or writes, CLI auth checks, or local
+wrapper validation.
 
 Useful read-only checks:
 

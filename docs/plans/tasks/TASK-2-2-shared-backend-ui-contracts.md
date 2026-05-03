@@ -40,7 +40,6 @@ Agents may edit only these files unless they escalate:
 - `docs/architecture`
 - `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/current-status.md`
 - `docs/status/work-log.md`
 
@@ -111,7 +110,6 @@ make github-project-hierarchy
 ## Required Documentation Updates
 
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/current-status.md`
 - `docs/status/work-log.md`
 - Relevant architecture docs when contract semantics are added.

@@ -44,7 +44,6 @@ Agents may edit only these files unless they escalate:
 - `docs/status/current-status.md`
 - `docs/status/work-log.md`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 
 ## Investigation Targets
 
@@ -110,7 +109,6 @@ make github-project-hierarchy
 ## Required Documentation Updates
 
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/current-status.md`
 - `docs/status/work-log.md`
 - `docs/automation/commands.md`

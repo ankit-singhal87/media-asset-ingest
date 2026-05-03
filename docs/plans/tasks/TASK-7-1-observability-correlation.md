@@ -35,7 +35,6 @@ Agents may edit only these files unless they escalate:
 - `tests/MediaIngest.Observability.Tests`
 - `docs/architecture/004-observability-and-ui.md`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`
 
 ## BDD Scenario

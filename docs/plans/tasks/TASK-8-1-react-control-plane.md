@@ -33,7 +33,6 @@ Agents may edit only these files unless they escalate:
 
 - `web/ingest-control-plane`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`
 - `docs/standards/typescript-react.md`
 

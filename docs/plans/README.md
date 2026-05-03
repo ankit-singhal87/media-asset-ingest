@@ -7,8 +7,6 @@ Planning artifacts turn product stories into executable implementation work.
 - `docs/product/milestones.md` - milestone catalog and story mapping.
 - `docs/product/user-stories.md` - numbered user stories and traceability.
 - `docs/plans/task-index.md` - local task-plan mirror.
-- `docs/plans/active-worktrees.md` - optional local active worktree and
-  parallel-agent coordination mirror.
 - `docs/plans/parallel-system-components.md` - current parallel
   system-component track plan.
 - `docs/plans/milestones/` - milestone-level implementation plans.
@@ -36,8 +34,8 @@ Planning artifacts turn product stories into executable implementation work.
 7. Use `docs/automation/execution-checklist.md`, `definition-of-done.md`, and
    `agent-handoff.md` during execution.
 8. Update simple GitHub status when issue, task, bug, or PR state changes.
-9. Update `docs/plans/active-worktrees.md` only when coordinating active
-   parallel worktrees.
+9. Update ignored local `.worktrees/state/<worktree-slug>.md` records only when
+   coordinating active parallel worktrees.
 
 Use [templates/milestone-plan-template.md](templates/milestone-plan-template.md)
 and [templates/task-template.md](templates/task-template.md) for new plan files.
@@ -68,5 +66,14 @@ agents. Parallel tasks must have disjoint target files and clear handoff
 expectations.
 
 Use GitHub issues and PRs as durable remote tracking. Use the GitHub Project as
-a lightweight status board only. Use `docs/plans/active-worktrees.md` as the
-local ledger for active worktrees only when parallel work needs coordination.
+a lightweight status board only. Use ignored local
+`.worktrees/state/<worktree-slug>.md` records for active worktree coordination.
+Do not commit live worktree state or historical cleanup rows.
+
+## Local Worktree State
+
+Live active-worktree coordination belongs outside committed planning docs. When
+parallel work is active, create one ignored local state file per worktree under
+`.worktrees/state/` using the format in
+`docs/automation/parallelization.md`. Delete that state file when the merged
+worktree is cleaned up.
