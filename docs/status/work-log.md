@@ -67,6 +67,10 @@ messages or paste command output unless it explains a decision.
 - Scaffolded the React workflow control plane for TASK-8-1 with mocked
   workflow graph data, accessible node status labels, and focused Vitest
   coverage for the operator graph scenario.
+- Reconciled local status, backlog, milestone, and user-story docs after the
+  TASK-3-1 through TASK-8-1 local merges.
+- Reconciled GitHub task issues and Project fields for #31 and #33 through #37
+  after the local task merges.
 
 ## Update Rule
 

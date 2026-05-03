@@ -2,10 +2,11 @@
 
 ## Project State
 
-- Phase: planning and repository foundation.
+- Phase: local implementation foundation.
 - Current branch: `main`.
-- Current focus: MILESTONE-2 foundation is complete; downstream implementation
-  worktrees can now start from `main`.
+- Current focus: local `main` contains the first implementation foundations
+  across watcher, persistence/outbox, workflow, agents, observability, and the
+  React control plane.
 
 ## Completed
 
@@ -46,6 +47,18 @@
 - TASK-2-2 defined initial shared workflow graph, node detail, status, and
   workflow name contracts for backend, workflow, and UI slices.
 - `make test-dotnet` now runs both foundation and contract smoke-test projects.
+- TASK-3-1 added the ingest watcher scanner foundation.
+- TASK-4-1 added the persistence and outbox foundation.
+- TASK-5-1 added the Dapr workflow skeleton.
+- TASK-6-1 added specialized video, audio, text, and other agent worker
+  skeletons.
+- TASK-7-1 added the observability correlation field foundation.
+- TASK-8-1 scaffolded the React workflow control plane with mocked workflow
+  graph data and focused UI tests.
+- Merged task worktrees for TASK-3-1 through TASK-8-1 were removed and marked
+  `Cleaned Up` in the local worktree mirror.
+- GitHub tracker state for task issues #31 and #33 through #37 was reconciled
+  to closed, `status:complete`, and Project `Done`.
 
 ## Ready For Review
 
@@ -53,7 +66,8 @@
 
 ## Next
 
-- Start contract-consuming parallel implementation worktrees from `main`.
+- Plan the next increment from the updated local implementation foundation and
+  reconciled GitHub tracker state.
 
 ## Update Rule
 
