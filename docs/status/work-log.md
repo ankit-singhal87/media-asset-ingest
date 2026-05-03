@@ -5,6 +5,8 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Added the Track 08 Beacon runtime diagnostic event-name catalog for scan,
+  readiness, copy, outbox dispatch, success, and failure observability records.
 - Added the parallel Essence checksum validator component with focused tests for
   valid, missing, malformed, and mismatched raw SHA-256 manifest checksums.
 
