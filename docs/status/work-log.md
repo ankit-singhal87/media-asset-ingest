@@ -51,6 +51,8 @@ messages or paste command output unless it explains a decision.
   the solution build.
 - Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
   task plans after clearing the native GitHub dependencies.
+- Added TASK-6-1 specialized video, audio, text, and other agent skeletons with
+  smoke tests proving each worker owns only its assigned media category.
 
 ## Update Rule
 
