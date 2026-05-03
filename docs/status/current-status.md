@@ -6,7 +6,8 @@
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
   across watcher, persistence/outbox, workflow, command routing, observability,
-  and the React control plane.
+  and the React control plane. Draft local ingest docs are tracking the sibling
+  backend and UI PRs until those branches merge.
 
 ## Completed
 
@@ -65,6 +66,11 @@
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
   validation targets, an agent preflight command, and a repo-local ignored
   Docker .NET cache for faster repeated validation.
+- Draft README quickstart text documents the intended local manifest ingest
+  flow: run the API host on the fixed development port, run the UI with `/api`
+  proxied to that API, press **Start ingest** to begin watching, then add
+  `manifest.json` plus `manifest.json.checksum` under `input/<asset>/` and
+  expect both manifest files under `output/<asset>/`.
 
 ## Ready For Review
 
@@ -72,8 +78,9 @@
 
 ## Next
 
-- Plan the next increment from the updated local implementation foundation and
-  reconciled GitHub tracker state.
+- Keep the local ingest docs PR in draft until the backend and UI slice PRs
+  merge the API host, UI **Start ingest** action, Vite `/api` proxy, and runtime
+  folder ignore setup.
 
 ## Update Rule
 

@@ -1,5 +1,6 @@
 .worktrees/
 .cache/
+.terminals/
 /input/
 /output/
 
