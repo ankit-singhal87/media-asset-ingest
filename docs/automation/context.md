@@ -4,7 +4,8 @@
 - Cloud target: Azure only.
 - Runtime target: Docker containers on Kubernetes, initially without load balancers.
 - Orchestration: Dapr Workflow.
-- Messaging: Azure Service Bus queues for commands, topics later when fan-out events are needed.
+- Messaging: Azure Service Bus command topics with filtered subscriptions for
+  light, medium, and heavy command runners.
 - Data: PostgreSQL for business state and transactional outbox.
 - Dapr state: separate PostgreSQL-backed state store for workflow runtime data.
 - Ingest source: configured filesystem path such as `/mnt/ingest`.

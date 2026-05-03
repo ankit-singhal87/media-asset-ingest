@@ -19,33 +19,19 @@ Automatic PR creation still requires all checks in this file.
 - [ ] `make docs-fix` was run when docs formatting/link checks reported fixable issues.
 - [ ] `make validate` passes.
 - [ ] `git diff --check` passes.
-- [ ] GitHub Project item status, fields, labels, milestones, and relationships are updated.
-- [ ] GitHub tracker validation runs when issues, milestones, bugs, or tasks changed.
+- [ ] GitHub issue state or simple Project status is updated when tracker state changed.
+- [ ] Lightweight GitHub tracker validation runs when issues or board status changed.
 - [ ] Product docs, status, and work log are updated when durable repo context changes.
 - [ ] Local task and bug mirrors are updated when local task or bug files change.
 - [ ] ADRs are updated when architecture decisions change.
 - [ ] Quickstart and tooling docs are updated when commands or setup change.
-- [ ] `docs/plans/active-worktrees.md` mirrors the work as `Ready For PR`.
 - [ ] Optional host tool warnings are not treated as failures for Docker-first workflows.
 - [ ] No secrets, `.env`, Terraform state, kubeconfigs, or cloud credentials are committed.
 - [ ] PR description includes summary, validation, risk, and follow-up notes.
 
 ## PR Creation Command
 
-Use the repo helper after validation and authorization:
-
-```bash
-sh scripts/dev/github-projects.sh open-pr \
-  <issue-number> \
-  <branch> \
-  "<title>" \
-  <body-file> \
-  docs/plans/active-worktrees.md
-```
-
-Use `gh pr create` directly only when the helper is insufficient for the PR.
-If so, update the GitHub Project item and `docs/plans/active-worktrees.md`
-manually before reporting completion.
+Use the GitHub plugin or `gh pr create` after validation and authorization.
 
 The PR body must include:
 
@@ -55,8 +41,8 @@ The PR body must include:
 - risk
 - follow-up notes
 
-After creating the PR, update GitHub Projects and
-`docs/plans/active-worktrees.md` to `PR Open`.
+After creating the PR, update the issue or simple Project status only when that
+status is meaningful for visibility.
 
 ## Merge Notes
 

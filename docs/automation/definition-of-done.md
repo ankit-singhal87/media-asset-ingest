@@ -4,8 +4,8 @@
 
 - Acceptance themes are implemented or explicitly deferred.
 - Tests or validation cover the story behavior.
-- Linked GitHub task sub-issues are completed or deferred with rationale.
-- GitHub Project status and relationships reflect the final story state.
+- Linked GitHub issues are completed or deferred with rationale when they exist.
+- GitHub Project status reflects the final story state when the story is on the board.
 - `docs/product/user-stories.md` status is updated.
 - `docs/product/milestones.md` mapping remains accurate.
 - No open bugs block the story.
@@ -18,7 +18,7 @@
 - Minimal validation passes.
 - Required docs are updated.
 - Handoff result is prepared.
-- GitHub Project task status and relationships are updated.
+- GitHub issue or simple Project status is updated when remote tracking is used.
 - `docs/plans/task-index.md` is updated when local task files change.
 
 ## Bug Fix Done
@@ -27,7 +27,7 @@
 - Observed and expected behavior are documented.
 - Regression test fails before the fix and passes after, unless exception is approved.
 - Linked stories/tasks are updated if meaning changes.
-- GitHub bug issue and Project status are updated.
+- GitHub bug issue and simple Project status are updated when remote tracking is used.
 - `docs/bugs/index.md` is updated when local bug files change.
 - Validation evidence is recorded.
 
@@ -35,7 +35,8 @@
 
 - All milestone tasks are completed or deferred.
 - Linked stories reflect current status.
-- GitHub milestone, epic sub-issues, dependencies, and Project fields reflect current status.
+- GitHub milestone/issues and simple Project status reflect current status when
+  remote tracking is used.
 - Validation evidence is recorded.
 - Status/work log are updated.
 - Known bugs are filed and non-blocking.
@@ -45,7 +46,7 @@
 - ADR is added or updated when a durable decision changes.
 - Architecture docs reflect the decision.
 - Product stories and plans are updated if scope changes.
-- GitHub Project issues/relationships are updated if roadmap scope changes.
+- GitHub issues and simple Project status are updated if roadmap scope changes.
 - Validation confirms docs have no unfinished placeholders.
 
 ## Tooling Change Done
@@ -59,8 +60,7 @@
 
 ## GitHub Tracker Change Done
 
-- Native GitHub relationships are used for parent, milestone, and blocked-by state.
-- Issue bodies do not duplicate relationship metadata.
-- Project fields, labels, milestones, and issue relationships are updated.
+- Issue state and simple Project status are updated when needed.
+- Issue bodies stay focused on problem, outcome, and implementation notes.
 - `make github-project-summary` passes.
-- `make github-project-hierarchy` reflects the intended hierarchy.
+- `make github-project-active` reflects the intended active board state.

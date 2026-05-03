@@ -5,8 +5,8 @@
 - Phase: local implementation foundation.
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
-  across watcher, persistence/outbox, workflow, agents, observability, and the
-  React control plane.
+  across watcher, persistence/outbox, workflow, command routing, observability,
+  and the React control plane.
 
 ## Completed
 
@@ -28,8 +28,8 @@
 - Active worktree tracking and PR authorization rules created.
 - GitHub Projects roadmap created with milestone epics and numbered user-story
   issues.
-- GitHub issue hierarchy, dependencies, issue bodies, and Project fields
-  refined.
+- Initial GitHub issue hierarchy, dependencies, issue bodies, and Project fields
+  refined; later simplified to lightweight board tracking.
 - Read-only GitHub tracker helper commands added for agent verification.
 - Local task, bug, worktree, checklist, and definition-of-done docs aligned with
   the GitHub Projects tracker model.
@@ -37,7 +37,7 @@
   naming conventions were merged in PR #29.
 - Task issues #30 through #37 were created for the first parallel execution
   lanes, with #30 and #32 active as the foundation worktrees.
-- GitHub tracker helper commands now cover Project field updates, native
+- GitHub tracker helper commands were added for Project field updates, native
   sub-issue links, and native blocked-by dependency links.
 - GitHub tracker helper commands now also cover required Project field audits,
   issue-body relationship linting, and PR creation with Project/worktree state
@@ -50,15 +50,18 @@
 - TASK-3-1 added the ingest watcher scanner foundation.
 - TASK-4-1 added the persistence and outbox foundation.
 - TASK-5-1 added the Dapr workflow skeleton.
-- TASK-6-1 added specialized video, audio, text, and other agent worker
-  skeletons.
+- TASK-6-1 initially added media-specific agent worker skeletons; these were
+  superseded by generic command-routing contracts.
 - TASK-7-1 added the observability correlation field foundation.
 - TASK-8-1 scaffolded the React workflow control plane with mocked workflow
   graph data and focused UI tests.
 - Merged task worktrees for TASK-3-1 through TASK-8-1 were removed and marked
   `Cleaned Up` in the local worktree mirror.
 - GitHub tracker state for task issues #31 and #33 through #37 was reconciled
-  to closed, `status:complete`, and Project `Done`.
+  to closed, `status:complete`, and Project `Done`; future tracking is
+  lightweight status only.
+- Command routing now uses semantic command topics and light, medium, or heavy
+  execution classes instead of media-specific agent projects.
 
 ## Ready For Review
 

@@ -11,7 +11,7 @@ Use consistent terms:
 - source/master video
 - sidecar
 - work item
-- agent
+- command runner
 - workflow instance
 - workflow node
 - package timeline
@@ -22,7 +22,8 @@ Keep domain behavior separate from infrastructure.
 
 - Domain/application code decides package lifecycle and routing intent.
 - Infrastructure adapters talk to Dapr, Azure Service Bus, PostgreSQL, filesystems, and logging backends.
-- Agents own specialized processing capabilities.
+- Command runners execute already-decided commands and stay independent of
+  package lifecycle decisions.
 - UI projections read business state, not Dapr runtime internals or raw logs.
 
 ## Aggregates And Concepts
@@ -44,4 +45,4 @@ conceptual boundaries.
 - Do not make manifest file lists authoritative.
 - Do not store UI status only in logs.
 - Do not make workflow runtime state the business source of truth.
-- Keep idempotency explicit at message and agent boundaries.
+- Keep idempotency explicit at message and command-runner boundaries.

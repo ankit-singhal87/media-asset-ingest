@@ -40,8 +40,7 @@ Supporting lanes:
 
 ## Dependencies
 
-- Native GitHub blocked-by relationships plus any ADR or external dependency
-  that cannot be represented in GitHub relationships.
+- Important sequencing notes plus any ADR or external dependency links.
 
 ## Execution Strategy
 
@@ -86,7 +85,7 @@ make github-project-hierarchy
 - `docs/product/user-stories.md`
 - `docs/product/backlog.md`
 - `docs/plans/task-index.md`
-- GitHub Project fields, sub-issues, dependencies, and milestone status
+- GitHub issue state and simple Project status
 - <other docs>
 
 ## Stop Conditions

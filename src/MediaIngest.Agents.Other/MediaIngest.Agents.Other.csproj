@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>MediaIngest.Agents.Other</RootNamespace>
-    <AssemblyName>MediaIngest.Agents.Other</AssemblyName>
-  </PropertyGroup>
-</Project>

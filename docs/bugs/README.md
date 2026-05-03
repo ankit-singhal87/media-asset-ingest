@@ -15,7 +15,7 @@ Use [templates/bug-template.md](templates/bug-template.md) for new bug files.
 
 Bug fixes must update:
 
-- the GitHub bug issue and Project fields
+- the GitHub bug issue and simple Project status when remote tracking is used
 - the bug file status
 - [index.md](index.md)
 - linked user stories if acceptance meaning changes in repo docs

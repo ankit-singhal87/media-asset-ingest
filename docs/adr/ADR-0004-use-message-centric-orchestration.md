@@ -6,8 +6,8 @@ Accepted
 
 ## Context
 
-The system will have multiple specialized agents. Agents should process messages
-only from their respective queues.
+The system will have multiple command-runner capacity classes. Runners should
+process messages only from their light, medium, or heavy subscriptions.
 
 ## Decision
 
@@ -17,6 +17,7 @@ work distribution backbone.
 ## Consequences
 
 - Agents remain independently deployable and scalable.
-- Queue names define ownership boundaries.
+- Command topic names define business intent; filtered subscriptions define
+  execution capacity boundaries.
 - The outbox remains central to reliable command/event publication.
-- Dapr activities are used selectively; agent work is primarily message-driven.
+- Dapr activities are used selectively; command work is primarily message-driven.

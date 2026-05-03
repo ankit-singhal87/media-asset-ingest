@@ -43,9 +43,10 @@ Owns Azure Service Bus routing, command/event contracts at the broker boundary, 
 
 Owns PostgreSQL persistence, business state, audit/timeline storage, and data access boundaries.
 
-### Essence - Media Agents
+### Essence - Command Execution
 
-Owns video, audio, text, sidecar, proxy, metadata, QC, and other specialized agents.
+Owns media command construction, command execution semantics, proxy/checksum/QC
+work, and light/medium/heavy runner behavior.
 
 ### Beacon - Observability
 
