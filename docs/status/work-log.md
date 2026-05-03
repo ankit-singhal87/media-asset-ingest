@@ -53,6 +53,9 @@ messages or paste command output unless it explains a decision.
   task plans after clearing the native GitHub dependencies.
 - Completed TASK-3-1 ingest watcher scanner foundation with package-directory
   candidate discovery under the configured ingest mount.
+- Added TASK-4-1 persistence and outbox foundation with a shared persistence
+  batch for business state and outbox messages plus a dispatcher for pending
+  outbox records.
 
 ## Update Rule
 
