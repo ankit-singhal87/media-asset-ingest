@@ -37,12 +37,11 @@
 
 ## Ready For Review
 
-- Link and commit standards cleanup is validated and ready for PR when
-  authorized.
+- Link and commit standards cleanup is validated in PR #29.
 
 ## Next
 
-- Create PR for `USER-STORY-16-link-and-commit-standards` after user approval.
+- Merge PR #29 after checks complete.
 
 ## Known Agent Execution Gaps
 
