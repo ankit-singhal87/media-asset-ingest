@@ -7,8 +7,8 @@ Use Dapr Workflow for durable package-level orchestration.
 ## Workflow Style
 
 Use message-centric orchestration. Dapr coordinates lifecycle decisions, waits,
-timers, child workflows, and finalization. Azure Service Bus queues distribute
-actual work to independent agents.
+timers, child workflows, and finalization. Azure Service Bus command topics
+distribute actual work to independent command runners.
 
 ## Root Workflow
 
@@ -17,8 +17,8 @@ The root workflow is `PackageIngestWorkflow`. It owns the package lifecycle:
 1. manifest detected
 2. package scan requested
 3. file classification requested
-4. work commands emitted
-5. agent completion events observed
+4. semantic work commands emitted
+5. command completion events observed
 6. done marker observed or awaited
 7. reconciliation requested
 8. package finalized

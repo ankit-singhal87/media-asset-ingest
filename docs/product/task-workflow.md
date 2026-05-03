@@ -9,17 +9,17 @@ Each implementation task should follow:
 3. Read relevant architecture, ADR, product, and standards docs.
 4. Read `docs/automation/execution-checklist.md`.
 5. Read `docs/automation/git-conventions.md`.
-6. Read or create the relevant GitHub issue and Project item.
-7. Confirm GitHub parent/sub-issue and dependency relationships.
+6. Read or create the relevant GitHub issue when remote tracking is needed.
+7. Use the GitHub Project only as a simple status board when needed.
 8. Use a branch name that starts with the lowest-level work identifier.
 9. Write or identify a BDD scenario for user-visible behavior.
 10. Write a failing test before production code.
 11. Implement the smallest change that passes.
 12. Refactor while tests stay green.
 13. Run the validation command from `docs/automation/validation.md`.
-14. Update impacted docs and GitHub Projects.
+14. Update impacted docs and lightweight GitHub status when needed.
 15. Prepare handoff using `docs/automation/agent-handoff.md`.
-16. Report local validation and GitHub tracker verification evidence.
+16. Report local validation and any GitHub tracker evidence.
 
 ## Required Documentation Updates
 
@@ -32,8 +32,8 @@ Before a task is complete, update the relevant files:
 - `docs/product/user-stories.md` when acceptance meaning changes.
 - `docs/plans` when milestone plans or task plans are added, split, renamed, or deleted.
 - `docs/plans/task-index.md` when local task files are added, renamed, or deleted.
-- `docs/plans/active-worktrees.md` when worktree, branch, status, target files, or PR state changes.
-- GitHub Projects when issue, milestone, bug, task, worktree, or PR state changes.
+- `docs/plans/active-worktrees.md` only when coordinating active parallel worktrees.
+- GitHub issues or simple Project status when remote tracker state changes.
 - `docs/bugs` when durable defect documentation is added, renamed, or deleted.
 - `docs/bugs/index.md` when local bug files are added, renamed, or deleted.
 - `README.md` quickstart when onboarding, setup, commands, or validation changes.
@@ -53,6 +53,6 @@ Bug fixes must include:
 - a failing regression test first, unless the user approves an exception
 - the fix
 - validation evidence
-- a GitHub issue with `type:bug`
+- a GitHub issue when durable remote bug tracking is needed
 - a `docs/bugs/BUG-<number>-<title>.md` entry
 - any status, work-log, story, or milestone update

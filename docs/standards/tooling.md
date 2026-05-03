@@ -14,20 +14,17 @@ Use:
 - `make test-dotnet` to build and smoke-test the .NET solution.
 - `make validate` for cheap repository validation.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
-- `make github-projects-script-test` to test GitHub tracker helper wrappers
-  without network access.
-- `make github-project-audit-fields` and `make github-issue-body-lint` for
-  tracker consistency checks before PR handoff.
+- `make github-projects-script-test` to test legacy GitHub tracker helper
+  wrappers without network access.
 - `make github-project-check` to verify GitHub CLI auth and Project access.
 - `make github-project-summary` to summarize tracker counts.
-- `make github-project-hierarchy` to verify epic/story hierarchy.
+- `make github-project-hierarchy` to inspect parent/child issue hierarchy when
+  needed.
 - `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:fix` for safe docs formatting fixes.
 - `npm run dotnet:test` for .NET solution validation through npm.
-- `npm run github-project:script-test` for tracker helper wrapper tests.
-- `npm run github-project:audit-fields` and
-  `npm run github-project:issue-body-lint` for tracker consistency checks.
+- `npm run github-project:script-test` for legacy tracker helper wrapper tests.
 - `npm run tools:check` for host tool checks through npm.
 
 ## Tooling Strategy

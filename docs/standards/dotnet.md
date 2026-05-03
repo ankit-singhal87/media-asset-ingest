@@ -3,12 +3,13 @@
 ## Direction
 
 Use modern .NET worker services and APIs with clear boundaries between workflow,
-messaging, persistence, agents, and observability.
+messaging, persistence, command execution, and observability.
 
 ## Principles
 
 - Prefer explicit contracts for commands, events, and API DTOs.
-- Keep agents focused on one processing capability.
+- Keep command runners generic; specialize by execution class and container
+  resources instead of media type.
 - Keep workflow code orchestration-focused; do not hide business state only in
   workflow runtime data.
 - Make message handlers idempotent.

@@ -1,4 +1,4 @@
-# TASK-6-1: Add Specialized Agent Worker Skeletons
+# TASK-6-1: Add Command Execution Foundation
 
 ## Status
 
@@ -13,11 +13,9 @@ Completed
 - Bugs:
   - None
 
-Native GitHub relationships:
-
-- Parent issue: #17
-- Blocked by: None
-- Blocks: specialized media processing tasks.
+This task originally created media-specific agent skeletons. That direction was
+superseded by generic command-routing contracts and light, medium, or heavy
+execution classes.
 
 ## Ownership
 
@@ -31,11 +29,8 @@ Supporting lanes:
 
 Agents may edit only these files unless they escalate:
 
-- `src/MediaIngest.Agents.Video`
-- `src/MediaIngest.Agents.Audio`
-- `src/MediaIngest.Agents.Text`
-- `src/MediaIngest.Agents.Other`
-- `tests/MediaIngest.Agents.*.Tests`
+- `src/MediaIngest.Contracts/Commands`
+- `tests/MediaIngest.Contracts.Tests`
 - `docs/plans/task-index.md`
 - `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`
@@ -43,10 +38,10 @@ Agents may edit only these files unless they escalate:
 ## BDD Scenario
 
 ```gherkin
-Scenario: Specialized agents own separate work categories
-  Given classified media work items
-  When work is routed to specialized agents
-  Then each agent project owns only its assigned media category
+Scenario: Media commands route to execution capacity
+  Given media commands with file size metadata
+  When command routing policy selects execution capacity
+  Then each command keeps a semantic topic and receives light, medium, or heavy execution class
 ```
 
 ## Validation

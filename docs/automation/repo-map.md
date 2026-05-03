@@ -6,11 +6,9 @@ Planned structure:
 - `src/MediaIngest.Worker.Watcher` - filesystem package watcher.
 - `src/MediaIngest.Worker.Outbox` - transactional outbox dispatcher.
 - `src/MediaIngest.Workflow` - Dapr workflow definitions and orchestration contracts.
-- `src/MediaIngest.Agents.Video` - video/source essence agent.
-- `src/MediaIngest.Agents.Audio` - audio essence agent.
-- `src/MediaIngest.Agents.Text` - text essence agent.
-- `src/MediaIngest.Agents.Other` - fallback and sidecar agent.
-- `src/MediaIngest.Contracts` - command, event, and DTO contracts.
+- command runner services - future light, medium, and heavy generic command
+  executors.
+- `src/MediaIngest.Contracts` - command, routing, event, and DTO contracts.
 - `src/MediaIngest.Persistence` - PostgreSQL persistence and outbox support.
 - `src/MediaIngest.Observability` - logging, tracing, and correlation helpers.
 - `web/ingest-control-plane` - workflow visualization UI.

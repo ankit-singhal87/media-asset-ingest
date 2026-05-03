@@ -3,9 +3,9 @@
 Parallel agents are allowed only when file ownership is disjoint and task
 dependencies do not require sequential execution.
 
-Use GitHub Projects as the tracker source of truth and
-`docs/plans/active-worktrees.md` as the local coordination mirror for parallel
-Codex processes.
+Use GitHub issues and PRs for durable work tracking. Use the GitHub Project as
+a lightweight status board only. Use `docs/plans/active-worktrees.md` as the
+local coordination mirror for active parallel Codex processes.
 
 ## Safe Parallel Patterns
 
@@ -34,9 +34,9 @@ Each parallel agent must receive:
 - files it must not edit
 - validation command
 - expected handoff format
-- requirement to update `docs/plans/active-worktrees.md`
+- requirement to update `docs/plans/active-worktrees.md` while the worktree is active
 - requirement to clean up its own local worktree after the PR merges
-- requirement to update GitHub Projects when tracker state changes
+- requirement to update simple GitHub status when tracker state changes
 
 ## Conflict Protocol
 
@@ -52,14 +52,15 @@ Do not merge competing edits manually without a new plan.
 ## Worktree Lifecycle
 
 1. Create worktree from current `main`.
-2. Add or update the worktree entry in `docs/plans/active-worktrees.md`.
+2. Add or update the worktree entry in `docs/plans/active-worktrees.md` if
+   multiple local worktrees are active.
 3. Execute only the assigned task scope.
-4. Update GitHub Project fields for active work, status, target files, and validation when needed.
+4. Update only simple GitHub Project status when visibility needs it.
 5. Mark the local row `Ready For PR` after validation passes.
 6. Create PR when authorized.
-7. Mark the GitHub Project item and local row `PR Open`.
+7. Mark simple GitHub Project status and local row `PR Open` when tracking it.
 8. After merge, the owning agent must remove its local worktree, then update
-   `docs/plans/active-worktrees.md` to `Cleaned Up`.
+   `docs/plans/active-worktrees.md` to `Cleaned Up` when an active row exists.
 
 Parallel agents normally run in separate terminals with separate worktrees. Each
 agent owns cleanup for the worktree it created; do not leave merged worktrees
@@ -68,18 +69,18 @@ behind unless cleanup is blocked, and report the blocker in the handoff.
 ## Tracker Coordination
 
 GitHub Project commands must be serialized across terminals. Parallel agents may
-work on local files at the same time, but they must not run Project field writes,
-Project audits, or bulk tracker validation concurrently.
+work on local files at the same time, but they must not run Project status
+writes or bulk tracker validation concurrently.
 
 Recommended pattern:
 
 1. One coordinator runs tracker checks before dispatch.
 2. Each agent works locally and validates locally.
 3. Agents update local docs and prepare handoff.
-4. The coordinator serially updates GitHub Project fields and opens PRs, or one
+4. The coordinator serially updates simple GitHub status and opens PRs, or one
    agent at a time performs those steps after confirming no other tracker
    command is running.
-5. The coordinator runs final Project audits after all tracker writes complete.
+5. The coordinator runs one lightweight tracker check after tracker writes complete.
 
 Use the GitHub plugin for ordinary issue, PR, review, diff, commit, and CI
 inspection. Reserve `gh project`, `make github-project-*`, and

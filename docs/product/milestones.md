@@ -109,7 +109,7 @@ Components:
 Status: In Progress
 
 Purpose: Add PostgreSQL transactional outbox and Azure Service Bus command
-routing for agent-owned queues.
+routing for semantic command topics and capacity-based runners.
 
 User stories:
 
@@ -167,12 +167,12 @@ Components:
 - `src/MediaIngest.Persistence`
 - `deploy/dapr`
 
-## MILESTONE-6: Specialized Agents
+## MILESTONE-6: Command Runners
 
 Status: In Progress
 
-Purpose: Add independently scalable processing agents for essence and derived
-media work.
+Purpose: Add independently scalable command runners for light, medium, and
+heavy media work.
 
 User stories:
 
@@ -181,9 +181,9 @@ User stories:
 
 Domains:
 
-- Essence processing
+- Command execution
 - Work item
-- Agent execution
+- Runner execution
 
 Ownership lanes:
 
@@ -193,10 +193,6 @@ Ownership lanes:
 
 Components:
 
-- `src/MediaIngest.Agents.Video`
-- `src/MediaIngest.Agents.Audio`
-- `src/MediaIngest.Agents.Text`
-- `src/MediaIngest.Agents.Other`
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Observability`
 

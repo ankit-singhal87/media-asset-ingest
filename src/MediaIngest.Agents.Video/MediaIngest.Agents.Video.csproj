@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>MediaIngest.Agents.Video</RootNamespace>
-    <AssemblyName>MediaIngest.Agents.Video</AssemblyName>
-  </PropertyGroup>
-</Project>

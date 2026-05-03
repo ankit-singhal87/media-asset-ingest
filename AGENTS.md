@@ -37,8 +37,8 @@ direction.
 - Stop and ask before dependency changes, destructive Git operations, paid cloud
   actions, secret handling, or changes outside the assigned scope.
 - Update [docs/plans/active-worktrees.md](docs/plans/active-worktrees.md) when creating, using, PR-opening, merging, or cleaning up worktrees.
-- Keep GitHub Projects as the human-facing source of truth for roadmap, issue,
-  milestone, bug, and PR state once remote tracker access is available.
+- Keep GitHub Projects lightweight: issues and PRs are durable, and the Project
+  is only a simple status board when remote tracker access is available.
 - Start branch names, commit subjects, and PR titles with the lowest-level
   available work identifier: task ID, bug ID, then story ID.
 - Commits, pushes, and PR creation happen only when the user asks or when a task
@@ -51,8 +51,8 @@ direction.
 - Treat the manifest as metadata and a start signal, not the authoritative file
   list.
 - Ingest every file physically present in the package directory.
-- Use Dapr Workflow for package orchestration and Azure Service Bus queues for
-  work distribution to specialized agents.
+- Use Dapr Workflow for package orchestration and Azure Service Bus command
+  topics/subscriptions for work distribution to generic command runners.
 - Keep PostgreSQL as the business source of truth.
 - Keep Dapr workflow runtime state separate from business state.
 - Use structured logs, OpenTelemetry traces, and business timeline events.

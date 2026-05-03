@@ -24,8 +24,8 @@ messages or paste command output unless it explains a decision.
   parallel Codex execution.
 - Created GitHub Project `Media Asset Ingest Roadmap`, GitHub milestones,
   milestone epic issues, user-story issues, and tracker labels.
-- Added GitHub sub-issue hierarchy, blocked-by dependencies, richer issue
-  bodies, and populated Project fields for type, lane, and status.
+- Added initial GitHub sub-issue hierarchy, blocked-by dependencies, richer
+  issue bodies, and populated Project fields for type, lane, and status.
 - Removed duplicated relationship metadata from GitHub issue bodies and added
   read-only Make/npm helpers for GitHub tracker verification.
 - Cleaned local plan, bug, worktree, checklist, and definition-of-done docs so
@@ -35,7 +35,7 @@ messages or paste command output unless it explains a decision.
   cleanup.
 - Created the first parallel execution task issues and local task files for
   .NET foundation, shared contracts, Dapr workflow, React UI, watcher,
-  persistence/outbox, observability, and specialized agent lanes.
+  persistence/outbox, observability, and command execution lanes.
 - Added tested GitHub tracker helper commands for Project field updates,
   native sub-issue links, and native blocked-by dependency links.
 - Added tested GitHub tracker helpers for required field audits, issue-body
@@ -71,6 +71,10 @@ messages or paste command output unless it explains a decision.
   TASK-3-1 through TASK-8-1 local merges.
 - Reconciled GitHub task issues and Project fields for #31 and #33 through #37
   after the local task merges.
+- Simplified future GitHub tracking to issues, PRs, parent/child navigation when
+  useful, and simple Project status only.
+- Replaced the media-specific agent skeleton direction with generic command
+  routing contracts and light, medium, or heavy execution classes.
 
 ## Update Rule
 

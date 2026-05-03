@@ -11,7 +11,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-4 / USER-STORY-8: add persistence and transactional outbox
   foundation.
 - MILESTONE-5 / USER-STORY-9: add Dapr workflow skeleton.
-- MILESTONE-6 / USER-STORY-7: add specialized media agent worker skeletons.
+- MILESTONE-6 / USER-STORY-7: replace media-specific agent skeletons with
+  command-routing contracts.
 - MILESTONE-7 / USER-STORY-11: add observability correlation field foundation.
 - MILESTONE-8 / USER-STORY-12: scaffold React workflow control plane with
   mocked workflow graph data.
@@ -23,15 +24,16 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-3 / USER-STORY-2 / USER-STORY-3 / USER-STORY-4: implement manifest
   gating, physical file enumeration, and done-marker reconciliation.
 - MILESTONE-3 / USER-STORY-5: implement essence classification.
-- MILESTONE-4 / USER-STORY-6: define Azure Service Bus abstractions and local
-  development strategy.
+- MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
+  adapters and local development strategy.
 - MILESTONE-5 / USER-STORY-10: expand nested workflow contracts and behavior.
 - MILESTONE-8 / USER-STORY-13 / USER-STORY-14 / USER-STORY-15: add node log
   inspection, nested workflow drilldown, and back traversal.
 
 ## Later
 
-- MILESTONE-6 / USER-STORY-7: implement full specialized media agent behavior.
+- MILESTONE-6 / USER-STORY-7: implement light, medium, and heavy command
+  runner services.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-13: implement workflow graph API.
 - MILESTONE-9 / USER-STORY-17: add Kubernetes and Dapr deployment assets.
 - MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.

@@ -12,12 +12,12 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | Planned |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |
-| USER-STORY-6 | Route work through ASB queues | MILESTONE-4 | Messaging | Courier | Planned |
-| USER-STORY-7 | Process with specialized agents | MILESTONE-6 | Agent execution | Essence | In Progress |
+| USER-STORY-6 | Route work through ASB command topics | MILESTONE-4 | Messaging | Courier | Planned |
+| USER-STORY-7 | Execute generic media commands | MILESTONE-6 | Command execution | Essence | In Progress |
 | USER-STORY-8 | Use transactional outbox | MILESTONE-4 | Outbox | Courier | In Progress |
 | USER-STORY-9 | Orchestrate package lifecycle with Dapr | MILESTONE-5 | Workflow | Pulse | In Progress |
 | USER-STORY-10 | Support nested workflows | MILESTONE-5 | Workflow | Pulse | Planned |
-| USER-STORY-11 | Record agent progress | MILESTONE-6, MILESTONE-7 | Observability | Beacon | In Progress |
+| USER-STORY-11 | Record command runner progress | MILESTONE-6, MILESTONE-7 | Observability | Beacon | In Progress |
 | USER-STORY-12 | Visualize workflow execution | MILESTONE-8 | Workflow UI | Canvas | In Progress |
 | USER-STORY-13 | Inspect node logs | MILESTONE-8 | Workflow UI | Canvas | Planned |
 | USER-STORY-14 | Drill into nested workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
@@ -169,8 +169,9 @@ Dependencies:
 
 ## USER-STORY-5: Classify Media Essences
 
-As an ingest system, I want to classify discovered files by essence type, so
-that video, audio, text, and sidecar files can be routed to specialized agents.
+As an ingest system, I want to classify discovered files by essence type and
+capture file-size metadata, so that command-routing policy can choose the right
+execution class.
 
 Milestone: MILESTONE-3
 
@@ -190,7 +191,6 @@ Components involved:
 
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Persistence`
-- `src/MediaIngest.Agents.Other`
 - `src/MediaIngest.Tests`
 
 Acceptance themes:
@@ -204,10 +204,11 @@ Dependencies:
 
 - USER-STORY-3
 
-## USER-STORY-6: Route Work Through ASB Queues
+## USER-STORY-6: Route Work Through ASB Command Topics
 
-As a platform engineer, I want file processing commands routed to named Azure
-Service Bus queues, so that each specialized agent only consumes work it owns.
+As a platform engineer, I want file processing commands published to semantic
+Azure Service Bus command topics, so that command intent stays decoupled from
+runner capacity.
 
 Milestone: MILESTONE-4
 
@@ -231,26 +232,27 @@ Components involved:
 
 Acceptance themes:
 
-- Each command has a specific destination queue.
-- Agents consume only their assigned queues.
-- Queue names are documented and stable.
+- Each command has a semantic topic name.
+- Message properties include an execution class.
+- Topic subscriptions route commands to light, medium, or heavy runners.
+- Topic names and execution classes are documented and stable.
 
 Dependencies:
 
 - USER-STORY-5
 - USER-STORY-8
 
-## USER-STORY-7: Process With Specialized Agents
+## USER-STORY-7: Execute Generic Media Commands
 
-As an operator, I want specialized agents for video, audio, text, proxy, and
-other processing, so that each processing concern can scale and fail
-independently.
+As an operator, I want generic command runners for light, medium, and heavy
+media work, so that execution capacity can scale independently from command
+intent.
 
 Milestone: MILESTONE-6
 
 Domains:
 
-- Agent execution
+- Command execution
 - Essence processing
 - Work item
 
@@ -262,17 +264,14 @@ Ownership lanes:
 
 Components involved:
 
-- `src/MediaIngest.Agents.Video`
-- `src/MediaIngest.Agents.Audio`
-- `src/MediaIngest.Agents.Text`
-- `src/MediaIngest.Agents.Other`
 - `src/MediaIngest.Contracts`
 
 Acceptance themes:
 
-- Agent handlers are idempotent.
-- Agent failures are recorded in business state.
-- Agents can emit downstream work when allowed by workflow design.
+- Command runners are idempotent.
+- Runner failures are recorded in business state.
+- Runners execute provided commands such as ffmpeg command lines.
+- Runners can emit downstream work when allowed by workflow design.
 
 Dependencies:
 
@@ -319,7 +318,8 @@ Dependencies:
 ## USER-STORY-9: Orchestrate Package Lifecycle With Dapr
 
 As an ingest operator, I want a durable workflow per ingest package, so that
-package progress survives crashes and can coordinate asynchronous agents.
+package progress survives crashes and can coordinate asynchronous command
+runners.
 
 Milestone: MILESTONE-5
 
@@ -386,9 +386,9 @@ Dependencies:
 
 - USER-STORY-9
 
-## USER-STORY-11: Record Agent Progress
+## USER-STORY-11: Record Command Runner Progress
 
-As an operator, I want each agent to record business progress and structured
+As an operator, I want each command runner to record business progress and structured
 logs with `workflowInstanceId`, so that processing can be audited and
 correlated.
 
@@ -398,7 +398,7 @@ Domains:
 
 - Observability
 - Timeline
-- Agent execution
+- Command execution
 
 Ownership lanes:
 
@@ -412,12 +412,12 @@ Components involved:
 - `src/MediaIngest.Observability`
 - `src/MediaIngest.Persistence`
 - `src/MediaIngest.Contracts`
-- specialized agent projects
+- command runner projects
 
 Acceptance themes:
 
 - Logs include workflow and work item correlation fields.
-- Business timeline records agent state transitions.
+- Business timeline records command runner state transitions.
 - UI status does not depend on log scraping.
 
 Dependencies:
