@@ -5,6 +5,8 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Added the parallel track 07 Pulse workflow boundary with in-process package
+  lifecycle states for observed, ready, started, succeeded, and failed.
 - Added the Track 08 Beacon runtime diagnostic event-name catalog for scan,
   readiness, copy, outbox dispatch, success, and failure observability records.
 - Added the parallel Essence checksum validator component with focused tests for
