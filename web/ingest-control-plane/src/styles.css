@@ -71,6 +71,7 @@ h2 {
 
 .workflow-metadata div,
 .local-ingest-panel,
+.package-status-panel,
 .summary-band,
 .graph-section {
   border: 1px solid #d6dde5;
@@ -108,6 +109,60 @@ h2 {
   margin: 4px 0 0;
   color: #516170;
   font-weight: 700;
+}
+
+.package-status-panel {
+  margin: 0 auto 24px;
+  max-width: 1180px;
+  padding: 18px;
+}
+
+.package-status-panel p {
+  margin: 0;
+  color: #516170;
+  font-weight: 700;
+}
+
+.package-status-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.package-status-item {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 1.2fr) minmax(180px, 1.4fr) minmax(160px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d6dde5;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.package-status-item strong,
+.package-status-item code,
+.package-status-item span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.package-status-item code,
+.package-status-item span:not(.package-status-item__state) {
+  color: #576574;
+  font-size: 0.84rem;
+}
+
+.package-status-item__state {
+  justify-self: start;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
 }
 
 .start-ingest-button {
@@ -264,7 +319,8 @@ h2 {
   }
 
   .workflow-metadata,
-  .workflow-graph {
+  .workflow-graph,
+  .package-status-item {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -280,7 +336,8 @@ h2 {
   }
 
   .workflow-metadata,
-  .workflow-graph {
+  .workflow-graph,
+  .package-status-item {
     grid-template-columns: 1fr;
   }
 }
