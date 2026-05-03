@@ -58,15 +58,17 @@ introduced.
 
 ## Agent Tooling
 
-This repository is operated with Codex CLI. Agents should start from
+This repository is operated with
+[Codex CLI](https://github.com/openai/codex). Agents should start from
 `AGENTS.md`, then use `docs/automation/README.md` for compact execution context.
 
 Enabled agent tools:
 
-- Superpowers plugin: use the repo-required planning, TDD, worktree,
-  verification, and branch-finishing workflows.
-- GitHub plugin: prefer it for structured issue, PR, review, diff, commit, and
-  CI operations.
+- [Superpowers plugin](https://github.com/obra/superpowers): use the
+  repo-required planning, TDD, worktree, verification, and branch-finishing
+  workflows.
+- [GitHub plugin](https://github.com/openai/plugins): prefer it for structured
+  issue, PR, review, diff, commit, and CI operations.
 - `gh` and Make helpers: use these for GitHub Projects v2 fields, native
   sub-issue/dependency wiring, and tracker validation commands such as
   `make github-project-active`.

@@ -55,9 +55,10 @@ When a task changes workflow or tracker behavior:
 
 ## GitHub Tool Decision Matrix
 
-Prefer the GitHub plugin for normal structured GitHub operations. It avoids
-shell parsing and returns typed issue, PR, repository, diff, review, and CI data
-directly.
+Prefer the GitHub plugin from
+[openai/plugins](https://github.com/openai/plugins) for normal structured
+GitHub operations. It avoids shell parsing and returns typed issue, PR,
+repository, diff, review, and CI data directly.
 
 Use the GitHub plugin for:
 
