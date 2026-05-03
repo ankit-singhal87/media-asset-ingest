@@ -89,6 +89,10 @@ sh scripts/dev/github-projects.sh set-status 30 "In Progress"
 sh scripts/dev/github-projects.sh set-type 30 Task
 sh scripts/dev/github-projects.sh set-lane 30 Forge
 sh scripts/dev/github-projects.sh set-text 30 "Worktree / Branch" "TASK-2-1 / .worktrees/TASK-2-1"
+sh scripts/dev/github-projects.sh set-task-fields 30 Forge "In Progress" \
+  "TASK-2-1 / .worktrees/TASK-2-1" \
+  "MediaIngest.sln; src; tests" \
+  "make test-dotnet; make validate; git diff --check"
 sh scripts/dev/github-projects.sh add-sub-issue 26 30
 sh scripts/dev/github-projects.sh add-blocked-by 31 30
 sh scripts/dev/github-projects.sh audit-fields
@@ -123,6 +127,8 @@ Agent rules:
 - Run Project writes only at task boundaries: start, blocked, ready for PR, PR
   opened, merged, or cleanup.
 - Batch all fields for one issue before moving to the next issue.
+- Prefer `set-task-fields` over repeated `set-type`, `set-lane`, `set-status`,
+  and `set-text` calls for task setup.
 - Prefer one coordinating agent to perform tracker audits and bulk Project
   cleanup after parallel agents finish their local validation.
 - If GitHub returns a GraphQL rate-limit error, stop Project operations and
