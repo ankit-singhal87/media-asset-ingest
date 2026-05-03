@@ -25,6 +25,7 @@ mirror.
 | `.worktrees/TASK-2-2-shared-contracts` | `TASK-2-2-shared-contracts` | #32 | USER-STORY-16 | Forge | `MediaIngest.sln`, `src/MediaIngest.Contracts`, `tests/MediaIngest.Contracts.Tests`, `scripts/dev/test-dotnet.sh`, `docs/architecture`, `docs/status`, `docs/plans` | Cleaned Up | Local merge to `main` |
 | `.worktrees/TASK-3-1-ingest-watcher-scanner` | `TASK-3-1-ingest-watcher-scanner` | #35 | USER-STORY-1 | Mount | `src/MediaIngest.Worker.Watcher`, `tests/MediaIngest.Worker.Watcher.Tests`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Ready For PR | none |
 | `.worktrees/TASK-4-1-persistence-outbox-foundation` | `TASK-4-1-persistence-outbox-foundation` | #36 | USER-STORY-8 | Vault | `src/MediaIngest.Persistence`, `src/MediaIngest.Worker.Outbox`, `tests/MediaIngest.Persistence.Tests`, `tests/MediaIngest.Worker.Outbox.Tests`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md`, `MediaIngest.sln`, `scripts/dev/test-dotnet.sh` | Ready For PR | none |
+| `.worktrees/TASK-5-1-dapr-workflow-skeleton` | `TASK-5-1-dapr-workflow-skeleton` | #31 | USER-STORY-9 | Pulse | `MediaIngest.sln`, `src/MediaIngest.Workflow`, `tests/MediaIngest.Workflow.Tests`, `deploy/dapr`, `scripts/dev/test-dotnet.sh`, `docs/plans/task-index.md`, `docs/plans/active-worktrees.md`, `docs/status/work-log.md` | Ready For PR | Not created |
 
 ## Update Rule
 

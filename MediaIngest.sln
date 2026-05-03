@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.Outbox",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.Outbox.Tests", "tests\MediaIngest.Worker.Outbox.Tests\MediaIngest.Worker.Outbox.Tests.csproj", "{F3DF137F-2E64-4BEF-9D97-80588C77C243}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Workflow", "src\MediaIngest.Workflow\MediaIngest.Workflow.csproj", "{364E25B4-363F-4D78-9D9F-4058BC769BFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Workflow.Tests", "tests\MediaIngest.Workflow.Tests\MediaIngest.Workflow.Tests.csproj", "{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +72,14 @@ Global
 		{F3DF137F-2E64-4BEF-9D97-80588C77C243}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3DF137F-2E64-4BEF-9D97-80588C77C243}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3DF137F-2E64-4BEF-9D97-80588C77C243}.Release|Any CPU.Build.0 = Release|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{364E25B4-363F-4D78-9D9F-4058BC769BFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DDC3BB1-D0A8-405D-B84F-A2C5C504BEF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

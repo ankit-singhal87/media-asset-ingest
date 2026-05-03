@@ -56,6 +56,9 @@ messages or paste command output unless it explains a decision.
 - Added TASK-4-1 persistence and outbox foundation with a shared persistence
   batch for business state and outbox messages plus a dispatcher for pending
   outbox records.
+- Added the TASK-5-1 workflow skeleton that starts a package workflow from an
+  accepted package ingest request and prepares the initial scan, classify, and
+  dispatch child work plan.
 
 ## Update Rule
 

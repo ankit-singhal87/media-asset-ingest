@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Workflow</RootNamespace>
+    <AssemblyName>MediaIngest.Workflow</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
+  </ItemGroup>
+</Project>
