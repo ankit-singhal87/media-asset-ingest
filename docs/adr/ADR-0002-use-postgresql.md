@@ -20,4 +20,3 @@ for PostgreSQL Flexible Server.
 - Business state remains queryable for the control plane UI.
 - Cosmos DB is deferred because the relational ingest/audit/outbox model is a
   better v1 fit.
-

@@ -16,4 +16,3 @@ ingest packages and workflow state.
 - Support nested workflow drilldown and back traversal.
 - Prefer accessible color states with labels or icons where status ambiguity is
   possible.
-

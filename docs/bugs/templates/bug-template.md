@@ -70,4 +70,3 @@ GREEN:
 - [ ] Regression test passes after the fix.
 - [ ] Linked docs updated.
 - [ ] Bug status updated.
-

@@ -36,4 +36,3 @@ publishes pending messages to Azure Service Bus.
 - Consumers must tolerate at-least-once delivery.
 - Dispatcher leasing must allow more than one dispatcher instance safely.
 - Poison/dead-letter behavior must be observable.
-

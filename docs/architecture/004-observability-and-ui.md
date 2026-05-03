@@ -60,4 +60,3 @@ Clicking a node should show:
 
 The UI should initially poll APIs for graph state. SignalR can be added later
 for live updates.
-

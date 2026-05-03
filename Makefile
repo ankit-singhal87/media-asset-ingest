@@ -1,4 +1,4 @@
-.PHONY: help check-tools install-tools print-install-tools validate docs-check scripts-check github-project-check github-project-summary github-project-hierarchy github-project-active
+.PHONY: help check-tools install-tools print-install-tools validate docs-check docs-fix scripts-check github-project-check github-project-summary github-project-hierarchy github-project-active
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -7,6 +7,7 @@ help:
 	@printf '%s\n' "  make print-install-tools Print manual installation commands"
 	@printf '%s\n' "  make validate            Run cheap repository validation"
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
+	@printf '%s\n' "  make docs-fix            Apply safe docs formatting fixes"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
 	@printf '%s\n' "  make github-project-check     Verify GitHub CLI auth and project access"
 	@printf '%s\n' "  make github-project-summary   Print GitHub tracker counts"
@@ -26,6 +27,9 @@ validate: docs-check scripts-check
 
 docs-check:
 	@npm run docs:check
+
+docs-fix:
+	@npm run docs:fix
 
 scripts-check:
 	@sh -n scripts/dev/check-tools.sh

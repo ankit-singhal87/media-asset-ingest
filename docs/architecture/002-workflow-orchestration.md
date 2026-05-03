@@ -47,4 +47,3 @@ finish before reconciliation or finalization.
 
 Dapr workflow runtime state is not business truth. Business status, timeline,
 and audit state must be recorded in PostgreSQL application tables.
-

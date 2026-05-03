@@ -11,11 +11,13 @@
 | `make install-tools` | Install supported Linux host tools after local confirmation. | moderate | no | no |
 | `make print-install-tools` | Print installation commands without running them. | cheap | no | no |
 | `make validate` | Run cheap repository validation. | cheap | no | no |
+| `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |
 | `make github-project-summary` | Print GitHub Project, issue, milestone, and item counts. | cheap | no | no |
 | `make github-project-hierarchy` | Print epic/story sub-issue hierarchy. | cheap | no | no |
 | `make github-project-active` | Print in-progress GitHub Project items. | cheap | no | no |
 | `npm run docs:check` | Check docs for unfinished placeholders. | cheap | no | no |
+| `npm run docs:fix` | Apply safe docs formatting fixes. | cheap | no | no |
 | `npm run github-project:check` | Verify GitHub CLI auth and project access through npm. | cheap | no | no |
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
 | `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |

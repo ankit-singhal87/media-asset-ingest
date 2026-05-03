@@ -2,7 +2,7 @@
 
 | Change type | Minimal validation | Stronger validation | Docker? | Cloud? | Cost |
 | --- | --- | --- | --- | --- | --- |
-| Docs-only change | `make docs-check` | markdown lint when tooling exists | no | no | cheap |
+| Docs-only change | `make docs-check` | `make docs-fix` before committing when formatting/link checks fail | no | no | cheap |
 | Architecture/ADR change | targeted term search for contradictory decisions | review affected ADRs and architecture docs together | no | no | cheap |
 | Automation-doc change | `make validate` | read `AGENTS.md`, task workflow, and automation docs for consistency | no | no | cheap |
 | Standards change | `make validate` | review affected automation docs and task workflow | no | no | cheap |

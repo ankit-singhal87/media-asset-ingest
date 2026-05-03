@@ -36,4 +36,3 @@ Initial categories:
 - other: unknown sidecars or future essence types
 
 Classification rules should be easy to extend without rewriting workflow logic.
-

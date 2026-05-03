@@ -8,16 +8,18 @@ Each implementation task should follow:
 2. Read `AGENTS.md` and `docs/automation/README.md`.
 3. Read relevant architecture, ADR, product, and standards docs.
 4. Read `docs/automation/execution-checklist.md`.
-5. Read or create the relevant GitHub issue and Project item.
-6. Confirm GitHub parent/sub-issue and dependency relationships.
-7. Write or identify a BDD scenario for user-visible behavior.
-8. Write a failing test before production code.
-9. Implement the smallest change that passes.
-10. Refactor while tests stay green.
-11. Run the validation command from `docs/automation/validation.md`.
-12. Update impacted docs and GitHub Projects.
-13. Prepare handoff using `docs/automation/agent-handoff.md`.
-14. Report local validation and GitHub tracker verification evidence.
+5. Read `docs/automation/git-conventions.md`.
+6. Read or create the relevant GitHub issue and Project item.
+7. Confirm GitHub parent/sub-issue and dependency relationships.
+8. Use a branch name that starts with the lowest-level work identifier.
+9. Write or identify a BDD scenario for user-visible behavior.
+10. Write a failing test before production code.
+11. Implement the smallest change that passes.
+12. Refactor while tests stay green.
+13. Run the validation command from `docs/automation/validation.md`.
+14. Update impacted docs and GitHub Projects.
+15. Prepare handoff using `docs/automation/agent-handoff.md`.
+16. Report local validation and GitHub tracker verification evidence.
 
 ## Required Documentation Updates
 

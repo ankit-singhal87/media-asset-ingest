@@ -22,4 +22,3 @@ Use Dapr Workflow for package-level orchestration.
   is not ideal for this portfolio project.
 - Camunda is deferred because BPMN/DMN visual authoring adds cost and
   operational weight that is not required for v1.
-

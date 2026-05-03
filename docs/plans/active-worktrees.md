@@ -19,7 +19,8 @@ mirror.
 
 | Worktree | Branch | GitHub item | Stories | Lane | Target files | Status | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `.worktrees/story-planning` | `docs/story-planning` | #26 | Product planning docs | Atlas | `AGENTS.md`, `README.md`, `docs/product`, `docs/plans`, `docs/bugs`, `docs/automation`, `docs/standards`, `docs/status`, `Makefile`, `package.json`, `scripts/dev` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/28 |
+| `.worktrees/story-planning` | `docs/story-planning` | #26 | Product planning docs | Atlas | `AGENTS.md`, `README.md`, `docs/product`, `docs/plans`, `docs/bugs`, `docs/automation`, `docs/standards`, `docs/status`, `Makefile`, `package.json`, `scripts/dev` | Merged | https://github.com/ankit-singhal87/media-asset-ingest/pull/28 |
+| `.worktrees/link-and-commit-standards` | `USER-STORY-16-link-and-commit-standards` | #26 | USER-STORY-16 | Forge | `AGENTS.md`, `docs/automation`, `docs/product/task-workflow.md`, `docs/status`, `docs/standards/tooling.md`, `Makefile`, `package.json`, `scripts/dev/check-docs.mjs` | Ready For PR | Not opened |
 
 ## Update Rule
 

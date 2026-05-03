@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-03
 
+- Added Markdown link validation and Git naming conventions for branch, commit,
+  and PR traceability.
+- Added `make docs-fix` / `npm run docs:fix` for safe documentation formatting
+  cleanup before commits.
 - Created planning worktree `docs/story-planning`.
 - Added architecture, ADR, product, automation, and standards documentation.
 - Added repository operating model for status, task workflow, and toolchain checks.

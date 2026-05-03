@@ -16,4 +16,3 @@ TASK-2-1-create-dotnet-solution.md
 
 Keep task scopes narrow enough for one agent to execute without editing outside
 the task's target file list.
-
