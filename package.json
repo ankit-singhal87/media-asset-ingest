@@ -6,6 +6,7 @@
   "scripts": {
     "docs:check": "node scripts/dev/check-docs.mjs",
     "docs:fix": "node scripts/dev/check-docs.mjs --fix",
+    "dotnet:test": "sh scripts/dev/test-dotnet.sh",
     "github-project:active": "sh scripts/dev/github-projects.sh active",
     "github-project:audit-fields": "sh scripts/dev/github-projects.sh audit-fields",
     "github-project:check": "sh scripts/dev/github-projects.sh check-auth",

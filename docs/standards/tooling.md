@@ -11,6 +11,7 @@ Use:
 
 - `make check-tools` to verify host tools.
 - `make install-tools` to install or print installation guidance for host tools.
+- `make test-dotnet` to build and smoke-test the .NET solution.
 - `make validate` for cheap repository validation.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
 - `make github-projects-script-test` to test GitHub tracker helper wrappers
@@ -23,6 +24,7 @@ Use:
 - `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:fix` for safe docs formatting fixes.
+- `npm run dotnet:test` for .NET solution validation through npm.
 - `npm run github-project:script-test` for tracker helper wrapper tests.
 - `npm run github-project:audit-fields` and
   `npm run github-project:issue-body-lint` for tracker consistency checks.
@@ -62,7 +64,10 @@ containerized equivalents where practical:
 
 Notes:
 
-- .NET SDK: prefer SDK containers for build/test targets; host install is optional.
+- .NET SDK: prefer SDK containers for build/test targets; host install is
+  optional. `make test-dotnet` uses host `dotnet` when present and otherwise
+  runs the .NET SDK container image from `DOTNET_SDK_IMAGE`, defaulting to
+  `mcr.microsoft.com/dotnet/sdk:10.0`.
 - Azure CLI: prefer the official Azure CLI container or manual host install; login
   remains manual either way.
 - kubectl/Helm/Dapr: host installs are convenient, but deployment-oriented

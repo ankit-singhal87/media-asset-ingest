@@ -42,6 +42,9 @@ messages or paste command output unless it explains a decision.
   relationship linting, and PR creation with Project/worktree state updates.
 - Documented serialized GitHub Project operations so parallel agents do not
   exhaust the shared GraphQL rate-limit budget.
+- Added the TASK-2-1 .NET solution skeleton with a dependency-free foundation
+  smoke test and canonical `make test-dotnet` / `npm run dotnet:test`
+  validation entrypoints.
 
 ## Update Rule
 
