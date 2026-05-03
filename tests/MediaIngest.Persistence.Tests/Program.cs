@@ -1,3 +1,5 @@
+using System.Data;
+using System.Data.Common;
 using MediaIngest.Persistence;
 
 var store = new InMemoryIngestPersistenceStore();
@@ -41,6 +43,31 @@ AssertEqual(1, store.PackageStates.Count, "business state count after rejected b
 AssertEqual("package-001", store.PackageStates[0].PackageId, "business state after rejected batch");
 AssertEqual(1, store.OutboxMessages.Count, "outbox count after rejected batch");
 
+AssertContains("CREATE TABLE IF NOT EXISTS ingest_package_states", PostgresIngestSchema.SchemaSql, "package state table DDL");
+AssertContains("CREATE TABLE IF NOT EXISTS outbox_messages", PostgresIngestSchema.SchemaSql, "outbox table DDL");
+AssertContains("CREATE INDEX IF NOT EXISTS idx_outbox_messages_pending", PostgresIngestSchema.SchemaSql, "pending outbox index DDL");
+
+var recordingConnection = new RecordingDbConnection();
+var postgresStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(recordingConnection));
+
+await postgresStore.SaveAsync(new PersistenceBatch([packageState], [command]));
+
+AssertEqual(1, recordingConnection.BeginTransactionCount, "postgres save transaction count");
+AssertTrue(recordingConnection.Committed, "postgres save commits transaction");
+AssertEqual(2, recordingConnection.ExecutedCommands.Count, "postgres save command count");
+AssertContains("INSERT INTO ingest_package_states", recordingConnection.ExecutedCommands[0].CommandText, "postgres package upsert command");
+AssertContains("INSERT INTO outbox_messages", recordingConnection.ExecutedCommands[1].CommandText, "postgres outbox insert command");
+AssertEqual("package-001", recordingConnection.ExecutedCommands[0].Parameters["@package_id"], "postgres package id parameter");
+AssertEqual("message-001", recordingConnection.ExecutedCommands[1].Parameters["@message_id"], "postgres message id parameter");
+
+var schemaConnection = new RecordingDbConnection();
+var schemaStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(schemaConnection));
+
+await schemaStore.CreateSchemaAsync();
+
+AssertEqual(1, schemaConnection.ExecutedCommands.Count, "postgres schema command count");
+AssertEqual(PostgresIngestSchema.SchemaSql, schemaConnection.ExecutedCommands[0].CommandText, "postgres schema command text");
+
 Console.WriteLine("MediaIngest persistence boundary smoke tests passed.");
 
 static void AssertEqual<T>(T expected, T actual, string name)
@@ -58,3 +85,225 @@ static void AssertTrue(bool condition, string name)
         throw new InvalidOperationException($"{name}: expected true.");
     }
 }
+
+static void AssertContains(string expected, string actual, string name)
+{
+    if (!actual.Contains(expected, StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException($"{name}: expected to contain '{expected}'.");
+    }
+}
+
+#pragma warning disable CS8764, CS8765
+sealed class RecordingDbConnection : DbConnection
+{
+    private ConnectionState state = ConnectionState.Closed;
+
+    public int BeginTransactionCount { get; private set; }
+
+    public bool Committed { get; private set; }
+
+    public List<ExecutedCommand> ExecutedCommands { get; } = [];
+
+    public override string? ConnectionString { get; set; } = string.Empty;
+
+    public override string Database => "media_ingest_test";
+
+    public override string DataSource => "recording";
+
+    public override string ServerVersion => "16";
+
+    public override ConnectionState State => state;
+
+    public override void ChangeDatabase(string databaseName)
+    {
+    }
+
+    public override void Close() => state = ConnectionState.Closed;
+
+    public override void Open() => state = ConnectionState.Open;
+
+    public override Task OpenAsync(CancellationToken cancellationToken)
+    {
+        state = ConnectionState.Open;
+        return Task.CompletedTask;
+    }
+
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+    {
+        BeginTransactionCount++;
+        return new RecordingDbTransaction(this, isolationLevel, () => Committed = true);
+    }
+
+    protected override DbCommand CreateDbCommand() => new RecordingDbCommand(this);
+}
+
+sealed class RecordingDbTransaction(
+    DbConnection connection,
+    IsolationLevel isolationLevel,
+    Action onCommit) : DbTransaction
+{
+    public override IsolationLevel IsolationLevel { get; } = isolationLevel;
+
+    protected override DbConnection DbConnection { get; } = connection;
+
+    public override void Commit() => onCommit();
+
+    public override Task CommitAsync(CancellationToken cancellationToken = default)
+    {
+        onCommit();
+        return Task.CompletedTask;
+    }
+
+    public override void Rollback()
+    {
+    }
+}
+
+sealed class RecordingDbCommand(RecordingDbConnection connection) : DbCommand
+{
+    private readonly RecordingParameterCollection parameters = new();
+
+    public override string? CommandText { get; set; } = string.Empty;
+
+    public override int CommandTimeout { get; set; }
+
+    public override CommandType CommandType { get; set; } = CommandType.Text;
+
+    public override bool DesignTimeVisible { get; set; }
+
+    public override UpdateRowSource UpdatedRowSource { get; set; }
+
+    protected override DbConnection? DbConnection { get; set; } = connection;
+
+    protected override DbParameterCollection DbParameterCollection => parameters;
+
+    protected override DbTransaction? DbTransaction { get; set; }
+
+    public override void Cancel()
+    {
+    }
+
+    public override int ExecuteNonQuery()
+    {
+        Record();
+        return 1;
+    }
+
+    public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+    {
+        Record();
+        return Task.FromResult(1);
+    }
+
+    public override object? ExecuteScalar() => throw new NotSupportedException();
+
+    public override void Prepare()
+    {
+    }
+
+    protected override DbParameter CreateDbParameter() => new RecordingDbParameter();
+
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => throw new NotSupportedException();
+
+    private void Record() => connection.ExecutedCommands.Add(new ExecutedCommand(
+        CommandText ?? string.Empty,
+        parameters.Cast<RecordingDbParameter>().ToDictionary(parameter => parameter.ParameterName, parameter => parameter.Value)));
+}
+
+sealed class RecordingDbParameter : DbParameter
+{
+    public override DbType DbType { get; set; }
+
+    public override ParameterDirection Direction { get; set; } = ParameterDirection.Input;
+
+    public override bool IsNullable { get; set; }
+
+    public override string ParameterName { get; set; } = string.Empty;
+
+    public override string? SourceColumn { get; set; } = string.Empty;
+
+    public override object? Value { get; set; }
+
+    public override bool SourceColumnNullMapping { get; set; }
+
+    public override int Size { get; set; }
+
+    public override void ResetDbType()
+    {
+    }
+}
+
+sealed class RecordingParameterCollection : DbParameterCollection
+{
+    private readonly List<DbParameter> parameters = [];
+
+    public override int Count => parameters.Count;
+
+    public override object SyncRoot => this;
+
+    public override int Add(object value)
+    {
+        parameters.Add((DbParameter)value);
+        return parameters.Count - 1;
+    }
+
+    public override void AddRange(Array values)
+    {
+        foreach (var value in values)
+        {
+            Add(value);
+        }
+    }
+
+    public override void Clear() => parameters.Clear();
+
+    public override bool Contains(object value) => parameters.Contains((DbParameter)value);
+
+    public override bool Contains(string value) => parameters.Any(parameter => parameter.ParameterName == value);
+
+    public override void CopyTo(Array array, int index) => parameters.ToArray().CopyTo(array, index);
+
+    public override IEnumerator<object> GetEnumerator() => parameters.Cast<object>().GetEnumerator();
+
+    public override int IndexOf(object value) => parameters.IndexOf((DbParameter)value);
+
+    public override int IndexOf(string parameterName) => parameters.FindIndex(parameter => parameter.ParameterName == parameterName);
+
+    public override void Insert(int index, object value) => parameters.Insert(index, (DbParameter)value);
+
+    public override void Remove(object value) => parameters.Remove((DbParameter)value);
+
+    public override void RemoveAt(int index) => parameters.RemoveAt(index);
+
+    public override void RemoveAt(string parameterName)
+    {
+        var index = IndexOf(parameterName);
+        if (index >= 0)
+        {
+            RemoveAt(index);
+        }
+    }
+
+    protected override DbParameter GetParameter(int index) => parameters[index];
+
+    protected override DbParameter GetParameter(string parameterName) => parameters[IndexOf(parameterName)];
+
+    protected override void SetParameter(int index, DbParameter value) => parameters[index] = value;
+
+    protected override void SetParameter(string parameterName, DbParameter value)
+    {
+        var index = IndexOf(parameterName);
+        if (index >= 0)
+        {
+            parameters[index] = value;
+        }
+        else
+        {
+            parameters.Add(value);
+        }
+    }
+}
+
+sealed record ExecutedCommand(string CommandText, IReadOnlyDictionary<string, object?> Parameters);
+#pragma warning restore CS8764, CS8765
