@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Contracts", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Contracts.Tests", "tests\MediaIngest.Contracts.Tests\MediaIngest.Contracts.Tests.csproj", "{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.Watcher", "src\MediaIngest.Worker.Watcher\MediaIngest.Worker.Watcher.csproj", "{CEBA9554-BA39-472E-B0A6-74CD7F24D4BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.Watcher.Tests", "tests\MediaIngest.Worker.Watcher.Tests\MediaIngest.Worker.Watcher.Tests.csproj", "{11A9D962-BD79-46D6-A696-1716AD0A7116}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D91F70C-3D48-4FC9-BF0C-5E1B46EB83D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEBA9554-BA39-472E-B0A6-74CD7F24D4BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEBA9554-BA39-472E-B0A6-74CD7F24D4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEBA9554-BA39-472E-B0A6-74CD7F24D4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEBA9554-BA39-472E-B0A6-74CD7F24D4BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11A9D962-BD79-46D6-A696-1716AD0A7116}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11A9D962-BD79-46D6-A696-1716AD0A7116}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11A9D962-BD79-46D6-A696-1716AD0A7116}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11A9D962-BD79-46D6-A696-1716AD0A7116}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
