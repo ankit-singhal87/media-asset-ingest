@@ -1,72 +1,296 @@
 # Milestones
 
-## Milestone 1: Documentation And Local Foundation
+Milestones are numbered delivery slices. Each milestone maps to user stories,
+primary domains, ownership lanes, and planned components.
 
-- Automation context and guardrails.
-- Architecture overview.
-- ADRs.
-- Product stories.
-- Initial standards.
-- Status, task workflow, and work log.
-- Linux tool check/install guidance.
-- Makefile and npm validation entrypoints.
+## MILESTONE-1: Documentation And Local Foundation
 
-## Milestone 2: .NET Solution And Local Runtime
+Status: Complete
 
-- .NET solution structure.
-- Docker Compose or equivalent local services.
-- PostgreSQL local database.
-- Basic health checks.
+Purpose: Establish the project operating model, architecture decisions, product
+backlog, standards, and Docker-first developer workflow.
 
-## Milestone 3: Ingest Package Lifecycle
+User stories:
 
-- Filesystem watcher.
-- Manifest gating.
-- Package scan.
-- Done marker reconciliation.
-- File classification.
+- USER-STORY-16
+- USER-STORY-17
 
-## Milestone 4: Messaging And Outbox
+Domains:
 
-- PostgreSQL transactional outbox.
-- Outbox dispatcher.
-- Azure Service Bus abstraction.
-- Local broker development strategy.
+- Project operations
+- Developer experience
 
-## Milestone 5: Dapr Workflow Orchestration
+Ownership lanes:
 
-- Package ingest workflow.
-- Child workflow boundaries.
-- Workflow events and signals.
-- Workflow state separation.
+- Atlas
+- Forge
+- Gauge
 
-## Milestone 6: Specialized Agents
+Components:
 
-- Video agent.
-- Audio agent.
-- Text agent.
-- Other/sidecar agent.
-- Proxy creation agent.
+- `AGENTS.md`
+- `docs/automation`
+- `docs/architecture`
+- `docs/adr`
+- `docs/product`
+- `docs/standards`
+- `docs/status`
+- `Makefile`
+- `scripts/dev`
+- `package.json`
 
-## Milestone 7: Observability
+## MILESTONE-2: .NET Solution And Local Runtime
 
-- Structured JSON logs.
-- OpenTelemetry traces.
-- Correlation fields.
-- Business timeline/progress events.
+Status: Planned
 
-## Milestone 8: Workflow Visualization UI
+Purpose: Create the .NET solution, local container runtime, and baseline
+developer commands.
 
-- Workflow graph API.
-- Node status projection.
-- React graph UI.
-- Node details and logs.
-- Nested workflow drilldown and back traversal.
+User stories:
 
-## Milestone 9: Kubernetes And Azure Readiness
+- USER-STORY-16
+- USER-STORY-17
 
-- Kubernetes manifests.
-- Dapr component definitions.
-- Azure Service Bus configuration docs.
-- Azure PostgreSQL configuration docs.
-- Cost-conscious deployment notes.
+Domains:
+
+- Platform
+- Developer experience
+
+Ownership lanes:
+
+- Forge
+- Gauge
+
+Components:
+
+- `src`
+- `deploy/docker`
+- `docker-compose.yml`
+- `Makefile`
+- `scripts/dev`
+
+## MILESTONE-3: Ingest Package Lifecycle
+
+Status: Planned
+
+Purpose: Detect ingest packages, gate work on manifest presence, enumerate real
+files, classify essences, and reconcile on done marker.
+
+User stories:
+
+- USER-STORY-1
+- USER-STORY-2
+- USER-STORY-3
+- USER-STORY-4
+- USER-STORY-5
+
+Domains:
+
+- Ingest package
+- Manifest
+- Done marker
+- Essence classification
+
+Ownership lanes:
+
+- Mount
+- Essence
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Worker.Watcher`
+- `src/MediaIngest.Contracts`
+- `src/MediaIngest.Persistence`
+- `src/MediaIngest.Tests`
+
+## MILESTONE-4: Messaging And Outbox
+
+Status: Planned
+
+Purpose: Add PostgreSQL transactional outbox and Azure Service Bus command
+routing for agent-owned queues.
+
+User stories:
+
+- USER-STORY-6
+- USER-STORY-8
+
+Domains:
+
+- Messaging
+- Outbox
+- Work item
+
+Ownership lanes:
+
+- Courier
+- Vault
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Worker.Outbox`
+- `src/MediaIngest.Contracts`
+- `src/MediaIngest.Persistence`
+- `deploy/dapr`
+- `deploy/docker`
+
+## MILESTONE-5: Dapr Workflow Orchestration
+
+Status: Planned
+
+Purpose: Add durable package orchestration with Dapr Workflow, child workflow
+boundaries, signals, and workflow state separation.
+
+User stories:
+
+- USER-STORY-9
+- USER-STORY-10
+
+Domains:
+
+- Workflow instance
+- Workflow node
+- Package lifecycle
+
+Ownership lanes:
+
+- Pulse
+- Vault
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Workflow`
+- `src/MediaIngest.Contracts`
+- `src/MediaIngest.Persistence`
+- `deploy/dapr`
+
+## MILESTONE-6: Specialized Agents
+
+Status: Planned
+
+Purpose: Add independently scalable processing agents for essence and derived
+media work.
+
+User stories:
+
+- USER-STORY-7
+- USER-STORY-11
+
+Domains:
+
+- Essence processing
+- Work item
+- Agent execution
+
+Ownership lanes:
+
+- Essence
+- Beacon
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Agents.Video`
+- `src/MediaIngest.Agents.Audio`
+- `src/MediaIngest.Agents.Text`
+- `src/MediaIngest.Agents.Other`
+- `src/MediaIngest.Contracts`
+- `src/MediaIngest.Observability`
+
+## MILESTONE-7: Observability
+
+Status: Planned
+
+Purpose: Add structured logs, OpenTelemetry traces, correlation fields, and
+business timeline events.
+
+User stories:
+
+- USER-STORY-11
+
+Domains:
+
+- Observability
+- Timeline
+- Diagnostics
+
+Ownership lanes:
+
+- Beacon
+- Vault
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Observability`
+- `src/MediaIngest.Persistence`
+- `src/MediaIngest.Contracts`
+
+## MILESTONE-8: Workflow Visualization UI
+
+Status: Planned
+
+Purpose: Add workflow graph APIs and UI for node status, nested workflow
+drilldown, back traversal, and node log/timeline inspection.
+
+User stories:
+
+- USER-STORY-12
+- USER-STORY-13
+- USER-STORY-14
+- USER-STORY-15
+
+Domains:
+
+- Workflow graph
+- Workflow node
+- Package timeline
+- Operator control plane
+
+Ownership lanes:
+
+- Canvas
+- Pulse
+- Beacon
+- Gauge
+
+Components:
+
+- `src/MediaIngest.Api`
+- `web/ingest-control-plane`
+- `src/MediaIngest.Persistence`
+- `src/MediaIngest.Observability`
+
+## MILESTONE-9: Kubernetes And Azure Readiness
+
+Status: Planned
+
+Purpose: Add Kubernetes manifests, Dapr components, and Azure deployment
+documentation without requiring paid cloud execution by default.
+
+User stories:
+
+- USER-STORY-17
+
+Domains:
+
+- Platform
+- Azure deployment
+- Kubernetes runtime
+
+Ownership lanes:
+
+- Forge
+- Shield
+- Beacon
+
+Components:
+
+- `deploy/k8s`
+- `deploy/dapr`
+- `deploy/azure`
+- `docs/architecture`
+- `docs/automation`

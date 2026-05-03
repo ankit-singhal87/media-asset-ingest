@@ -1,4 +1,4 @@
-.PHONY: help check-tools install-tools print-install-tools validate docs-check scripts-check
+.PHONY: help check-tools install-tools print-install-tools validate docs-check scripts-check github-project-check github-project-summary github-project-hierarchy github-project-active
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -8,6 +8,10 @@ help:
 	@printf '%s\n' "  make validate            Run cheap repository validation"
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
+	@printf '%s\n' "  make github-project-check     Verify GitHub CLI auth and project access"
+	@printf '%s\n' "  make github-project-summary   Print GitHub tracker counts"
+	@printf '%s\n' "  make github-project-hierarchy Print epic/story hierarchy"
+	@printf '%s\n' "  make github-project-active    Print in-progress project items"
 
 check-tools:
 	@sh scripts/dev/check-tools.sh
@@ -26,4 +30,16 @@ docs-check:
 scripts-check:
 	@sh -n scripts/dev/check-tools.sh
 	@sh -n scripts/dev/install-tools.sh
+	@sh -n scripts/dev/github-projects.sh
 
+github-project-check:
+	@sh scripts/dev/github-projects.sh check-auth
+
+github-project-summary:
+	@sh scripts/dev/github-projects.sh summary
+
+github-project-hierarchy:
+	@sh scripts/dev/github-projects.sh hierarchy
+
+github-project-active:
+	@sh scripts/dev/github-projects.sh active

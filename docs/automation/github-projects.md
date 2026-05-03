@@ -1,0 +1,111 @@
+# GitHub Projects
+
+GitHub Projects is the human-facing source of truth for roadmap tracking.
+Repo-local planning docs remain the durable product and execution context that
+agents read before work.
+
+## Project
+
+- Project: [Media Asset Ingest Roadmap](https://github.com/users/ankit-singhal87/projects/2)
+- Repository: [ankit-singhal87/media-asset-ingest](https://github.com/ankit-singhal87/media-asset-ingest)
+
+## Tracker Model
+
+- GitHub milestones map to `MILESTONE-*` delivery slices.
+- Epic issues map to milestone-level delivery slices.
+- Story issues map to `USER-STORY-*` and are sub-issues of the owning epic.
+- Task issues should be created as sub-issues of the relevant story.
+- Bug issues should use `type:bug`, link to affected stories, and use GitHub
+  dependencies when a bug blocks planned work.
+- GitHub issue dependencies represent blocked-by relationships.
+- Project fields carry `Type`, primary `Lane`, and `Status`; labels carry
+  secondary lanes and searchable metadata.
+- `docs/plans/active-worktrees.md` is only the local active-worktree mirror.
+
+## Hybrid Agent Standard
+
+Agents must keep repo automation docs and GitHub tracker state aligned without
+duplicating relationship metadata in issue bodies.
+
+Use this split:
+
+- GitHub sub-issues: parent epic, story, and task hierarchy.
+- GitHub dependencies: blocked-by relationships.
+- GitHub milestones: delivery slice membership.
+- GitHub Project fields: type, primary lane, status, branch/worktree, target
+  files, and validation metadata.
+- GitHub labels: searchable type/status/lane metadata and secondary lanes.
+- Issue body: problem statement, outcomes or acceptance themes, target
+  components, and implementation notes that are not already native metadata.
+- Repo docs: durable operating rules, standards, architecture, and automation
+  guidance.
+
+Do not add `Parent Epic`, `Dependencies`, `Related Epic`, `Related Milestone`,
+or similar relationship sections to issue bodies unless GitHub lacks a native
+relationship for that specific fact.
+
+When a task changes workflow or tracker behavior:
+
+1. Update the relevant repo docs first.
+2. Update the GitHub Project, issues, milestones, labels, fields, and
+   relationships as needed.
+3. Run a read-only tracker command to verify the remote shape.
+4. Run local validation.
+5. Report both local validation and GitHub verification evidence.
+
+## Current Hierarchy
+
+- #2 `MILESTONE-1: Documentation And Local Foundation`
+- #3 `MILESTONE-2: .NET Solution And Local Runtime`
+  - #26 `USER-STORY-16: Develop With Docker-First Tooling`
+- #4 `MILESTONE-3: Ingest Package Lifecycle`
+  - #11 `USER-STORY-1: Watch Ingest Mount`
+  - #12 `USER-STORY-2: Start Only When Manifest Exists`
+  - #13 `USER-STORY-3: Ingest All Discovered Files`
+  - #14 `USER-STORY-4: Reconcile On Done Marker`
+  - #15 `USER-STORY-5: Classify Media Essences`
+- #5 `MILESTONE-4: Messaging And Outbox`
+  - #16 `USER-STORY-6: Route Work Through ASB Queues`
+  - #18 `USER-STORY-8: Use Transactional Outbox`
+- #6 `MILESTONE-5: Dapr Workflow Orchestration`
+  - #19 `USER-STORY-9: Orchestrate Package Lifecycle With Dapr`
+  - #20 `USER-STORY-10: Support Nested Workflows`
+- #7 `MILESTONE-6: Specialized Agents`
+  - #17 `USER-STORY-7: Process With Specialized Agents`
+- #8 `MILESTONE-7: Observability`
+  - #21 `USER-STORY-11: Record Agent Progress`
+- #9 `MILESTONE-8: Workflow Visualization UI`
+  - #22 `USER-STORY-12: Visualize Workflow Execution`
+  - #23 `USER-STORY-13: Inspect Node Logs`
+  - #24 `USER-STORY-14: Drill Into Nested Workflows`
+  - #25 `USER-STORY-15: Navigate Back From Child Workflows`
+- #10 `MILESTONE-9: Kubernetes And Azure Readiness`
+  - #27 `USER-STORY-17: Deploy To Kubernetes`
+
+## CLI Notes
+
+The GitHub CLI stores the token in `~/.config/gh/hosts.yml` because the local
+credential store is not available in this environment. Do not commit or print
+that file.
+
+```bash
+gh auth status
+make github-project-check
+make github-project-summary
+make github-project-hierarchy
+make github-project-active
+```
+
+Useful commands:
+
+```bash
+gh project view 2 --owner ankit-singhal87
+gh project item-list 2 --owner ankit-singhal87 --limit 100
+gh issue create --project "Media Asset Ingest Roadmap"
+```
+
+Creating or updating GitHub remote tracker state requires network access and a
+GitHub token with `repo` and `project` scopes.
+
+The Make targets are read-only helpers. Write operations still use `gh`
+directly after explicit authorization for remote tracker changes.
