@@ -89,6 +89,12 @@ messages or paste command output unless it explains a decision.
   all immediate child directories, readiness requires both manifest files, and
   start ingest launches a background watcher loop.
 
+## 2026-05-04
+
+- Added Mount file discovery for USER-STORY-3 so the watcher enumerates every
+  physical file under a ready package directory with stable package-relative
+  paths, without wiring discovery into copy, persistence, or workflow behavior.
+
 ## Update Rule
 
 Agents should add a dated bullet when completing a meaningful task, fixing a
