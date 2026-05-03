@@ -3,7 +3,7 @@
 ## Project State
 
 - Phase: planning and repository foundation.
-- Current branch: `USER-STORY-16-link-and-commit-standards`.
+- Current branch: `main`.
 - Current focus: durable project documentation, automation guidance, standards,
   and toolchain bootstrap.
 
@@ -33,15 +33,15 @@
 - Local task, bug, worktree, checklist, and definition-of-done docs aligned with
   the GitHub Projects tracker model.
 - Markdown link validation, safe docs fix commands, and Git branch/commit/PR
-  naming conventions are being added under USER-STORY-16.
+  naming conventions were merged in PR #29.
 
 ## Ready For Review
 
-- Link and commit standards cleanup is validated in PR #29.
+- No active PR is awaiting review.
 
 ## Next
 
-- Merge PR #29 after checks complete.
+- Create implementation plan for the next USER-STORY-16 local tooling slice.
 
 ## Known Agent Execution Gaps
 
