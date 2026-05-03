@@ -45,6 +45,12 @@ messages or paste command output unless it explains a decision.
 - Added the TASK-2-1 .NET solution skeleton with a dependency-free foundation
   smoke test and canonical `make test-dotnet` / `npm run dotnet:test`
   validation entrypoints.
+- Added shared workflow graph, node detail, node status, and workflow name
+  contracts for backend/workflow/UI coordination in TASK-2-2.
+- Extended `make test-dotnet` to execute the contract smoke-test project after
+  the solution build.
+- Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
+  task plans after clearing the native GitHub dependencies.
 
 ## Update Rule
 

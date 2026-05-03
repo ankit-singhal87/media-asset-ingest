@@ -16,7 +16,7 @@ Planned
 Native GitHub relationships:
 
 - Parent issue: #21
-- Blocked by: TASK-2-1
+- Blocked by: None
 - Blocks: cross-service progress logging tasks.
 
 ## Ownership

@@ -23,6 +23,12 @@ The root workflow is `PackageIngestWorkflow`. It owns the package lifecycle:
 7. reconciliation requested
 8. package finalized
 
+Shared contract constants reserve the root workflow name
+`PackageIngestWorkflow` and child workflow names for package scan, file
+classification, essence group processing, proxy creation, reconciliation, and
+finalization. Workflow implementations and UI projections should use those names
+when publishing or rendering graph state.
+
 ## Child Workflows
 
 Child workflows are allowed for meaningful lifecycle chunks:

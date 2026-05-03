@@ -16,7 +16,7 @@ Planned
 Native GitHub relationships:
 
 - Parent issue: #22
-- Blocked by: TASK-2-2
+- Blocked by: None
 - Blocks: node log and nested workflow UI tasks.
 
 ## Ownership

@@ -16,7 +16,7 @@ Planned
 Native GitHub relationships:
 
 - Parent issue: #18
-- Blocked by: TASK-2-1 and TASK-2-2
+- Blocked by: None
 - Blocks: Azure Service Bus routing tasks.
 
 ## Ownership

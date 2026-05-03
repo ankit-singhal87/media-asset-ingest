@@ -32,6 +32,13 @@ The UI renders a graph model, not a generated bitmap. Nodes represent workflow
 steps, child workflows, or work items. Edges represent execution flow and
 dependencies.
 
+Shared backend/UI contracts live in `MediaIngest.Contracts.Workflow`.
+`WorkflowGraphDto` identifies the workflow instance, workflow name, package,
+optional parent workflow instance, graph nodes, and graph edges. `WorkflowNodeDto`
+uses stable node IDs, display names, node kinds, business statuses, workflow and
+package correlation, optional work item IDs, and optional child workflow
+instance IDs for drilldown. `WorkflowEdgeDto` links source and target node IDs.
+
 Node states:
 
 - pending: grey
@@ -57,6 +64,11 @@ Clicking a node should show:
 - work item metadata
 - queue/message identifiers where available
 - trace link or trace identifiers where available
+
+`WorkflowNodeDetailsDto` carries node-scoped business timeline and log entries.
+Timeline and log DTOs include correlation IDs; log DTOs can also carry trace and
+span identifiers. These DTOs are UI projections over business state and
+diagnostic records, not Dapr runtime state.
 
 The UI should initially poll APIs for graph state. SignalR can be added later
 for live updates.

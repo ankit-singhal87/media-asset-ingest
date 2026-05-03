@@ -16,7 +16,7 @@ Planned
 Native GitHub relationships:
 
 - Parent issue: #11
-- Blocked by: TASK-2-1 and TASK-2-2
+- Blocked by: None
 - Blocks: later manifest and file enumeration tasks.
 
 ## Ownership

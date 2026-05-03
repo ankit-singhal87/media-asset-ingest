@@ -2,7 +2,7 @@
 set -eu
 
 solution="MediaIngest.sln"
-test_project="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj"
+test_projects="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj"
 sdk_image="${DOTNET_SDK_IMAGE:-mcr.microsoft.com/dotnet/sdk:10.0}"
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -12,7 +12,9 @@ export DOTNET_NOLOGO=1
 if command -v dotnet >/dev/null 2>&1; then
   dotnet restore "$solution"
   dotnet build "$solution" --no-restore
-  dotnet run --project "$test_project" --no-restore
+  for test_project in $test_projects; do
+    dotnet run --project "$test_project" --no-restore
+  done
   exit 0
 fi
 
@@ -36,4 +38,4 @@ docker run --rm \
   -v "$(pwd):/workspace" \
   -w /workspace \
   "$sdk_image" \
-  sh -c "dotnet restore '$solution' && dotnet build '$solution' --no-restore && dotnet run --project '$test_project' --no-restore"
+  sh -c "dotnet restore '$solution' && dotnet build '$solution' --no-restore && for test_project in $test_projects; do dotnet run --project \"\$test_project\" --no-restore; done"

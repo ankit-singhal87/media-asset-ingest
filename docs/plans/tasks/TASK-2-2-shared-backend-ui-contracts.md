@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Linked Work
 
@@ -16,7 +16,7 @@ In Progress
 Native GitHub relationships:
 
 - Parent issue: #26
-- Blocked by: TASK-2-1
+- Blocked by: None
 - Blocks: TASK-5-1, TASK-8-1, and contract-consuming backend tasks.
 
 ## Ownership
@@ -35,6 +35,8 @@ Agents may edit only these files unless they escalate:
 
 - `src/MediaIngest.Contracts`
 - `tests/MediaIngest.Contracts.Tests`
+- `MediaIngest.sln`
+- `scripts/dev/test-dotnet.sh`
 - `docs/architecture`
 - `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md`
 - `docs/plans/task-index.md`

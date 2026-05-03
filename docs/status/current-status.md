@@ -4,8 +4,8 @@
 
 - Phase: planning and repository foundation.
 - Current branch: `main`.
-- Current focus: MILESTONE-2 .NET solution foundation and shared contract
-  setup for parallel backend, workflow, and UI work.
+- Current focus: MILESTONE-2 foundation is complete; downstream implementation
+  worktrees can now start from `main`.
 
 ## Completed
 
@@ -43,6 +43,9 @@
   updates.
 - TASK-2-1 added the initial buildable .NET solution skeleton and canonical
   `make test-dotnet` validation entrypoint.
+- TASK-2-2 defined initial shared workflow graph, node detail, status, and
+  workflow name contracts for backend, workflow, and UI slices.
+- `make test-dotnet` now runs both foundation and contract smoke-test projects.
 
 ## Ready For Review
 
@@ -50,8 +53,7 @@
 
 ## Next
 
-- Complete TASK-2-2 before starting contract-consuming parallel implementation
-  worktrees, then open PRs for the MILESTONE-2 foundation tasks.
+- Start contract-consuming parallel implementation worktrees from `main`.
 
 ## Update Rule
 
