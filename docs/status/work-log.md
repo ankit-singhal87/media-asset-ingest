@@ -51,6 +51,9 @@ messages or paste command output unless it explains a decision.
   the solution build.
 - Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
   task plans after clearing the native GitHub dependencies.
+- Scaffolded the React workflow control plane for TASK-8-1 with mocked
+  workflow graph data, accessible node status labels, and focused Vitest
+  coverage for the operator graph scenario.
 
 ## Update Rule
 
