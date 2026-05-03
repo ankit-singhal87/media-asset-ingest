@@ -1,9 +1,13 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 
 describe("workflow graph control plane", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("displays mocked workflow nodes and enough state to inspect progress", () => {
     render(<App />);
 
@@ -34,5 +38,38 @@ describe("workflow graph control plane", () => {
     expect(screen.getByText(/running: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/failed: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/waiting: 1/i)).toBeInTheDocument();
+  });
+
+  it("starts local ingest watching when the operator clicks Start ingest", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 202 }));
+
+    render(<App />);
+
+    expect(screen.getByText(/local watcher: idle/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /start ingest/i }));
+
+    expect(screen.getByText(/local watcher: starting/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/ingest/start", {
+        method: "POST"
+      });
+    });
+    expect(await screen.findByText(/local watcher: watching/i)).toBeInTheDocument();
+  });
+
+  it("shows an error status when local ingest start fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(null, { status: 500 })
+    );
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /start ingest/i }));
+
+    expect(await screen.findByText(/local watcher: error/i)).toBeInTheDocument();
   });
 });

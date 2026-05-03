@@ -85,6 +85,9 @@ messages or paste command output unless it explains a decision.
   sequence, `input/<asset>/manifest.json` plus checksum setup, expected
   `output/<asset>/` manifest files, and the in-process scope boundary before
   real Dapr, PostgreSQL, and Azure Service Bus integration.
+- Updated PR #45 local manifest ingest behavior so package discovery observes
+  all immediate child directories, readiness requires both manifest files, and
+  start ingest launches a background watcher loop.
 
 ## Update Rule
 
