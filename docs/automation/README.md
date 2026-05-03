@@ -16,6 +16,8 @@ Low-token operating entrypoint for AI coding agents and local automation.
 10. [agent-handoff.md](agent-handoff.md) before reporting task results
 11. [github-projects.md](github-projects.md) when work changes issues, milestones, or project state
 12. [git-conventions.md](git-conventions.md) before creating branches, commits, or PRs
+13. [terminal-scripts.md](terminal-scripts.md) when using local `.terminals/`
+    helpers for parallel worktree launches
 
 ## Durable References
 
@@ -33,6 +35,8 @@ Low-token operating entrypoint for AI coding agents and local automation.
 - [pr-checklist.md](pr-checklist.md) - pull request creation and merge checklist.
 - [github-projects.md](github-projects.md) - GitHub Projects tracker model and CLI commands.
 - [git-conventions.md](git-conventions.md) - branch, commit, and PR naming conventions.
+- [terminal-scripts.md](terminal-scripts.md) - local-only helper script guidance for
+  launching parallel worktree tasks.
 
 Long-form project knowledge lives in product, architecture, ADR, and standards
 documents. Automation docs should stay compact and execution-oriented.
