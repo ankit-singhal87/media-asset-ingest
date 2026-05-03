@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Essence</RootNamespace>
+    <AssemblyName>MediaIngest.Essence</AssemblyName>
+  </PropertyGroup>
+</Project>

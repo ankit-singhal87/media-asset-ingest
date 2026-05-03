@@ -16,6 +16,8 @@
 | `make validate` | Run cheap repository validation. | cheap | no | no |
 | `make validate-docs` | Run documentation validation only. | cheap | no | no |
 | `make validate-automation` | Run shell syntax checks and GitHub helper wrapper tests. | cheap | no | no |
+| `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Print the local manifest ingest E2E smoke plan without changing files or calling the API. | cheap | no | no |
+| `sh scripts/dev/local-e2e-smoke.sh` | Post local ingest start, create a smoke package, and assert manifest output files. Requires the API to be running locally. | cheap | no | no |
 | `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-foundation` | Run the foundation smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-contracts` | Run the contracts smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |

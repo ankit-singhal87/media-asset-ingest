@@ -9,7 +9,7 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | --- | --- | --- | --- | --- | --- |
 | USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Planned |
-| USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | Planned |
+| USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |
 | USER-STORY-6 | Route work through ASB command topics | MILESTONE-4 | Messaging | Courier | Planned |

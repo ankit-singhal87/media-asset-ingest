@@ -71,6 +71,8 @@
   proxied to that API, press **Start ingest** to begin watching, then add
   `manifest.json` plus `manifest.json.checksum` under `input/<asset>/` and
   expect both manifest files under `output/<asset>/`.
+- USER-STORY-3 physical file enumeration now scans ready package directories
+  recursively in the watcher without wiring discovery into copy behavior.
 
 ## Ready For Review
 

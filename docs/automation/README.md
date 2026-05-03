@@ -35,6 +35,7 @@ Low-token operating entrypoint for AI coding agents and local automation.
 - [pr-checklist.md](pr-checklist.md) - pull request creation and merge checklist.
 - [github-projects.md](github-projects.md) - GitHub Projects tracker model and CLI commands.
 - [git-conventions.md](git-conventions.md) - branch, commit, and PR naming conventions.
+- [local-smoke-tests.md](local-smoke-tests.md) - local smoke test commands and manual runtime checks.
 - [terminal-scripts.md](terminal-scripts.md) - local-only helper script guidance for
   launching parallel worktree tasks.
 
