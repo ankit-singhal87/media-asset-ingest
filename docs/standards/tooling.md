@@ -12,6 +12,10 @@ Use:
 - `make check-tools` to verify host tools.
 - `make install-tools` to install or print installation guidance for host tools.
 - `make validate` for cheap repository validation.
+- `make github-project-check` to verify GitHub CLI auth and Project access.
+- `make github-project-summary` to summarize tracker counts.
+- `make github-project-hierarchy` to verify epic/story hierarchy.
+- `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
 - `npm run tools:check` for host tool checks through npm.
 

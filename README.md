@@ -64,3 +64,5 @@ introduced.
   UI infrastructure details.
 - Update quickstart, automation, status, product, milestone, and tooling docs
   when a task changes developer workflow or project behavior.
+- Keep GitHub Projects updated for roadmap, issue, milestone, task, bug, and PR
+  state; repo docs keep durable standards and context.

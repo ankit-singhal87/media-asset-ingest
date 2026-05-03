@@ -20,6 +20,8 @@ Planned structure:
 - `scripts/dev` - local developer bootstrap, checks, and lightweight validation helpers.
 - `docs/automation` - compact agent execution context.
 - `docs/architecture`, `docs/adr`, `docs/product`, `docs/standards` - durable project docs.
+- `docs/plans` - milestone and task planning artifacts.
+- `docs/bugs` - defect reports and bug-fix tracking.
 - `docs/status` - current project status, decisions, and work log.
 - `Makefile` - canonical local command entrypoint.
 - `package.json` - repo-level npm scripts for documentation and tooling checks.

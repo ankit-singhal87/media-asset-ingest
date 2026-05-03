@@ -5,22 +5,21 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 ## Ready For Planning
 
-- Define local development foundation.
-- Scaffold .NET solution and project boundaries.
-- Define PostgreSQL persistence and outbox foundation.
-- Define Azure Service Bus abstractions and local development strategy.
-- Define Dapr Workflow runtime and package workflow contracts.
+- MILESTONE-2 / USER-STORY-16 / USER-STORY-17: define local development foundation.
+- MILESTONE-2: scaffold .NET solution and project boundaries.
+- MILESTONE-4 / USER-STORY-8: define PostgreSQL persistence and outbox foundation.
+- MILESTONE-4 / USER-STORY-6: define Azure Service Bus abstractions and local development strategy.
+- MILESTONE-5 / USER-STORY-9 / USER-STORY-10: define Dapr Workflow runtime and package workflow contracts.
 
 ## Later
 
-- Implement specialized media agents.
-- Implement workflow graph API.
-- Implement React workflow control plane.
-- Add Kubernetes and Dapr deployment assets.
-- Add Azure deployment documentation.
+- MILESTONE-6 / USER-STORY-7: implement specialized media agents.
+- MILESTONE-8 / USER-STORY-12 / USER-STORY-13: implement workflow graph API.
+- MILESTONE-8 / USER-STORY-14 / USER-STORY-15: implement React workflow control plane.
+- MILESTONE-9 / USER-STORY-17: add Kubernetes and Dapr deployment assets.
+- MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.
 
 ## Update Rule
 
 Agents must update this file when adding, completing, splitting, or deferring
 product-visible work.
-

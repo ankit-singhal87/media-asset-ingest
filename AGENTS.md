@@ -25,12 +25,21 @@ direction.
 - Read only the automation docs and slice docs relevant to the task.
 - Do not let parallel work edit the same files at the same time.
 - Follow [docs/product/task-workflow.md](docs/product/task-workflow.md) for task execution.
+- Follow [docs/automation/execution-checklist.md](docs/automation/execution-checklist.md) before starting and before reporting completion.
+- Follow [docs/automation/parallelization.md](docs/automation/parallelization.md) when dispatching parallel agents.
+- Use [docs/automation/agent-handoff.md](docs/automation/agent-handoff.md) for task handoff results.
+- Use [docs/automation/conflict-protocol.md](docs/automation/conflict-protocol.md) when scope, architecture, validation, or parallel work conflicts arise.
+- Use [docs/automation/github-projects.md](docs/automation/github-projects.md) when changing GitHub issues, milestones, projects, bugs, or PR tracking state.
 - Follow [docs/standards/bdd-tdd.md](docs/standards/bdd-tdd.md) for behavior changes.
 - Follow [docs/standards/domain-driven-design.md](docs/standards/domain-driven-design.md) for domain boundaries.
 - Follow [docs/standards/tooling.md](docs/standards/tooling.md) when tools or commands change.
 - Stop and ask before dependency changes, destructive Git operations, paid cloud
   actions, secret handling, or changes outside the assigned scope.
-- Commits and pushes happen only when the user asks.
+- Update [docs/plans/active-worktrees.md](docs/plans/active-worktrees.md) when creating, using, PR-opening, merging, or cleaning up worktrees.
+- Keep GitHub Projects as the human-facing source of truth for roadmap, issue,
+  milestone, bug, and PR state once remote tracker access is available.
+- Commits, pushes, and PR creation happen only when the user asks or when a task
+  explicitly grants automatic PR creation after validation.
 
 ## Architecture Principles
 
@@ -57,5 +66,6 @@ Before reporting completion for implementation or tooling tasks:
 
 - update relevant product, status, standards, and automation docs
 - run the cheapest relevant validation from `docs/automation/validation.md`
+- satisfy the relevant definition of done in `docs/automation/definition-of-done.md`
 - report validation evidence
 - mention any tests or validations that could not be run
