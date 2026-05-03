@@ -16,3 +16,12 @@ ingest packages and workflow state.
 - Support nested workflow drilldown and back traversal.
 - Prefer accessible color states with labels or icons where status ambiguity is
   possible.
+
+## Package Validation
+
+- Keep control-plane tests local to `web/ingest-control-plane` with Vitest and
+  Testing Library.
+- Run `npm test` and `npm run build` from `web/ingest-control-plane` when
+  changing React behavior.
+- Keep package-local generated output such as `node_modules`, `dist`, coverage,
+  and TypeScript build metadata out of Git.

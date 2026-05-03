@@ -41,7 +41,7 @@ Components:
 
 ## MILESTONE-2: .NET Solution And Local Runtime
 
-Status: Planned
+Status: In Progress
 
 Purpose: Create the .NET solution, local container runtime, and baseline
 developer commands.
@@ -71,7 +71,7 @@ Components:
 
 ## MILESTONE-3: Ingest Package Lifecycle
 
-Status: Planned
+Status: In Progress
 
 Purpose: Detect ingest packages, gate work on manifest presence, enumerate real
 files, classify essences, and reconcile on done marker.
@@ -106,7 +106,7 @@ Components:
 
 ## MILESTONE-4: Messaging And Outbox
 
-Status: Planned
+Status: In Progress
 
 Purpose: Add PostgreSQL transactional outbox and Azure Service Bus command
 routing for agent-owned queues.
@@ -138,7 +138,7 @@ Components:
 
 ## MILESTONE-5: Dapr Workflow Orchestration
 
-Status: Planned
+Status: In Progress
 
 Purpose: Add durable package orchestration with Dapr Workflow, child workflow
 boundaries, signals, and workflow state separation.
@@ -169,7 +169,7 @@ Components:
 
 ## MILESTONE-6: Specialized Agents
 
-Status: Planned
+Status: In Progress
 
 Purpose: Add independently scalable processing agents for essence and derived
 media work.
@@ -202,7 +202,7 @@ Components:
 
 ## MILESTONE-7: Observability
 
-Status: Planned
+Status: In Progress
 
 Purpose: Add structured logs, OpenTelemetry traces, correlation fields, and
 business timeline events.
@@ -231,7 +231,7 @@ Components:
 
 ## MILESTONE-8: Workflow Visualization UI
 
-Status: Planned
+Status: In Progress
 
 Purpose: Add workflow graph APIs and UI for node status, nested workflow
 drilldown, back traversal, and node log/timeline inspection.

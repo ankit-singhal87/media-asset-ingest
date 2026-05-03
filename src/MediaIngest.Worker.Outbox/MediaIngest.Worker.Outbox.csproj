@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Worker.Outbox</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.Outbox</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
+  </ItemGroup>
+</Project>

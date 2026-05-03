@@ -12,7 +12,11 @@ Logs are not the source of truth for UI status.
 
 ## Correlation Fields
 
-Every service and agent should include:
+Every service and agent should use the canonical field names from
+`MediaIngest.Observability.CorrelationFieldNames` when emitting structured logs,
+timeline events, trace attributes, and UI diagnostic projections.
+
+The shared field names are:
 
 - `workflowInstanceId`
 - `packageId`
@@ -25,6 +29,11 @@ Every service and agent should include:
 - `causationId`
 - `traceId`
 - `spanId`
+
+`ObservabilityCorrelationContext` provides the foundation object for carrying
+these identifiers across watcher, workflow, agent, queue, timeline, and UI
+diagnostic boundaries. Runtime adapters may enrich the context from message
+metadata or trace state, but they should not rename these fields.
 
 ## Workflow UI
 

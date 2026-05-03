@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Agents.Audio</RootNamespace>
+    <AssemblyName>MediaIngest.Agents.Audio</AssemblyName>
+  </PropertyGroup>
+</Project>

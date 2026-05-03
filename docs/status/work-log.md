@@ -51,6 +51,26 @@ messages or paste command output unless it explains a decision.
   the solution build.
 - Removed completed TASK-2-1 and TASK-2-2 blocker references from downstream
   task plans after clearing the native GitHub dependencies.
+- Completed TASK-3-1 ingest watcher scanner foundation with package-directory
+  candidate discovery under the configured ingest mount.
+- Added TASK-4-1 persistence and outbox foundation with a shared persistence
+  batch for business state and outbox messages plus a dispatcher for pending
+  outbox records.
+- Added the TASK-5-1 workflow skeleton that starts a package workflow from an
+  accepted package ingest request and prepares the initial scan, classify, and
+  dispatch child work plan.
+- Added TASK-6-1 specialized video, audio, text, and other agent skeletons with
+  smoke tests proving each worker owns only its assigned media category.
+- Added TASK-7-1 observability correlation field foundation with a canonical
+  field catalog, correlation context, and smoke-test coverage in
+  `make test-dotnet`.
+- Scaffolded the React workflow control plane for TASK-8-1 with mocked
+  workflow graph data, accessible node status labels, and focused Vitest
+  coverage for the operator graph scenario.
+- Reconciled local status, backlog, milestone, and user-story docs after the
+  TASK-3-1 through TASK-8-1 local merges.
+- Reconciled GitHub task issues and Project fields for #31 and #33 through #37
+  after the local task merges.
 
 ## Update Rule
 

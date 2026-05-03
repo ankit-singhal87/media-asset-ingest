@@ -7,18 +7,18 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 
 | ID | Title | Milestone | Domain | Primary lane | Status |
 | --- | --- | --- | --- | --- | --- |
-| USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | Planned |
+| USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-2 | Start only when manifest exists | MILESTONE-3 | Manifest | Mount | Planned |
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | Planned |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |
 | USER-STORY-6 | Route work through ASB queues | MILESTONE-4 | Messaging | Courier | Planned |
-| USER-STORY-7 | Process with specialized agents | MILESTONE-6 | Agent execution | Essence | Planned |
-| USER-STORY-8 | Use transactional outbox | MILESTONE-4 | Outbox | Courier | Planned |
-| USER-STORY-9 | Orchestrate package lifecycle with Dapr | MILESTONE-5 | Workflow | Pulse | Planned |
+| USER-STORY-7 | Process with specialized agents | MILESTONE-6 | Agent execution | Essence | In Progress |
+| USER-STORY-8 | Use transactional outbox | MILESTONE-4 | Outbox | Courier | In Progress |
+| USER-STORY-9 | Orchestrate package lifecycle with Dapr | MILESTONE-5 | Workflow | Pulse | In Progress |
 | USER-STORY-10 | Support nested workflows | MILESTONE-5 | Workflow | Pulse | Planned |
-| USER-STORY-11 | Record agent progress | MILESTONE-6, MILESTONE-7 | Observability | Beacon | Planned |
-| USER-STORY-12 | Visualize workflow execution | MILESTONE-8 | Workflow UI | Canvas | Planned |
+| USER-STORY-11 | Record agent progress | MILESTONE-6, MILESTONE-7 | Observability | Beacon | In Progress |
+| USER-STORY-12 | Visualize workflow execution | MILESTONE-8 | Workflow UI | Canvas | In Progress |
 | USER-STORY-13 | Inspect node logs | MILESTONE-8 | Workflow UI | Canvas | Planned |
 | USER-STORY-14 | Drill into nested workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
 | USER-STORY-15 | Navigate back from child workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
