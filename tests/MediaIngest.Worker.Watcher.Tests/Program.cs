@@ -7,17 +7,21 @@ try
 {
     var firstPackagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-a")).FullName;
     var secondPackagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-b")).FullName;
+    var readyPackagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-ready")).FullName;
+    File.WriteAllText(Path.Combine(firstPackagePath, "manifest.json"), "{not-json");
+    File.WriteAllText(Path.Combine(readyPackagePath, "manifest.json"), "{not-json");
+    File.WriteAllText(Path.Combine(readyPackagePath, "manifest.json.checksum"), "not-a-real-checksum");
     File.WriteAllText(Path.Combine(mountPath, "loose-file.txt"), "not a package");
 
     var scanner = new IngestMountScanner();
 
     var candidates = scanner.FindPackageCandidates(mountPath);
 
-    AssertEqual(2, candidates.Count, "package candidate count");
+    AssertEqual(1, candidates.Count, "ready package candidate count");
     AssertSequenceEqual(
-        [firstPackagePath, secondPackagePath],
+        [readyPackagePath],
         candidates.Select(candidate => candidate.PackagePath).ToArray(),
-        "package candidate paths");
+        "ready package candidate paths");
 }
 finally
 {

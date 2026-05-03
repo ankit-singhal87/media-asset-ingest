@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MediaIngest.Api</RootNamespace>
+    <AssemblyName>MediaIngest.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
+    <ProjectReference Include="../MediaIngest.Worker.Outbox/MediaIngest.Worker.Outbox.csproj" />
+    <ProjectReference Include="../MediaIngest.Worker.Watcher/MediaIngest.Worker.Watcher.csproj" />
+    <ProjectReference Include="../MediaIngest.Workflow/MediaIngest.Workflow.csproj" />
+  </ItemGroup>
+</Project>

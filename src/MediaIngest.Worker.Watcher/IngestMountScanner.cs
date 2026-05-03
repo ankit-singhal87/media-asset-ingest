@@ -8,7 +8,14 @@ public sealed class IngestMountScanner
 
         return Directory.EnumerateDirectories(ingestMountPath)
             .Order(StringComparer.Ordinal)
+            .Where(IsReadyForIngest)
             .Select(packagePath => new IngestPackageCandidate(Path.GetFullPath(packagePath)))
             .ToArray();
+    }
+
+    private static bool IsReadyForIngest(string packagePath)
+    {
+        return File.Exists(Path.Combine(packagePath, "manifest.json"))
+            && File.Exists(Path.Combine(packagePath, "manifest.json.checksum"));
     }
 }

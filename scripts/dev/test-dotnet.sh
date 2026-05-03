@@ -8,12 +8,13 @@ repo_cache_dir="${DOTNET_REPO_CACHE_DIR:-.cache/dotnet}"
 foundation_tests="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj"
 contracts_tests="tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj"
 watcher_tests="tests/MediaIngest.Worker.Watcher.Tests/MediaIngest.Worker.Watcher.Tests.csproj"
+api_tests="tests/MediaIngest.Api.Tests/MediaIngest.Api.Tests.csproj"
 persistence_tests="tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.Tests.csproj"
 outbox_tests="tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Tests.csproj"
 workflow_tests="tests/MediaIngest.Workflow.Tests/MediaIngest.Workflow.Tests.csproj"
 observability_tests="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj"
 
-all_test_projects="$foundation_tests $contracts_tests $watcher_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests"
+all_test_projects="$foundation_tests $contracts_tests $watcher_tests $api_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests"
 test_projects=""
 scope="selected"
 
@@ -40,6 +41,9 @@ else
       watcher)
         append_project "$watcher_tests"
         ;;
+      api)
+        append_project "$api_tests"
+        ;;
       persistence)
         append_project "$persistence_tests"
         ;;
@@ -54,7 +58,7 @@ else
         ;;
       *)
         printf 'Unknown .NET test target: %s\n' "$target"
-        printf '%s\n' "Supported targets: all foundation contracts watcher persistence outbox workflow observability"
+        printf '%s\n' "Supported targets: all foundation contracts watcher api persistence outbox workflow observability"
         exit 2
         ;;
     esac
@@ -65,18 +69,24 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE=true
 export DOTNET_NOLOGO=1
 
+mkdir -p "$repo_cache_dir/cli-home" "$repo_cache_dir/nuget-packages"
+
+export DOTNET_CLI_HOME="$(pwd)/$repo_cache_dir/cli-home"
+export HOME="$(pwd)/$repo_cache_dir/cli-home"
+export NUGET_PACKAGES="$(pwd)/$repo_cache_dir/nuget-packages"
+
 if command -v dotnet >/dev/null 2>&1; then
   if [ "$scope" = "all" ]; then
-    dotnet restore "$solution"
-    dotnet build "$solution" --no-restore
+    dotnet restore "$solution" -m:1
+    dotnet build "$solution" --no-restore -m:1
   else
     for test_project in $test_projects; do
-      dotnet restore "$test_project"
-      dotnet build "$test_project" --no-restore
+      dotnet restore "$test_project" -m:1
+      dotnet build "$test_project" --no-restore -m:1
     done
   fi
   for test_project in $test_projects; do
-    dotnet run --project "$test_project" --no-restore
+    dotnet run --project "$test_project" --no-build
   done
   exit 0
 fi
@@ -91,12 +101,10 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-mkdir -p "$repo_cache_dir/cli-home" "$repo_cache_dir/nuget-packages"
-
 if [ "$scope" = "all" ]; then
-  dotnet_command="dotnet restore '$solution' && dotnet build '$solution' --no-restore && for test_project in $test_projects; do dotnet run --project \"\$test_project\" --no-restore; done"
+  dotnet_command="dotnet restore '$solution' -m:1 && dotnet build '$solution' --no-restore -m:1 && for test_project in $test_projects; do dotnet run --project \"\$test_project\" --no-build; done"
 else
-  dotnet_command="for test_project in $test_projects; do dotnet restore \"\$test_project\" && dotnet build \"\$test_project\" --no-restore && dotnet run --project \"\$test_project\" --no-restore; done"
+  dotnet_command="for test_project in $test_projects; do dotnet restore \"\$test_project\" -m:1 && dotnet build \"\$test_project\" --no-restore -m:1 && dotnet run --project \"\$test_project\" --no-build; done"
 fi
 
 docker run --rm \
