@@ -9,10 +9,18 @@ Ubuntu/Debian are the first-class installation target for bootstrap scripts.
 
 Use:
 
+- `make agent-preflight` to print local agent startup context and validation
+  options.
 - `make check-tools` to verify host tools.
 - `make install-tools` to install or print installation guidance for host tools.
+- `make install-optional-tools` to install optional runtime and cloud CLIs
+  after explicit local confirmation.
+- `make print-install-optional-tools` to inspect optional install commands
+  without running them.
 - `make test-dotnet` to build and smoke-test the .NET solution.
+- `make test-dotnet-*` for focused .NET smoke tests during inner-loop work.
 - `make validate` for cheap repository validation.
+- `make validate-docs` and `make validate-automation` for focused validation.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
 - `make github-projects-script-test` to test legacy GitHub tracker helper
   wrappers without network access.
@@ -24,8 +32,10 @@ Use:
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:fix` for safe docs formatting fixes.
 - `npm run dotnet:test` for .NET solution validation through npm.
+- `npm run dotnet:test:<target>` for focused .NET smoke tests.
 - `npm run github-project:script-test` for legacy tracker helper wrapper tests.
 - `npm run tools:check` for host tool checks through npm.
+- `npm run tools:print-install:optional` for optional install command review.
 
 ## Tooling Strategy
 
@@ -64,7 +74,10 @@ Notes:
 - .NET SDK: prefer SDK containers for build/test targets; host install is
   optional. `make test-dotnet` uses host `dotnet` when present and otherwise
   runs the .NET SDK container image from `DOTNET_SDK_IMAGE`, defaulting to
-  `mcr.microsoft.com/dotnet/sdk:10.0`.
+  `mcr.microsoft.com/dotnet/sdk:10.0`. Docker-backed .NET validation stores
+  NuGet packages and CLI home data under `.cache/dotnet` by default so repeated
+  agent runs reuse restore artifacts without committing generated files. Override
+  the cache location with `DOTNET_REPO_CACHE_DIR` when needed.
 - Azure CLI: prefer the official Azure CLI container or manual host install; login
   remains manual either way.
 - kubectl/Helm/Dapr: host installs are convenient, but deployment-oriented

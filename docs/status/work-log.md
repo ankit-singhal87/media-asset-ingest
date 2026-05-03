@@ -75,6 +75,11 @@ messages or paste command output unless it explains a decision.
   useful, and simple Project status only.
 - Replaced the media-specific agent skeleton direction with generic command
   routing contracts and light, medium, or heavy execution classes.
+- Added focused .NET smoke-test targets, focused validation targets, an agent
+  preflight command, and a repo-local ignored Docker .NET cache to reduce
+  repeated agent validation time.
+- Added a dedicated optional host-tool installer for .NET SDK, kubectl, Helm,
+  Dapr CLI, and Azure CLI with confirmation and post-install verification.
 
 ## Update Rule
 
