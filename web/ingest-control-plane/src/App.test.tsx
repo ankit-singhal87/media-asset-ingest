@@ -8,7 +8,14 @@ describe("workflow graph control plane", () => {
     vi.restoreAllMocks();
   });
 
-  it("displays mocked workflow nodes and enough state to inspect progress", () => {
+  it("displays mocked workflow nodes and enough state to inspect progress", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ packages: [] }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200
+      })
+    );
+
     render(<App />);
 
     expect(
@@ -38,12 +45,19 @@ describe("workflow graph control plane", () => {
     expect(screen.getByText(/running: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/failed: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/waiting: 1/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no packages reported yet/i)).toBeInTheDocument();
   });
 
   it("starts local ingest watching when the operator clicks Start ingest", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(null, { status: 202 }));
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 202 }));
 
     render(<App />);
 
@@ -54,17 +68,58 @@ describe("workflow graph control plane", () => {
     expect(screen.getByText(/local watcher: starting/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/ingest/start", {
+      expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/ingest/start", {
         method: "POST"
       });
     });
     expect(await screen.findByText(/local watcher: watching/i)).toBeInTheDocument();
   });
 
-  it("shows an error status when local ingest start fails", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(null, { status: 500 })
+  it("shows real package status from the ingest status endpoint separately from the mocked graph", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          packages: [
+            {
+              packageId: "PKG-LOCAL-001",
+              workflowInstanceId: "workflow-local-001",
+              status: "Running",
+              updatedAt: "2026-05-03T18:42:00Z"
+            }
+          ]
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        }
+      )
     );
+
+    render(<App />);
+
+    const statusPanel = screen.getByRole("region", {
+      name: /real package status/i
+    });
+
+    expect(await within(statusPanel).findByText("PKG-LOCAL-001")).toBeInTheDocument();
+    expect(within(statusPanel).getByText("workflow-local-001")).toBeInTheDocument();
+    expect(within(statusPanel).getByText("Running")).toBeInTheDocument();
+    expect(within(statusPanel).getByText(/May 3, 2026/)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("/api/ingest/status");
+    expect(
+      screen.getByRole("list", { name: /mocked workflow graph/i })
+    ).toBeInTheDocument();
+  });
+
+  it("shows an error status when local ingest start fails", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 500 }));
 
     render(<App />);
 

@@ -18,6 +18,39 @@ AssertEqual("scan-package", start.PreparedChildWork[0].NodeId, "scan node id");
 AssertEqual("classify-files", start.PreparedChildWork[1].NodeId, "classify node id");
 AssertEqual("dispatch-processing", start.PreparedChildWork[2].NodeId, "dispatch node id");
 
+var lifecycle = PackageWorkflowLifecycle.Observe(request);
+AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");
+AssertEqual("package-001", lifecycle.Current.PackageId, "observed package id");
+AssertEqual("correlation-001", lifecycle.Current.CorrelationId, "observed correlation id");
+
+var ready = lifecycle.MarkReady(new DateTimeOffset(2026, 5, 3, 12, 1, 0, TimeSpan.Zero));
+AssertEqual(PackageWorkflowLifecycleState.Ready, ready.State, "ready lifecycle state");
+
+var lifecycleStart = lifecycle.Start(new DateTimeOffset(2026, 5, 3, 12, 2, 0, TimeSpan.Zero));
+AssertEqual(PackageWorkflowLifecycleState.Started, lifecycle.Current.State, "started lifecycle state");
+AssertEqual("package-package-001", lifecycleStart.WorkflowInstanceId, "started workflow instance id");
+
+var succeeded = lifecycle.MarkSucceeded(new DateTimeOffset(2026, 5, 3, 12, 3, 0, TimeSpan.Zero));
+AssertEqual(PackageWorkflowLifecycleState.Succeeded, succeeded.State, "succeeded lifecycle state");
+AssertEqual(4, lifecycle.Events.Count, "succeeded lifecycle event count");
+AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Events[0].State, "first lifecycle event");
+AssertEqual(PackageWorkflowLifecycleState.Ready, lifecycle.Events[1].State, "second lifecycle event");
+AssertEqual(PackageWorkflowLifecycleState.Started, lifecycle.Events[2].State, "third lifecycle event");
+AssertEqual(PackageWorkflowLifecycleState.Succeeded, lifecycle.Events[3].State, "fourth lifecycle event");
+
+var failingLifecycle = PackageWorkflowLifecycle.Observe(request);
+failingLifecycle.MarkReady(new DateTimeOffset(2026, 5, 3, 12, 4, 0, TimeSpan.Zero));
+failingLifecycle.Start(new DateTimeOffset(2026, 5, 3, 12, 5, 0, TimeSpan.Zero));
+var failed = failingLifecycle.MarkFailed(
+    "classification command failed",
+    new DateTimeOffset(2026, 5, 3, 12, 6, 0, TimeSpan.Zero));
+AssertEqual(PackageWorkflowLifecycleState.Failed, failed.State, "failed lifecycle state");
+AssertEqual("classification command failed", failed.FailureReason, "failure reason");
+
+AssertThrows<InvalidOperationException>(
+    () => PackageWorkflowLifecycle.Observe(request).Start(new DateTimeOffset(2026, 5, 3, 12, 7, 0, TimeSpan.Zero)),
+    "start before ready");
+
 Console.WriteLine("MediaIngest workflow smoke tests passed.");
 
 static void AssertEqual<T>(T expected, T actual, string name)
@@ -26,4 +59,19 @@ static void AssertEqual<T>(T expected, T actual, string name)
     {
         throw new InvalidOperationException($"{name}: expected '{expected}', got '{actual}'.");
     }
+}
+
+static void AssertThrows<TException>(Action action, string name)
+    where TException : Exception
+{
+    try
+    {
+        action();
+    }
+    catch (TException)
+    {
+        return;
+    }
+
+    throw new InvalidOperationException($"{name}: expected {typeof(TException).Name}.");
 }
