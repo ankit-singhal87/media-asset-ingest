@@ -19,7 +19,7 @@ mirror.
 
 | Worktree | Branch | GitHub item | Stories | Lane | Target files | Status | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `.worktrees/story-planning` | `docs/story-planning` | #26 | Product planning docs | Atlas | `AGENTS.md`, `README.md`, `docs/product`, `docs/plans`, `docs/bugs`, `docs/automation`, `docs/standards`, `docs/status`, `Makefile`, `package.json`, `scripts/dev` | Ready For PR | Not opened |
+| `.worktrees/story-planning` | `docs/story-planning` | #26 | Product planning docs | Atlas | `AGENTS.md`, `README.md`, `docs/product`, `docs/plans`, `docs/bugs`, `docs/automation`, `docs/standards`, `docs/status`, `Makefile`, `package.json`, `scripts/dev` | PR Open | https://github.com/ankit-singhal87/media-asset-ingest/pull/28 |
 
 ## Update Rule
 
