@@ -22,7 +22,7 @@ task status and relationships.
 | TASK-4-1 | #36 | Add persistence and outbox foundation | Vault | `docs/plans/tasks/TASK-4-1-persistence-outbox-foundation.md` | Planned |
 | TASK-5-1 | #31 | Add Dapr workflow skeleton | Pulse | `docs/plans/tasks/TASK-5-1-dapr-workflow-skeleton.md` | Planned |
 | TASK-6-1 | #34 | Add specialized agent worker skeletons | Essence | `docs/plans/tasks/TASK-6-1-specialized-agent-skeletons.md` | Planned |
-| TASK-7-1 | #37 | Add observability correlation foundation | Beacon | `docs/plans/tasks/TASK-7-1-observability-correlation.md` | Planned |
+| TASK-7-1 | #37 | Add observability correlation foundation | Beacon | `docs/plans/tasks/TASK-7-1-observability-correlation.md` | Completed |
 | TASK-8-1 | #33 | Scaffold React workflow control plane | Canvas | `docs/plans/tasks/TASK-8-1-react-control-plane.md` | Planned |
 
 ## Update Rule
