@@ -56,6 +56,21 @@ At this stage validation checks documentation and shell script syntax. Runtime
 build/test targets will be added as the .NET solution and containers are
 introduced.
 
+## Agent Tooling
+
+This repository is operated with Codex CLI. Agents should start from
+`AGENTS.md`, then use `docs/automation/README.md` for compact execution context.
+
+Enabled agent tools:
+
+- Superpowers plugin: use the repo-required planning, TDD, worktree,
+  verification, and branch-finishing workflows.
+- GitHub plugin: prefer it for structured issue, PR, review, diff, commit, and
+  CI operations.
+- `gh` and Make helpers: use these for GitHub Projects v2 fields, native
+  sub-issue/dependency wiring, and tracker validation commands such as
+  `make github-project-active`.
+
 ## Development Model
 
 - Use BDD to frame user-visible behavior.

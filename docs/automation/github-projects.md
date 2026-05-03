@@ -53,6 +53,46 @@ When a task changes workflow or tracker behavior:
 4. Run local validation.
 5. Report both local validation and GitHub verification evidence.
 
+## GitHub Tool Decision Matrix
+
+Prefer the GitHub plugin for normal structured GitHub operations. It avoids
+shell parsing and returns typed issue, PR, repository, diff, review, and CI data
+directly.
+
+Use the GitHub plugin for:
+
+- Reading or updating issues, labels, assignees, and comments.
+- Reading or creating pull requests.
+- Fetching PR metadata, changed files, diffs, review threads, and reviews.
+- Reading commits, comparing refs, and checking commit status.
+- Reading workflow runs, jobs, logs, and artifacts.
+- Merging or updating PRs when GitHub Projects fields are not involved.
+
+Use `gh`, `gh api`, or the Make helpers for tracker operations the plugin does
+not currently cover cleanly:
+
+- GitHub Projects v2 field and item updates.
+- Native sub-issue and dependency relationship APIs.
+- Existing read-only tracker validation commands:
+  - `make github-project-check`
+  - `make github-project-summary`
+  - `make github-project-hierarchy`
+  - `make github-project-active`
+- Any workflow already encoded in `scripts/dev/github-projects.sh`.
+
+Default rule:
+
+- Plugin first for issue, PR, review, diff, commit, and CI operations.
+- `gh` or Make for GitHub Projects, native relationship wiring, and repo-local
+  tracker validation.
+
+Plugin smoke test evidence from 2026-05-03:
+
+- `_get_user_login` returned `ankit-singhal87`.
+- `_get_repo` returned `ankit-singhal87/media-asset-ingest`.
+- `_fetch_issue` returned #30 `TASK-2-1: Create .NET solution skeleton`.
+- `_get_pr_info` returned merged PR #29.
+
 ## Current Hierarchy
 
 - #2 `MILESTONE-1: Documentation And Local Foundation`
