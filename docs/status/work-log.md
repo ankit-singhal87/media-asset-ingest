@@ -3,6 +3,11 @@
 Use this log for concise human-readable progress notes. Do not duplicate commit
 messages or paste command output unless it explains a decision.
 
+## 2026-05-04
+
+- Added the parallel track 07 Pulse workflow boundary with in-process package
+  lifecycle states for observed, ready, started, succeeded, and failed.
+
 ## 2026-05-03
 
 - Added Markdown link validation and Git naming conventions for branch, commit,
