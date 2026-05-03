@@ -59,6 +59,8 @@ messages or paste command output unless it explains a decision.
 - Added the TASK-5-1 workflow skeleton that starts a package workflow from an
   accepted package ingest request and prepares the initial scan, classify, and
   dispatch child work plan.
+- Added TASK-6-1 specialized video, audio, text, and other agent skeletons with
+  smoke tests proving each worker owns only its assigned media category.
 
 ## Update Rule
 
