@@ -36,6 +36,8 @@ messages or paste command output unless it explains a decision.
 - Created the first parallel execution task issues and local task files for
   .NET foundation, shared contracts, Dapr workflow, React UI, watcher,
   persistence/outbox, observability, and specialized agent lanes.
+- Added tested GitHub tracker helper commands for Project field updates,
+  native sub-issue links, and native blocked-by dependency links.
 
 ## Update Rule
 

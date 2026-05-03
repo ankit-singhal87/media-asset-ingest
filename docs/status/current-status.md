@@ -36,6 +36,8 @@
   naming conventions were merged in PR #29.
 - Task issues #30 through #37 were created for the first parallel execution
   lanes, with #30 and #32 active as the foundation worktrees.
+- GitHub tracker helper commands now cover Project field updates, native
+  sub-issue links, and native blocked-by dependency links.
 
 ## Ready For Review
 
@@ -48,13 +50,8 @@
 
 ## Known Agent Execution Gaps
 
-- GitHub Project write helpers are intentionally manual `gh` calls; agents have
-  read-only Make helpers but no safe scripted creator/updater for task and bug
-  issues yet.
 - Project custom fields are populated for current issues, but helper scripts do
   not verify required field completeness across all items.
-- GitHub dependency links between tasks still need a safe helper or manual
-  update path; task files currently document intended blocked-by relationships.
 - There is no automated check that issue bodies avoid duplicated relationship
   metadata.
 - There is no standardized PR creation helper that updates GitHub Project fields

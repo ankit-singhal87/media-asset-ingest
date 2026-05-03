@@ -13,12 +13,15 @@ Use:
 - `make install-tools` to install or print installation guidance for host tools.
 - `make validate` for cheap repository validation.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
+- `make github-projects-script-test` to test GitHub tracker helper wrappers
+  without network access.
 - `make github-project-check` to verify GitHub CLI auth and Project access.
 - `make github-project-summary` to summarize tracker counts.
 - `make github-project-hierarchy` to verify epic/story hierarchy.
 - `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:fix` for safe docs formatting fixes.
+- `npm run github-project:script-test` for tracker helper wrapper tests.
 - `npm run tools:check` for host tool checks through npm.
 
 ## Tooling Strategy

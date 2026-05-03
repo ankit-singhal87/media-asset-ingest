@@ -1,4 +1,4 @@
-.PHONY: help check-tools install-tools print-install-tools validate docs-check docs-fix scripts-check github-project-check github-project-summary github-project-hierarchy github-project-active
+.PHONY: help check-tools install-tools print-install-tools validate docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -9,6 +9,7 @@ help:
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
 	@printf '%s\n' "  make docs-fix            Apply safe docs formatting fixes"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
+	@printf '%s\n' "  make github-projects-script-test Test GitHub tracker helper wrappers"
 	@printf '%s\n' "  make github-project-check     Verify GitHub CLI auth and project access"
 	@printf '%s\n' "  make github-project-summary   Print GitHub tracker counts"
 	@printf '%s\n' "  make github-project-hierarchy Print epic/story hierarchy"
@@ -23,7 +24,7 @@ install-tools:
 print-install-tools:
 	@sh scripts/dev/install-tools.sh --print-only
 
-validate: docs-check scripts-check
+validate: docs-check scripts-check github-projects-script-test
 
 docs-check:
 	@npm run docs:check
@@ -35,6 +36,10 @@ scripts-check:
 	@sh -n scripts/dev/check-tools.sh
 	@sh -n scripts/dev/install-tools.sh
 	@sh -n scripts/dev/github-projects.sh
+	@sh -n scripts/dev/test-github-projects.sh
+
+github-projects-script-test:
+	@sh scripts/dev/test-github-projects.sh
 
 github-project-check:
 	@sh scripts/dev/github-projects.sh check-auth

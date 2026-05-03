@@ -60,7 +60,9 @@ introduced.
 
 This repository is operated with
 [Codex CLI](https://github.com/openai/codex). Agents should start from
-`AGENTS.md`, then use `docs/automation/README.md` for compact execution context.
+[AGENTS.md](AGENTS.md), then use
+[docs/automation/README.md](docs/automation/README.md) for compact execution
+context.
 
 Enabled agent tools:
 

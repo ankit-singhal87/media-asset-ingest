@@ -12,6 +12,7 @@
 | `make print-install-tools` | Print installation commands without running them. | cheap | no | no |
 | `make validate` | Run cheap repository validation. | cheap | no | no |
 | `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |
+| `make github-projects-script-test` | Test GitHub tracker helper wrappers without network. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |
 | `make github-project-summary` | Print GitHub Project, issue, milestone, and item counts. | cheap | no | no |
 | `make github-project-hierarchy` | Print epic/story sub-issue hierarchy. | cheap | no | no |
@@ -22,6 +23,7 @@
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
 | `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |
 | `npm run github-project:active` | Print in-progress GitHub tracker items through npm. | cheap | no | no |
+| `npm run github-project:script-test` | Test GitHub tracker helper wrappers through npm. | cheap | no | no |
 | `npm run tools:check` | Verify required Linux development tools through npm. | cheap | no | no |
 
 Add Makefile targets once the runtime scaffold exists. Prefer the cheapest

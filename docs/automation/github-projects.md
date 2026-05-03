@@ -81,6 +81,21 @@ not currently cover cleanly:
   - `make github-project-active`
 - Any workflow already encoded in `scripts/dev/github-projects.sh`.
 
+For common tracker writes, prefer the guarded helper commands in
+`scripts/dev/github-projects.sh` over ad hoc `gh` invocations:
+
+```bash
+sh scripts/dev/github-projects.sh set-status 30 "In Progress"
+sh scripts/dev/github-projects.sh set-type 30 Task
+sh scripts/dev/github-projects.sh set-lane 30 Forge
+sh scripts/dev/github-projects.sh set-text 30 "Worktree / Branch" "TASK-2-1 / .worktrees/TASK-2-1"
+sh scripts/dev/github-projects.sh add-sub-issue 26 30
+sh scripts/dev/github-projects.sh add-blocked-by 31 30
+```
+
+Run `make github-projects-script-test` to test those wrappers locally without
+network access.
+
 Default rule:
 
 - Plugin first for issue, PR, review, diff, commit, and CI operations.
@@ -148,5 +163,7 @@ gh issue create --project "Media Asset Ingest Roadmap"
 Creating or updating GitHub remote tracker state requires network access and a
 GitHub token with `repo` and `project` scopes.
 
-The Make targets are read-only helpers. Write operations still use `gh`
-directly after explicit authorization for remote tracker changes.
+The Make targets are read-only helpers except
+`make github-projects-script-test`, which uses a fake `gh` binary and never
+contacts GitHub. Tracker write operations still require explicit authorization
+before running the underlying helper command.

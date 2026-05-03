@@ -9,6 +9,7 @@
     "github-project:active": "sh scripts/dev/github-projects.sh active",
     "github-project:check": "sh scripts/dev/github-projects.sh check-auth",
     "github-project:hierarchy": "sh scripts/dev/github-projects.sh hierarchy",
+    "github-project:script-test": "sh scripts/dev/test-github-projects.sh",
     "github-project:summary": "sh scripts/dev/github-projects.sh summary",
     "tools:check": "sh scripts/dev/check-tools.sh"
   },

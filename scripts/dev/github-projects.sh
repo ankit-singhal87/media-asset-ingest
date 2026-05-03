@@ -14,15 +14,19 @@ Commands:
   summary          Print project, milestone, issue, and item counts.
   hierarchy        Print epic sub-issue hierarchy.
   active           Print in-progress project items.
+  set-status       Set GitHub Project Status for an issue.
+  set-type         Set GitHub Project Type for an issue.
+  set-lane         Set GitHub Project Lane for an issue.
+  set-text         Set a GitHub Project text field for an issue.
+  add-sub-issue    Add a native GitHub sub-issue relationship.
+  add-blocked-by   Add a native GitHub blocked-by dependency.
 
 Environment overrides:
   GITHUB_PROJECT_OWNER
   GITHUB_PROJECT_REPO
   GITHUB_PROJECT_NUMBER
 
-Write operations are intentionally not wrapped here. Agents should use gh
-directly after reading docs/automation/github-projects.md and after explicit
-authorization for remote tracker changes.
+Write operations require explicit agent approval before running the command.
 USAGE
 }
 
@@ -65,6 +69,109 @@ active() {
     --jq '.items[] | select(.status == "In Progress") | "#\(.content.number) \(.title)"'
 }
 
+project_id() {
+  gh project view "$PROJECT_NUMBER" --owner "$OWNER" --format json --jq '.id'
+}
+
+project_item_id_for_issue() {
+  issue_number=$1
+  gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json \
+    --jq ".items[] | select(.content.number == $issue_number) | .id"
+}
+
+project_field_id() {
+  field_name=$1
+  gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
+    --jq ".fields[] | select(.name == \"$field_name\") | .id"
+}
+
+project_option_id() {
+  field_name=$1
+  option_name=$2
+  gh project field-list "$PROJECT_NUMBER" --owner "$OWNER" --format json \
+    --jq ".fields[] | select(.name == \"$field_name\") | .options[] | select(.name == \"$option_name\") | .id"
+}
+
+require_arg() {
+  value=$1
+  name=$2
+  if [ -z "$value" ]; then
+    printf 'Missing required argument: %s\n\n' "$name" >&2
+    usage >&2
+    exit 2
+  fi
+}
+
+set_single_select_field() {
+  issue_number=$1
+  field_name=$2
+  option_name=$3
+
+  project=$(project_id)
+  item=$(project_item_id_for_issue "$issue_number")
+  field=$(project_field_id "$field_name")
+  option=$(project_option_id "$field_name" "$option_name")
+
+  if [ -z "$item" ] || [ -z "$field" ] || [ -z "$option" ]; then
+    printf 'Unable to resolve Project item, field, or option for issue #%s.\n' "$issue_number" >&2
+    exit 1
+  fi
+
+  gh project item-edit \
+    --project-id "$project" \
+    --id "$item" \
+    --field-id "$field" \
+    --single-select-option-id "$option"
+}
+
+set_text_field() {
+  issue_number=$1
+  field_name=$2
+  text_value=$3
+
+  project=$(project_id)
+  item=$(project_item_id_for_issue "$issue_number")
+  field=$(project_field_id "$field_name")
+
+  if [ -z "$item" ] || [ -z "$field" ]; then
+    printf 'Unable to resolve Project item or field for issue #%s.\n' "$issue_number" >&2
+    exit 1
+  fi
+
+  gh project item-edit \
+    --project-id "$project" \
+    --id "$item" \
+    --field-id "$field" \
+    --text "$text_value"
+}
+
+rest_issue_id() {
+  issue_number=$1
+  gh api "repos/$REPO/issues/$issue_number" --jq '.id'
+}
+
+add_sub_issue() {
+  parent_number=$1
+  child_number=$2
+  child_id=$(rest_issue_id "$child_number")
+
+  gh api -X POST "repos/$REPO/issues/$parent_number/sub_issues" \
+    -H 'X-GitHub-Api-Version: 2026-03-10' \
+    -F "sub_issue_id=$child_id" \
+    --jq '.sub_issues_summary'
+}
+
+add_blocked_by() {
+  blocked_issue_number=$1
+  blocking_issue_number=$2
+  blocking_id=$(rest_issue_id "$blocking_issue_number")
+
+  gh api -X POST "repos/$REPO/issues/$blocked_issue_number/dependencies/blocked_by" \
+    -H 'X-GitHub-Api-Version: 2026-03-10' \
+    -F "issue_id=$blocking_id" \
+    --jq '.issue_dependencies_summary'
+}
+
 require_gh
 
 case "${1:-}" in
@@ -79,6 +186,37 @@ case "${1:-}" in
     ;;
   active)
     active
+    ;;
+  set-status)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "status"
+    set_single_select_field "$2" "Status" "$3"
+    ;;
+  set-type)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "type"
+    set_single_select_field "$2" "Type" "$3"
+    ;;
+  set-lane)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "lane"
+    set_single_select_field "$2" "Lane" "$3"
+    ;;
+  set-text)
+    require_arg "${2:-}" "issue-number"
+    require_arg "${3:-}" "field-name"
+    require_arg "${4:-}" "text"
+    set_text_field "$2" "$3" "$4"
+    ;;
+  add-sub-issue)
+    require_arg "${2:-}" "parent-issue-number"
+    require_arg "${3:-}" "child-issue-number"
+    add_sub_issue "$2" "$3"
+    ;;
+  add-blocked-by)
+    require_arg "${2:-}" "blocked-issue-number"
+    require_arg "${3:-}" "blocking-issue-number"
+    add_blocked_by "$2" "$3"
     ;;
   -h|--help|help|"")
     usage
