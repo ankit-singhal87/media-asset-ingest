@@ -97,6 +97,9 @@ messages or paste command output unless it explains a decision.
 - Updated PR #45 local manifest ingest behavior so package discovery observes
   all immediate child directories, readiness requires both manifest files, and
   start ingest launches a background watcher loop.
+- Refined the Courier local outbox dispatch shape so pending messages are
+  published, marked with an injectable dispatch timestamp, skipped on later
+  dispatcher runs, and left pending when publication fails.
 - 2026-05-04: Added a Gauge local manifest ingest E2E smoke script with dry-run
   validation docs and a manual API-plus-script command path.
 
