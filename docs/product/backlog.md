@@ -7,15 +7,16 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-2 / USER-STORY-16: scaffold .NET solution, shared contracts, and
   canonical .NET validation.
-- MILESTONE-2 / USER-STORY-16: keep the draft local manifest ingest demo docs
-  aligned with the backend and UI draft PRs.
+- MILESTONE-2 / USER-STORY-16: keep the local manifest ingest demo, local
+  Compose validation, and Docker-first quickstart docs aligned with merged
+  runtime support.
 - MILESTONE-3 / USER-STORY-1: add ingest watcher scanner foundation.
 - MILESTONE-3 / USER-STORY-3: enumerate every physical file under a ready
   package directory without wiring discovery into copy behavior.
 - MILESTONE-4 / USER-STORY-8: add persistence and transactional outbox
   foundation.
 - MILESTONE-5 / USER-STORY-9: add Dapr workflow skeleton.
-- MILESTONE-6 / USER-STORY-7: replace media-specific agent skeletons with
+- MILESTONE-6 / USER-STORY-7: replace media-specific worker skeletons with
   command-routing contracts.
 - MILESTONE-7 / USER-STORY-11: add observability correlation field foundation.
 - MILESTONE-8 / USER-STORY-12: scaffold React workflow control plane with
@@ -39,14 +40,14 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-8 / USER-STORY-13 / USER-STORY-14 / USER-STORY-15: make the
   Mermaid workflow diagram interactive, remove the duplicated node-card graph,
   and support child workflow drilldown with parent back navigation.
+- MILESTONE-9 / USER-STORY-17: add static Kubernetes and Dapr readiness assets
+  for internal API/UI services, PostgreSQL, workflow state, and Azure Service
+  Bus command-topic placeholders without running cloud validation.
 
 ## Ready For Planning
 
-- MILESTONE-2 / USER-STORY-17: define local container runtime and Kubernetes
-  readiness boundary.
-- MILESTONE-2 / USER-STORY-16: merge the local ingest docs after the backend and
-  UI draft PRs provide the documented API host, UI start action, and runtime
-  ignore setup.
+- MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
+  validation slice beyond static Compose checks.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.
 - MILESTONE-5 / USER-STORY-10: expand nested workflow contracts and behavior.
@@ -57,7 +58,6 @@ epic/story granularity; detailed implementation tasks belong in plans.
   runner services.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-13: expand workflow graph data with
   node detail, timeline, and log-backed status sources.
-- MILESTONE-9 / USER-STORY-17: add Kubernetes and Dapr deployment assets.
 - MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.
 
 ## Update Rule

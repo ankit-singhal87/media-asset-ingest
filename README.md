@@ -52,9 +52,10 @@ The installer does not log in to Azure or create paid cloud resources.
 make validate
 ```
 
-At this stage validation checks documentation and shell script syntax. Runtime
-build/test targets will be added as the .NET solution and containers are
-introduced.
+Validation currently checks documentation, shell script syntax, GitHub tracker
+helper wrappers, and the .NET solution smoke-test targets. Runtime-specific
+checks such as local Compose validation are exposed as focused Make targets and
+can be run when that slice is in scope.
 
 ## Local Manifest Ingest Demo
 
