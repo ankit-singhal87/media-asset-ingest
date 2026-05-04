@@ -32,6 +32,22 @@ try
     AssertFalse(readinessGate.IsReady(new IngestPackageCandidate(secondPackagePath)), "empty package readiness");
     AssertTrue(readinessGate.IsReady(new IngestPackageCandidate(readyPackagePath)), "manifest and checksum package readiness");
 
+    var readyCandidates = scanner.FindReadyPackageCandidates(mountPath, readinessGate);
+
+    AssertSequenceEqual(
+        [readyPackagePath],
+        readyCandidates.Select(candidate => candidate.PackagePath).ToArray(),
+        "ready package candidate paths before checksum arrival");
+
+    File.WriteAllText(Path.Combine(firstPackagePath, "manifest.json.checksum"), "not-a-real-checksum");
+
+    var readyCandidatesAfterChecksumArrival = scanner.FindReadyPackageCandidates(mountPath, readinessGate);
+
+    AssertSequenceEqual(
+        [firstPackagePath, readyPackagePath],
+        readyCandidatesAfterChecksumArrival.Select(candidate => candidate.PackagePath).ToArray(),
+        "ready package candidate paths after checksum arrival");
+
     var discoveredFiles = scanner.FindPackageFiles(new IngestPackageCandidate(readyPackagePath));
 
     AssertSequenceEqual(

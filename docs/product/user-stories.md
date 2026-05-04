@@ -8,7 +8,7 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | ID | Title | Milestone | Domain | Primary lane | Status |
 | --- | --- | --- | --- | --- | --- |
 | USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | In Progress |
-| USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Planned |
+| USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Complete |
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |

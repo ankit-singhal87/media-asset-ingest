@@ -73,6 +73,9 @@
   proxied to that API, press **Start ingest** to begin watching, then add
   `manifest.json` plus `manifest.json.checksum` under `input/<asset>/` and
   expect both manifest files under `output/<asset>/`.
+- USER-STORY-2 manifest readiness now keeps package observation separate from
+  start readiness and requires both `manifest.json` and
+  `manifest.json.checksum` before package work may begin.
 - USER-STORY-3 physical file enumeration now scans ready package directories
   recursively in the watcher without wiring discovery into copy behavior.
 - USER-STORY-12 now has a Mermaid-backed control-plane graph path: the API

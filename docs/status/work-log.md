@@ -5,6 +5,9 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Completed the USER-STORY-2 Mount readiness gate so watcher code can observe
+  package directories while exposing only manifest-plus-checksum packages as
+  ready to start.
 - Replaced the tracked active worktree ledger with ignored local
   `.worktrees/state/<worktree-slug>.md` records and updated planning and
   automation docs to keep worktree state out of commits.
