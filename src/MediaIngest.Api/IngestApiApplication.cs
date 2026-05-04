@@ -95,6 +95,7 @@ public sealed class IngestApiApplication : IAsyncDisposable
     {
         app.MapPost("/api/ingest/start", StartIngestAsync);
         app.MapGet("/api/ingest/status", GetStatus);
+        app.MapGet("/api/workflows", ListWorkflows);
         app.MapGet("/api/workflows/{workflowInstanceId}/graph", GetWorkflowGraph);
         app.MapGet("/api/workflows/{workflowInstanceId}/nodes/{nodeId}", GetWorkflowNodeDetails);
     }
@@ -113,6 +114,11 @@ public sealed class IngestApiApplication : IAsyncDisposable
     private static IngestStatusResponse GetStatus(IngestRuntimeService runtimeService)
     {
         return runtimeService.GetStatus();
+    }
+
+    private static WorkflowListResponse ListWorkflows(IngestRuntimeService runtimeService)
+    {
+        return runtimeService.ListWorkflows();
     }
 
     private static IResult GetWorkflowGraph(
