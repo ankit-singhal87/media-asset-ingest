@@ -6,8 +6,8 @@
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
   across watcher, persistence/outbox, workflow, command routing, observability,
-  and the React control plane. Draft local ingest docs are tracking the sibling
-  backend and UI PRs until those branches merge.
+  and the React control plane. USER-STORY-16 local ingest docs now describe the
+  merged API, UI, runtime folder, and smoke-script flow.
 
 ## Completed
 
@@ -68,8 +68,8 @@
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
   validation targets, an agent preflight command, and a repo-local ignored
   Docker .NET cache for faster repeated validation.
-- Draft README quickstart text documents the intended local manifest ingest
-  flow: run the API host on the fixed development port, run the UI with `/api`
+- README and automation docs document the current local manifest ingest flow:
+  run the API host on the fixed development port, run the UI with `/api`
   proxied to that API, press **Start ingest** to begin watching, then add
   `manifest.json` plus `manifest.json.checksum` under `input/<asset>/` and
   expect both manifest files under `output/<asset>/`.
@@ -91,13 +91,14 @@
 
 ## Ready For Review
 
+- USER-STORY-16 local ingest documentation is ready for coordinator review
+  after docs validation.
 - USER-STORY-17 runtime readiness branch is preparing PR validation.
 
 ## Next
 
-- Keep the local ingest docs PR in draft until the backend and UI slice PRs
-  merge the API host, UI **Start ingest** action, Vite `/api` proxy, and runtime
-  folder ignore setup.
+- Coordinator can review the USER-STORY-16 local ingest documentation branch
+  and decide whether to authorize PR creation.
 - Review USER-STORY-17 static runtime readiness assets before any approved
   cluster or Azure validation.
 

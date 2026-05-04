@@ -16,6 +16,8 @@
 | `make validate` | Run cheap repository validation. | cheap | no | no |
 | `make validate-docs` | Run documentation validation only. | cheap | no | no |
 | `make validate-automation` | Run shell syntax checks and GitHub helper wrapper tests. | cheap | no | no |
+| `dotnet run --project src/MediaIngest.Api --urls http://127.0.0.1:5000` | Start the local ingest API on the fixed development port. | cheap | no | no |
+| `cd web/ingest-control-plane && npm run dev` | Start the React control plane with Vite `/api` proxying to the local API. | cheap | no | no |
 | `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Print the local manifest ingest E2E smoke plan without changing files or calling the API. | cheap | no | no |
 | `sh scripts/dev/local-e2e-smoke.sh` | Post local ingest start, create a smoke package, and assert manifest output files. Requires the API to be running locally. | cheap | no | no |
 | `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
