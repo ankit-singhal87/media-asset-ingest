@@ -28,6 +28,7 @@ var mismatchedResult = await lightRunner.HandleAsync(heavyEnvelope, CreateCorrel
 AssertEqual(CommandHandlingStatus.RejectedExecutionClass, mismatchedResult.Status, "mismatched class is rejected");
 AssertEqual(0, mismatchedExecutor.ExecutionCount, "mismatched command is not executed");
 AssertEqual(CommandProgressStatus.Rejected, mismatchedProgress.Records.Single().Status, "mismatched rejection is recorded");
+AssertProgressCorrelation(CreateCorrelation(heavyEnvelope), heavyEnvelope, mismatchedProgress.Records.Single(), "mismatched rejection");
 
 var duplicateExecutor = new RecordingCommandExecutor();
 var duplicateProgress = new InMemoryCommandProgressSink();
@@ -42,6 +43,11 @@ AssertEqual(CommandHandlingStatus.Succeeded, firstResult.Status, "first duplicat
 AssertEqual(CommandHandlingStatus.Duplicate, secondResult.Status, "second duplicate command is idempotent");
 AssertEqual(1, duplicateExecutor.ExecutionCount, "duplicate command executes only once");
 AssertEqual(CommandProgressStatus.DuplicateSkipped, duplicateProgress.Records.Last().Status, "duplicate skip is recorded");
+AssertSequence(
+    [CommandProgressStatus.Accepted, CommandProgressStatus.Succeeded, CommandProgressStatus.DuplicateSkipped],
+    duplicateProgress.Records.Select(static record => record.Status).ToArray(),
+    "duplicate progress sequence");
+AssertProgressCorrelation(duplicateCorrelation, duplicateEnvelope, duplicateProgress.Records.Last(), "duplicate skip");
 
 var failedExecutor = new RecordingCommandExecutor { NextResult = CommandExecutionResult.Failed("exit-code-1") };
 var failedProgress = new InMemoryCommandProgressSink();
@@ -53,6 +59,48 @@ var failedResult = await failedRunner.HandleAsync(failedEnvelope, CreateCorrelat
 AssertEqual(CommandHandlingStatus.Failed, failedResult.Status, "failed command returns failed status");
 AssertEqual("exit-code-1", failedResult.Message, "failed command preserves failure message");
 AssertEqual(CommandProgressStatus.Failed, failedProgress.Records.Last().Status, "failed command is recorded");
+AssertSequence(
+    [CommandProgressStatus.Accepted, CommandProgressStatus.Failed],
+    failedProgress.Records.Select(static record => record.Status).ToArray(),
+    "failed progress sequence");
+
+var retryExecutor = new QueueingCommandExecutor(
+    CommandExecutionResult.Failed("transient-exit-code-1"),
+    CommandExecutionResult.Succeeded("retry-ok"));
+var retryProgress = new InMemoryCommandProgressSink();
+var retryRunner = new GenericCommandRunner(ExecutionClass.Heavy, retryExecutor, retryProgress);
+var retryEnvelope = CreateEnvelope(ExecutionClass.Heavy, "command-retry-after-failure");
+var retryCorrelation = CreateCorrelation(retryEnvelope);
+
+var retryFirstResult = await retryRunner.HandleAsync(retryEnvelope, retryCorrelation);
+var retrySecondResult = await retryRunner.HandleAsync(retryEnvelope, retryCorrelation);
+
+AssertEqual(CommandHandlingStatus.Failed, retryFirstResult.Status, "failed command reports failure before retry");
+AssertEqual(CommandHandlingStatus.Succeeded, retrySecondResult.Status, "failed command can be retried");
+AssertEqual(2, retryExecutor.ExecutionCount, "failed command is not treated as handled");
+AssertSequence(
+    [
+        CommandProgressStatus.Accepted,
+        CommandProgressStatus.Failed,
+        CommandProgressStatus.Accepted,
+        CommandProgressStatus.Succeeded
+    ],
+    retryProgress.Records.Select(static record => record.Status).ToArray(),
+    "retry after failure progress sequence");
+
+var throwingExecutor = new ThrowThenSucceedCommandExecutor();
+var throwingProgress = new InMemoryCommandProgressSink();
+var throwingRunner = new GenericCommandRunner(ExecutionClass.Light, throwingExecutor, throwingProgress);
+var throwingEnvelope = CreateEnvelope(ExecutionClass.Light, "command-retry-after-exception");
+var throwingCorrelation = CreateCorrelation(throwingEnvelope);
+
+var throwingFirstResult = await throwingRunner.HandleAsync(throwingEnvelope, throwingCorrelation);
+var throwingSecondResult = await throwingRunner.HandleAsync(throwingEnvelope, throwingCorrelation);
+
+AssertEqual(CommandHandlingStatus.Failed, throwingFirstResult.Status, "executor exception reports failure before retry");
+AssertEqual("executor unavailable", throwingFirstResult.Message, "executor exception message is preserved");
+AssertEqual(CommandHandlingStatus.Succeeded, throwingSecondResult.Status, "executor exception does not poison retries");
+AssertEqual(2, throwingExecutor.ExecutionCount, "executor exception does not mark command handled");
 
 var correlationExecutor = new RecordingCommandExecutor();
 var correlationProgress = new InMemoryCommandProgressSink();
@@ -70,12 +118,15 @@ foreach (var fieldName in CorrelationFieldNames.All)
 
 AssertEqual(expectedCorrelation.WorkflowInstanceId, progressFields[CorrelationFieldNames.WorkflowInstanceId], "workflow correlation field");
 AssertEqual(expectedCorrelation.PackageId, progressFields[CorrelationFieldNames.PackageId], "package correlation field");
+AssertEqual(expectedCorrelation.FileId, progressFields[CorrelationFieldNames.FileId], "file correlation field");
 AssertEqual(expectedCorrelation.WorkItemId, progressFields[CorrelationFieldNames.WorkItemId], "work item correlation field");
 AssertEqual(expectedCorrelation.NodeId, progressFields[CorrelationFieldNames.NodeId], "node correlation field");
 AssertEqual(expectedCorrelation.AgentType, progressFields[CorrelationFieldNames.AgentType], "agent type correlation field");
 AssertEqual(expectedCorrelation.QueueName, progressFields[CorrelationFieldNames.QueueName], "queue correlation field");
 AssertEqual(correlationEnvelope.CorrelationId, progressFields[CorrelationFieldNames.CorrelationId], "command correlation field");
 AssertEqual(correlationEnvelope.CommandId, progressFields[CorrelationFieldNames.CausationId], "command causation field");
+AssertEqual(expectedCorrelation.TraceId, progressFields[CorrelationFieldNames.TraceId], "trace correlation field");
+AssertEqual(expectedCorrelation.SpanId, progressFields[CorrelationFieldNames.SpanId], "span correlation field");
 
 Console.WriteLine("MediaIngest command runner tests passed.");
 
@@ -125,6 +176,39 @@ static void AssertEqual<T>(T expected, T actual, string name)
     }
 }
 
+static void AssertSequence<T>(IReadOnlyList<T> expected, IReadOnlyList<T> actual, string name)
+{
+    AssertEqual(expected.Count, actual.Count, $"{name} count");
+    for (var index = 0; index < expected.Count; index++)
+    {
+        AssertEqual(expected[index], actual[index], $"{name} item {index}");
+    }
+}
+
+static void AssertProgressCorrelation(
+    ObservabilityCorrelationContext expectedCorrelation,
+    MediaCommandEnvelope expectedEnvelope,
+    CommandProgressRecord actual,
+    string name)
+{
+    AssertEqual(expectedEnvelope.CommandId, actual.CommandId, $"{name} command id");
+    AssertEqual(expectedEnvelope.CommandName, actual.CommandName, $"{name} command name");
+    AssertEqual(expectedEnvelope.ExecutionClass, actual.ExecutionClass, $"{name} execution class");
+
+    var fields = actual.CorrelationFields;
+    AssertEqual(expectedCorrelation.WorkflowInstanceId, fields[CorrelationFieldNames.WorkflowInstanceId], $"{name} workflow correlation");
+    AssertEqual(expectedCorrelation.PackageId, fields[CorrelationFieldNames.PackageId], $"{name} package correlation");
+    AssertEqual(expectedCorrelation.FileId, fields[CorrelationFieldNames.FileId], $"{name} file correlation");
+    AssertEqual(expectedCorrelation.WorkItemId, fields[CorrelationFieldNames.WorkItemId], $"{name} work item correlation");
+    AssertEqual(expectedCorrelation.NodeId, fields[CorrelationFieldNames.NodeId], $"{name} node correlation");
+    AssertEqual(expectedCorrelation.AgentType, fields[CorrelationFieldNames.AgentType], $"{name} agent correlation");
+    AssertEqual(expectedCorrelation.QueueName, fields[CorrelationFieldNames.QueueName], $"{name} queue correlation");
+    AssertEqual(expectedEnvelope.CorrelationId, fields[CorrelationFieldNames.CorrelationId], $"{name} command correlation");
+    AssertEqual(expectedEnvelope.CommandId, fields[CorrelationFieldNames.CausationId], $"{name} command causation");
+    AssertEqual(expectedCorrelation.TraceId, fields[CorrelationFieldNames.TraceId], $"{name} trace correlation");
+    AssertEqual(expectedCorrelation.SpanId, fields[CorrelationFieldNames.SpanId], $"{name} span correlation");
+}
+
 internal sealed class RecordingCommandExecutor : ICommandExecutor
 {
     public int ExecutionCount { get; private set; }
@@ -135,5 +219,34 @@ internal sealed class RecordingCommandExecutor : ICommandExecutor
     {
         ExecutionCount++;
         return Task.FromResult(NextResult);
+    }
+}
+
+internal sealed class QueueingCommandExecutor(params CommandExecutionResult[] results) : ICommandExecutor
+{
+    private readonly Queue<CommandExecutionResult> results = new(results);
+
+    public int ExecutionCount { get; private set; }
+
+    public Task<CommandExecutionResult> ExecuteAsync(MediaCommandEnvelope envelope, CancellationToken cancellationToken = default)
+    {
+        ExecutionCount++;
+        return Task.FromResult(results.Dequeue());
+    }
+}
+
+internal sealed class ThrowThenSucceedCommandExecutor : ICommandExecutor
+{
+    public int ExecutionCount { get; private set; }
+
+    public Task<CommandExecutionResult> ExecuteAsync(MediaCommandEnvelope envelope, CancellationToken cancellationToken = default)
+    {
+        ExecutionCount++;
+        if (ExecutionCount == 1)
+        {
+            throw new InvalidOperationException("executor unavailable");
+        }
+
+        return Task.FromResult(CommandExecutionResult.Succeeded("retry-ok"));
     }
 }

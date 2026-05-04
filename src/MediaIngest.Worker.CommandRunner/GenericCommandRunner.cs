@@ -62,12 +62,22 @@ public sealed class GenericCommandRunner
 
             var failureMessage = executionResult.Message ?? "Command execution failed.";
             progressSink.Record(envelope, correlation, CommandProgressStatus.Failed, failureMessage);
+            ForgetHandledCommand(envelope.CommandId);
             return CommandHandlingResult.Failed(failureMessage);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             progressSink.Record(envelope, correlation, CommandProgressStatus.Failed, ex.Message);
+            ForgetHandledCommand(envelope.CommandId);
             return CommandHandlingResult.Failed(ex.Message);
+        }
+    }
+
+    private void ForgetHandledCommand(string commandId)
+    {
+        lock (syncRoot)
+        {
+            handledCommandIds.Remove(commandId);
         }
     }
 }
