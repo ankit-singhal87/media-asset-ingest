@@ -37,10 +37,39 @@ var graph = new WorkflowGraphDto(
     ]);
 
 AssertEqual("PackageIngestWorkflow", WorkflowContractNames.PackageIngestWorkflow, "root workflow name");
+AssertSequenceEqual(
+    [
+        "PackageScanWorkflow",
+        "FileClassificationWorkflow",
+        "EssenceGroupProcessingWorkflow",
+        "ProxyCreationWorkflow",
+        "ReconciliationWorkflow",
+        "FinalizationWorkflow"
+    ],
+    [
+        WorkflowContractNames.PackageScanWorkflow,
+        WorkflowContractNames.FileClassificationWorkflow,
+        WorkflowContractNames.EssenceGroupProcessingWorkflow,
+        WorkflowContractNames.ProxyCreationWorkflow,
+        WorkflowContractNames.ReconciliationWorkflow,
+        WorkflowContractNames.FinalizationWorkflow
+    ],
+    "child workflow names");
 AssertEqual(WorkflowNodeStatus.Running, graph.Nodes[1].Status, "node status");
 AssertEqual("workflow-proxy-001", graph.Nodes[1].ChildWorkflowInstanceId, "child workflow drilldown link");
 AssertEqual("scan", graph.Edges[0].SourceNodeId, "edge source");
 AssertJsonRoundTrip(graph);
+
+var childGraph = graph with
+{
+    WorkflowInstanceId = "workflow-proxy-001",
+    WorkflowName = WorkflowContractNames.ProxyCreationWorkflow,
+    ParentWorkflowInstanceId = "workflow-package-001",
+    Nodes = [],
+    Edges = []
+};
+AssertEqual("workflow-package-001", childGraph.ParentWorkflowInstanceId, "child graph parent workflow reference");
+AssertJsonRoundTrip(childGraph);
 
 var details = new WorkflowNodeDetailsDto(
     WorkflowInstanceId: graph.WorkflowInstanceId,
