@@ -48,6 +48,23 @@ already computed for the outbox request are forwarded as Dapr metadata query
 parameters, so command metadata such as `executionClass=heavy` reaches the
 broker boundary without the dispatcher making routing decisions.
 
+The Azure Service Bus adapter boundary is represented by the outbox worker's
+command-bus adapter. It maps an `OutboxPublishRequest` for a
+`MediaCommandEnvelope` into a broker-oriented message shape with:
+
+- the semantic Service Bus topic from the outbox destination;
+- the raw JSON command envelope body;
+- application properties copied from the outbox publish request; and
+- the routed subscription name selected from the static `executionClass`
+  topology.
+
+Local development keeps the same dispatcher behavior by validating that
+Service Bus mapping first, then delegating publication to the existing local
+publisher strategy. Today that local strategy is the Dapr sidecar publisher,
+but tests may also use in-memory publishers behind the same
+`IOutboxMessagePublisher` boundary. This keeps command topic and application
+property rules exercised locally without adding an Azure SDK dependency.
+
 This boundary is local runtime plumbing only. It does not provision Azure
 Service Bus topics, create subscriptions, run paid cloud validation, or add Azure
 SDK dependencies.

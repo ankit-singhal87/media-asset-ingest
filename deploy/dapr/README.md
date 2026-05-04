@@ -59,6 +59,14 @@ destination. Existing outbox application properties, including
 as `metadata.executionClass=heavy`. This keeps the local publisher independent
 of Azure SDKs and Azure resource provisioning.
 
+TASK-4-4 adds a code-level Service Bus command-bus adapter boundary before the
+local publisher. The adapter validates that each `MediaCommandEnvelope` targets
+one of the static command topics, preserves the raw command JSON body, copies
+application properties, and maps `executionClass` to the `light`, `medium`, or
+`heavy` subscription name defined by the topology. Local runs still publish via
+the configured local `IOutboxMessagePublisher`, such as the Dapr sidecar
+publisher above, after that broker mapping succeeds.
+
 All credentials are Kubernetes Secret references. Real secret values,
 kubeconfigs, Azure subscription details, and Terraform state are intentionally
 absent from this repository.

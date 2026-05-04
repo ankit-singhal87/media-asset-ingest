@@ -34,6 +34,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-4 / USER-STORY-6 / USER-STORY-8: define static command-bus topology
   readiness for semantic Azure Service Bus command topics and light, medium,
   and heavy subscriptions.
+- MILESTONE-4 / USER-STORY-6 / USER-STORY-8: define the Service Bus
+  command-bus adapter boundary and preserve local Dapr or in-memory publisher
+  behavior through the outbox publisher strategy.
 - MILESTONE-6 / USER-STORY-7: add the first local generic command runner
   foundation for light, medium, and heavy execution classes without Azure
   Service Bus consumption or real media command execution.
@@ -57,8 +60,6 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
   validation slice beyond static Compose checks.
-- MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
-  adapters and local development strategy.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service

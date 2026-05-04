@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Added TASK-4-4 Service Bus command-bus adapter boundary for outbox command
+  publishes: routed command requests now validate semantic topics and
+  `executionClass` subscription mapping before delegating to the existing local
+  publisher strategy, without Azure SDK dependencies or cloud provisioning.
 - Added the TASK-2-3 Docker-first local runtime smoke slice: `make
   local-runtime-smoke` starts the Compose API, UI, and PostgreSQL stack, waits
   for local API/UI HTTP responses, runs the existing manifest ingest smoke
