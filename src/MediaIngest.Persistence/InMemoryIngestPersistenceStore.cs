@@ -5,6 +5,8 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
     private readonly object storeLock = new();
     private readonly List<IngestPackageState> packageStates = [];
     private readonly List<OutboxMessage> outboxMessages = [];
+    private readonly List<BusinessTimelineRecord> timelineRecords = [];
+    private readonly List<NodeDiagnosticLogRecord> nodeDiagnosticLogs = [];
 
     public IReadOnlyList<IngestPackageState> PackageStates
     {
@@ -24,6 +26,28 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
             lock (storeLock)
             {
                 return outboxMessages.ToArray();
+            }
+        }
+    }
+
+    public IReadOnlyList<BusinessTimelineRecord> TimelineRecords
+    {
+        get
+        {
+            lock (storeLock)
+            {
+                return timelineRecords.ToArray();
+            }
+        }
+    }
+
+    public IReadOnlyList<NodeDiagnosticLogRecord> NodeDiagnosticLogs
+    {
+        get
+        {
+            lock (storeLock)
+            {
+                return nodeDiagnosticLogs.ToArray();
             }
         }
     }
@@ -58,9 +82,71 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
                     outboxMessages.Add(outboxMessage);
                 }
             }
+
+            foreach (var timelineRecord in batch.TimelineRecords)
+            {
+                if (!timelineRecords.Any(existing => existing.EventId == timelineRecord.EventId))
+                {
+                    timelineRecords.Add(timelineRecord);
+                }
+            }
+
+            foreach (var nodeDiagnosticLog in batch.NodeDiagnosticLogs)
+            {
+                if (!nodeDiagnosticLogs.Any(existing => existing.LogId == nodeDiagnosticLog.LogId))
+                {
+                    nodeDiagnosticLogs.Add(nodeDiagnosticLog);
+                }
+            }
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<BusinessTimelineRecord>> GetWorkflowNodeTimelineAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IReadOnlyList<BusinessTimelineRecord> records;
+
+        lock (storeLock)
+        {
+            records = timelineRecords
+                .Where(record =>
+                    string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+                    string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
+                .OrderBy(record => record.OccurredAt)
+                .ThenBy(record => record.EventId, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        return Task.FromResult(records);
+    }
+
+    public Task<IReadOnlyList<NodeDiagnosticLogRecord>> GetWorkflowNodeLogsAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IReadOnlyList<NodeDiagnosticLogRecord> records;
+
+        lock (storeLock)
+        {
+            records = nodeDiagnosticLogs
+                .Where(record =>
+                    string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+                    string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
+                .OrderBy(record => record.OccurredAt)
+                .ThenBy(record => record.LogId, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        return Task.FromResult(records);
     }
 
     public Task<IReadOnlyList<OutboxMessage>> GetPendingOutboxMessagesAsync(CancellationToken cancellationToken = default)

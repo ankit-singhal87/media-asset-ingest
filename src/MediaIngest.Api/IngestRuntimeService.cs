@@ -97,10 +97,61 @@ public sealed class IngestRuntimeService(
                     var mediaCommandMessages = CreateMediaCommandMessages(
                         workflowStart,
                         scanner.FindPackageFiles(candidate));
+                    var timelineRecords = new List<BusinessTimelineRecord>
+                    {
+                        CreateTimelineRecord(
+                            workflowStart,
+                            "package-start",
+                            "Started",
+                            $"Package ingest started for {packageId}.",
+                            workflowStart.AcceptedAt),
+                        CreateTimelineRecord(
+                            workflowStart,
+                            "dispatch-processing",
+                            "Running",
+                            $"Dispatched {mediaCommandMessages.Count} processing commands for {packageId}.",
+                            workflowStart.AcceptedAt)
+                    };
+                    var logRecords = new List<NodeDiagnosticLogRecord>
+                    {
+                        CreateLogRecord(
+                            workflowStart,
+                            "package-start",
+                            "Information",
+                            $"Package start persisted business state for {packageId}.",
+                            workflowStart.AcceptedAt),
+                        CreateLogRecord(
+                            workflowStart,
+                            "dispatch-processing",
+                            "Information",
+                            $"Dispatch node persisted {mediaCommandMessages.Count} outbox commands for {packageId}.",
+                            workflowStart.AcceptedAt)
+                    };
+
+                    if (doneMarkerGate.IsDone(candidate))
+                    {
+                        var discoveredFileCount = scanner.FindPackageFiles(candidate)
+                            .Count(file => !string.Equals(file.PackageRelativePath, "done.marker", StringComparison.Ordinal));
+
+                        timelineRecords.Add(CreateTimelineRecord(
+                            workflowStart,
+                            "scan-package",
+                            "Succeeded",
+                            $"Package scan found {discoveredFileCount} files for {packageId}.",
+                            workflowStart.AcceptedAt));
+                        logRecords.Add(CreateLogRecord(
+                            workflowStart,
+                            "scan-package",
+                            "Information",
+                            $"Scan node persisted package file discovery for {packageId}.",
+                            workflowStart.AcceptedAt));
+                    }
 
                     await store.SaveAsync(new PersistenceBatch(
                         [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", workflowStart.AcceptedAt)],
-                        [message, .. mediaCommandMessages]), cancellationToken);
+                        [message, .. mediaCommandMessages],
+                        timelineRecords,
+                        logRecords), cancellationToken);
 
                     startedPackages.Add(new StartedIngestPackageResponse(
                         packageId,
@@ -149,15 +200,75 @@ public sealed class IngestRuntimeService(
             var mediaCommandMessages = CreateMediaCommandMessages(
                 workflowStart,
                 scanner.FindPackageFiles(candidate));
+            var reconciledAt = DateTimeOffset.UtcNow;
+            var discoveredFileCount = scanner.FindPackageFiles(candidate)
+                .Count(file => !string.Equals(file.PackageRelativePath, "done.marker", StringComparison.Ordinal));
 
             await store.SaveAsync(new PersistenceBatch(
                 [],
-                mediaCommandMessages), cancellationToken);
+                mediaCommandMessages,
+                [
+                    CreateTimelineRecord(
+                        workflowStart,
+                        "scan-package",
+                        "Succeeded",
+                        $"Package scan found {discoveredFileCount} files for {workflowStart.PackageId}.",
+                        reconciledAt),
+                    CreateTimelineRecord(
+                        workflowStart,
+                        "reconcile-package",
+                        "Succeeded",
+                        $"done.marker reconciled package {workflowStart.PackageId}.",
+                        reconciledAt),
+                    CreateTimelineRecord(
+                        workflowStart,
+                        "dispatch-processing",
+                        "Succeeded",
+                        $"Dispatched {mediaCommandMessages.Count} processing commands for {workflowStart.PackageId}.",
+                        reconciledAt)
+                ],
+                [
+                    CreateLogRecord(
+                        workflowStart,
+                        "scan-package",
+                        "Information",
+                        $"Scan node persisted package file discovery for {workflowStart.PackageId}.",
+                        reconciledAt),
+                    CreateLogRecord(
+                        workflowStart,
+                        "reconcile-package",
+                        "Information",
+                        $"Reconcile node processed done.marker for {workflowStart.PackageId}.",
+                        reconciledAt),
+                    CreateLogRecord(
+                        workflowStart,
+                        "dispatch-processing",
+                        "Information",
+                        $"Dispatch node persisted {mediaCommandMessages.Count} outbox commands for {workflowStart.PackageId}.",
+                        reconciledAt)
+                ]), cancellationToken);
             await outboxDispatcher.DispatchPendingAsync(cancellationToken);
 
+            var completedAt = DateTimeOffset.UtcNow;
             await store.SaveAsync(new PersistenceBatch(
-                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
-                []), cancellationToken);
+                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Succeeded", completedAt)],
+                [],
+                [
+                    CreateTimelineRecord(
+                        workflowStart,
+                        "finalize-package",
+                        "Succeeded",
+                        $"Package {workflowStart.PackageId} completed successfully.",
+                        completedAt)
+                ],
+                [
+                    CreateLogRecord(
+                        workflowStart,
+                        "finalize-package",
+                        "Information",
+                        $"Finalize node persisted success for {workflowStart.PackageId}.",
+                        completedAt)
+                ]), cancellationToken);
             terminalPackageIds.Add(workflowStart.PackageId);
 
             return false;
@@ -175,9 +286,26 @@ public sealed class IngestRuntimeService(
                 messageId,
                 DateTimeOffset.UtcNow,
                 cancellationToken);
+            var failedAt = DateTimeOffset.UtcNow;
             await store.SaveAsync(new PersistenceBatch(
-                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
-                []), cancellationToken);
+                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Failed", failedAt)],
+                [],
+                [
+                    CreateTimelineRecord(
+                        workflowStart,
+                        "finalize-package",
+                        "Failed",
+                        $"Package {workflowStart.PackageId} failed during local manifest transfer.",
+                        failedAt)
+                ],
+                [
+                    CreateLogRecord(
+                        workflowStart,
+                        "finalize-package",
+                        "Error",
+                        $"Finalize node recorded local manifest transfer conflict for {workflowStart.PackageId}.",
+                        failedAt)
+                ]), cancellationToken);
             terminalPackageIds.Add(workflowStart.PackageId);
 
             return true;
@@ -264,41 +392,39 @@ public sealed class IngestRuntimeService(
             return null;
         }
 
-        var packageState = store.PackageStates
-            .Where(packageState =>
-                string.Equals(packageState.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal))
-            .OrderBy(packageState => packageState.UpdatedAt)
-            .LastOrDefault();
+        var timeline = store.TimelineRecords
+            .Where(record =>
+                string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+                string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
+            .OrderBy(record => record.OccurredAt)
+            .ThenBy(record => record.EventId, StringComparer.Ordinal)
+            .Select(record => new WorkflowTimelineEntryDto(
+                OccurredAt: record.OccurredAt,
+                Status: MapTimelineStatus(record.Status),
+                Message: record.Message,
+                CorrelationId: record.CorrelationId))
+            .ToArray();
 
-        if (packageState is null)
-        {
-            return null;
-        }
-
-        var correlationId = $"correlation-{graph.PackageId}";
-        var occurredAt = packageState.UpdatedAt;
+        var logs = store.NodeDiagnosticLogs
+            .Where(record =>
+                string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
+                string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
+            .OrderBy(record => record.OccurredAt)
+            .ThenBy(record => record.LogId, StringComparer.Ordinal)
+            .Select(record => new WorkflowNodeLogEntryDto(
+                OccurredAt: record.OccurredAt,
+                Level: record.Level,
+                Message: record.Message,
+                CorrelationId: record.CorrelationId,
+                TraceId: record.TraceId,
+                SpanId: record.SpanId))
+            .ToArray();
 
         return new WorkflowNodeDetailsDto(
             WorkflowInstanceId: graph.WorkflowInstanceId,
             NodeId: node.NodeId,
-            Timeline:
-            [
-                new WorkflowTimelineEntryDto(
-                    OccurredAt: occurredAt,
-                    Status: node.Status,
-                    Message: $"{node.DisplayName} is {node.Status.ToString().ToLowerInvariant()}",
-                    CorrelationId: correlationId)
-            ],
-            Logs:
-            [
-                new WorkflowNodeLogEntryDto(
-                    OccurredAt: occurredAt,
-                    Level: node.Status == WorkflowNodeStatus.Failed ? "Error" : "Information",
-                    Message: $"{node.DisplayName} projected from in-memory workflow state.",
-                    CorrelationId: correlationId,
-                    TraceId: null,
-                    SpanId: null)
-            ]);
+            Timeline: timeline,
+            Logs: logs);
     }
 
     public async ValueTask DisposeAsync()
@@ -526,5 +652,50 @@ public sealed class IngestRuntimeService(
     {
         var chars = value.Select(character => char.IsLetterOrDigit(character) ? character : '-').ToArray();
         return new string(chars).Trim('-').ToLowerInvariant();
+    }
+
+    private static BusinessTimelineRecord CreateTimelineRecord(
+        PackageWorkflowStart workflowStart,
+        string nodeId,
+        string status,
+        string message,
+        DateTimeOffset occurredAt)
+    {
+        return new BusinessTimelineRecord(
+            EventId: $"timeline-{workflowStart.WorkflowInstanceId}-{nodeId}-{SanitizeIdentifier(status)}-{occurredAt.ToUnixTimeMilliseconds()}",
+            WorkflowInstanceId: workflowStart.WorkflowInstanceId,
+            NodeId: nodeId,
+            PackageId: workflowStart.PackageId,
+            CorrelationId: workflowStart.CorrelationId,
+            OccurredAt: occurredAt,
+            Status: status,
+            Message: message);
+    }
+
+    private static NodeDiagnosticLogRecord CreateLogRecord(
+        PackageWorkflowStart workflowStart,
+        string nodeId,
+        string level,
+        string message,
+        DateTimeOffset occurredAt)
+    {
+        return new NodeDiagnosticLogRecord(
+            LogId: $"log-{workflowStart.WorkflowInstanceId}-{nodeId}-{SanitizeIdentifier(level)}-{occurredAt.ToUnixTimeMilliseconds()}",
+            WorkflowInstanceId: workflowStart.WorkflowInstanceId,
+            NodeId: nodeId,
+            PackageId: workflowStart.PackageId,
+            CorrelationId: workflowStart.CorrelationId,
+            OccurredAt: occurredAt,
+            Level: level,
+            Message: message,
+            TraceId: null,
+            SpanId: null);
+    }
+
+    private static WorkflowNodeStatus MapTimelineStatus(string status)
+    {
+        return Enum.TryParse<WorkflowNodeStatus>(status, ignoreCase: true, out var nodeStatus)
+            ? nodeStatus
+            : MapPackageStatus(status);
     }
 }

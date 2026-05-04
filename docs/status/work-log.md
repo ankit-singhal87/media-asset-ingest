@@ -156,6 +156,10 @@ messages or paste command output unless it explains a decision.
 - Added TASK-4-3 static command-bus topology readiness in the Courier contract
   lane, covering semantic command topics, light/medium/heavy subscription
   filters, and documentation that keeps Azure resource creation out of scope.
+- Added USER-STORY-13 persisted local node timeline/log backing: persistence
+  batches now carry business timeline and node diagnostic log records, and the
+  existing workflow node details API reads stored local ingest messages instead
+  of synthetic package-state details.
 
 ## Update Rule
 

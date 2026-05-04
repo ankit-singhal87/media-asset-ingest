@@ -25,10 +25,47 @@ AssertEqual(1, store.OutboxMessages.Count, "saved outbox message count");
 AssertEqual("package-001", store.PackageStates[0].PackageId, "business state package id");
 AssertEqual("message-001", store.OutboxMessages[0].MessageId, "outbox message id");
 
-await store.SaveAsync(new PersistenceBatch([], [command]));
+var timelineRecord = new BusinessTimelineRecord(
+    EventId: "timeline-001",
+    WorkflowInstanceId: "workflow-package-001",
+    NodeId: "scan-package",
+    PackageId: "package-001",
+    CorrelationId: "correlation-001",
+    OccurredAt: packageState.UpdatedAt.AddSeconds(1),
+    Status: "Succeeded",
+    Message: "Package scan persisted discovered file count.");
+
+var logRecord = new NodeDiagnosticLogRecord(
+    LogId: "log-001",
+    WorkflowInstanceId: "workflow-package-001",
+    NodeId: "scan-package",
+    PackageId: "package-001",
+    CorrelationId: "correlation-001",
+    OccurredAt: packageState.UpdatedAt.AddSeconds(2),
+    Level: "Information",
+    Message: "Scan node loaded manifest metadata.",
+    TraceId: "trace-001",
+    SpanId: "span-001");
+
+await store.SaveAsync(new PersistenceBatch([], [command], [timelineRecord], [logRecord]));
 
 AssertEqual(1, store.OutboxMessages.Count, "duplicate outbox message id is idempotent");
 AssertEqual("message-001", store.OutboxMessages[0].MessageId, "idempotent outbox message id");
+AssertEqual(1, store.TimelineRecords.Count, "saved timeline record count");
+AssertEqual(1, store.NodeDiagnosticLogs.Count, "saved node diagnostic log count");
+
+var savedTimeline = await store.GetWorkflowNodeTimelineAsync("workflow-package-001", "scan-package");
+var savedLogs = await store.GetWorkflowNodeLogsAsync("workflow-package-001", "scan-package");
+
+AssertEqual("Package scan persisted discovered file count.", savedTimeline.Single().Message, "queried timeline message");
+AssertEqual("Scan node loaded manifest metadata.", savedLogs.Single().Message, "queried log message");
+AssertEqual("trace-001", savedLogs.Single().TraceId, "queried log trace id");
+
+var missingTimeline = await store.GetWorkflowNodeTimelineAsync("workflow-package-001", "missing-node");
+var missingLogs = await store.GetWorkflowNodeLogsAsync("missing-workflow", "scan-package");
+
+AssertEqual(0, missingTimeline.Count, "missing node timeline count");
+AssertEqual(0, missingLogs.Count, "missing workflow log count");
 
 var rejected = false;
 
@@ -36,7 +73,9 @@ try
 {
     await store.SaveAsync(new PersistenceBatch(
         [packageState with { PackageId = "package-002" }],
-        [command with { MessageId = "" }]));
+        [command with { MessageId = "" }],
+        [timelineRecord with { EventId = "timeline-002" }],
+        [logRecord with { LogId = "log-002" }]));
 }
 catch (ArgumentException)
 {
@@ -47,24 +86,32 @@ AssertTrue(rejected, "invalid outbox message rejects the persistence batch");
 AssertEqual(1, store.PackageStates.Count, "business state count after rejected batch");
 AssertEqual("package-001", store.PackageStates[0].PackageId, "business state after rejected batch");
 AssertEqual(1, store.OutboxMessages.Count, "outbox count after rejected batch");
+AssertEqual(1, store.TimelineRecords.Count, "timeline count after rejected batch");
+AssertEqual(1, store.NodeDiagnosticLogs.Count, "diagnostic log count after rejected batch");
 
 AssertContains("CREATE TABLE IF NOT EXISTS ingest_package_states", PostgresIngestSchema.SchemaSql, "package state table DDL");
 AssertContains("CREATE TABLE IF NOT EXISTS outbox_messages", PostgresIngestSchema.SchemaSql, "outbox table DDL");
+AssertContains("CREATE TABLE IF NOT EXISTS business_timeline_records", PostgresIngestSchema.SchemaSql, "timeline table DDL");
+AssertContains("CREATE TABLE IF NOT EXISTS node_diagnostic_logs", PostgresIngestSchema.SchemaSql, "diagnostic log table DDL");
 AssertContains("CREATE INDEX IF NOT EXISTS idx_outbox_messages_pending", PostgresIngestSchema.SchemaSql, "pending outbox index DDL");
 
 var recordingConnection = new RecordingDbConnection();
 var postgresStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(recordingConnection));
 
-await postgresStore.SaveAsync(new PersistenceBatch([packageState], [command]));
+await postgresStore.SaveAsync(new PersistenceBatch([packageState], [command], [timelineRecord], [logRecord]));
 
 AssertEqual(1, recordingConnection.BeginTransactionCount, "postgres save transaction count");
 AssertTrue(recordingConnection.Committed, "postgres save commits transaction");
-AssertEqual(2, recordingConnection.ExecutedCommands.Count, "postgres save command count");
+AssertEqual(4, recordingConnection.ExecutedCommands.Count, "postgres save command count");
 AssertContains("INSERT INTO ingest_package_states", recordingConnection.ExecutedCommands[0].CommandText, "postgres package upsert command");
 AssertContains("INSERT INTO outbox_messages", recordingConnection.ExecutedCommands[1].CommandText, "postgres outbox insert command");
+AssertContains("INSERT INTO business_timeline_records", recordingConnection.ExecutedCommands[2].CommandText, "postgres timeline insert command");
+AssertContains("INSERT INTO node_diagnostic_logs", recordingConnection.ExecutedCommands[3].CommandText, "postgres diagnostic log insert command");
 AssertContains("ON CONFLICT (message_id) DO NOTHING", recordingConnection.ExecutedCommands[1].CommandText, "postgres outbox insert idempotency");
 AssertEqual("package-001", recordingConnection.ExecutedCommands[0].Parameters["@package_id"], "postgres package id parameter");
 AssertEqual("message-001", recordingConnection.ExecutedCommands[1].Parameters["@message_id"], "postgres message id parameter");
+AssertEqual("timeline-001", recordingConnection.ExecutedCommands[2].Parameters["@event_id"], "postgres timeline event id parameter");
+AssertEqual("log-001", recordingConnection.ExecutedCommands[3].Parameters["@log_id"], "postgres diagnostic log id parameter");
 
 var schemaConnection = new RecordingDbConnection();
 var schemaStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(schemaConnection));
