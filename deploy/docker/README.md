@@ -20,6 +20,22 @@ projects gain executable hosts.
 Docker assets are local/runtime scaffolding. They do not create Azure resources,
 publish images, store credentials, or validate a production deployment.
 
+Start the local API, UI, and PostgreSQL Compose runtime from the repository
+root:
+
+```bash
+make up
+```
+
+The target runs `docker compose -f deploy/docker/compose.yaml up --build`.
+Stop the local Compose runtime with:
+
+```bash
+make down
+```
+
+The target runs `docker compose -f deploy/docker/compose.yaml down`.
+
 Use the static local check from the repository root to validate Compose syntax
 and service resolution without starting containers:
 

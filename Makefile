@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -8,6 +8,8 @@ help:
 	@printf '%s\n' "  make install-optional-tools Install optional local runtime/cloud CLIs"
 	@printf '%s\n' "  make print-install-tools Print manual installation commands"
 	@printf '%s\n' "  make print-install-optional-tools Print optional tool install commands"
+	@printf '%s\n' "  make up                  Start local Docker Compose runtime"
+	@printf '%s\n' "  make down                Stop local Docker Compose runtime"
 	@printf '%s\n' "  make local-compose-check Validate local Docker Compose configuration"
 	@printf '%s\n' "  make validate            Run cheap repository validation"
 	@printf '%s\n' "  make validate-docs       Run docs validation only"
@@ -42,6 +44,12 @@ print-install-tools:
 
 print-install-optional-tools:
 	@sh scripts/dev/install-optional-tools.sh --print-only
+
+up:
+	docker compose -f deploy/docker/compose.yaml up --build
+
+down:
+	docker compose -f deploy/docker/compose.yaml down
 
 local-compose-check:
 	@sh scripts/dev/local-compose-check.sh

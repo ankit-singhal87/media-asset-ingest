@@ -13,6 +13,8 @@
 | `make install-optional-tools` | Install optional host runtime and cloud CLIs after local confirmation. | moderate | no | no |
 | `make print-install-tools` | Print installation commands without running them. | cheap | no | no |
 | `make print-install-optional-tools` | Print optional host tool installation commands without running them. | cheap | no | no |
+| `make up` | Start the local API, UI, and PostgreSQL Docker Compose runtime with image builds. | moderate | yes | no |
+| `make down` | Stop the local Docker Compose runtime. | cheap | yes | no |
 | `make local-compose-check` | Validate `deploy/docker/compose.yaml` with `docker compose config` without starting containers. | cheap | yes | no |
 | `make validate` | Run cheap repository validation. | cheap | no | no |
 | `make validate-docs` | Run documentation validation only. | cheap | no | no |
