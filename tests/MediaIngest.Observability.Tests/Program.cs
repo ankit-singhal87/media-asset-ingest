@@ -35,10 +35,14 @@ var expectedDiagnosticEvents = new[]
     "ingest.readiness",
     "ingest.copy",
     "outbox.dispatch",
+    "command.accepted",
+    "command.rejected",
+    "command.duplicate_skipped",
     "command.started",
     "command.progress",
     "command.succeeded",
     "command.failed",
+    "command.timed_out",
     "ingest.succeeded",
     "ingest.failed"
 };
@@ -49,12 +53,30 @@ AssertEqual("ingest.scan", DiagnosticEventNames.Scan, "scan diagnostic event");
 AssertEqual("ingest.readiness", DiagnosticEventNames.Readiness, "readiness diagnostic event");
 AssertEqual("ingest.copy", DiagnosticEventNames.Copy, "copy diagnostic event");
 AssertEqual("outbox.dispatch", DiagnosticEventNames.OutboxDispatch, "outbox dispatch diagnostic event");
+AssertEqual("command.accepted", DiagnosticEventNames.CommandAccepted, "command accepted diagnostic event");
+AssertEqual("command.rejected", DiagnosticEventNames.CommandRejected, "command rejected diagnostic event");
+AssertEqual("command.duplicate_skipped", DiagnosticEventNames.CommandDuplicateSkipped, "command duplicate skipped diagnostic event");
 AssertEqual("command.started", DiagnosticEventNames.CommandStarted, "command started diagnostic event");
 AssertEqual("command.progress", DiagnosticEventNames.CommandProgress, "command progress diagnostic event");
 AssertEqual("command.succeeded", DiagnosticEventNames.CommandSucceeded, "command succeeded diagnostic event");
 AssertEqual("command.failed", DiagnosticEventNames.CommandFailed, "command failed diagnostic event");
+AssertEqual("command.timed_out", DiagnosticEventNames.CommandTimedOut, "command timed out diagnostic event");
 AssertEqual("ingest.succeeded", DiagnosticEventNames.Success, "success diagnostic event");
 AssertEqual("ingest.failed", DiagnosticEventNames.Failure, "failure diagnostic event");
+
+var commandProgressEvents = new[]
+{
+    DiagnosticEventNames.CommandAccepted,
+    DiagnosticEventNames.CommandRejected,
+    DiagnosticEventNames.CommandDuplicateSkipped,
+    DiagnosticEventNames.CommandStarted,
+    DiagnosticEventNames.CommandProgress,
+    DiagnosticEventNames.CommandSucceeded,
+    DiagnosticEventNames.CommandFailed,
+    DiagnosticEventNames.CommandTimedOut
+};
+
+AssertEveryValuePresentOnce(DiagnosticEventNames.All, commandProgressEvents, "command progress diagnostic event catalog");
 
 var context = new ObservabilityCorrelationContext(
     WorkflowInstanceId: "workflow-package-001",
@@ -159,6 +181,19 @@ static void AssertUnique(IReadOnlyList<string> values, string name)
         if (!seen.Add(value))
         {
             throw new InvalidOperationException($"{name}: duplicate value '{value}'.");
+        }
+    }
+}
+
+static void AssertEveryValuePresentOnce(IReadOnlyList<string> catalog, IReadOnlyList<string> expectedValues, string name)
+{
+    foreach (var expectedValue in expectedValues)
+    {
+        var count = catalog.Count(value => string.Equals(value, expectedValue, StringComparison.Ordinal));
+
+        if (count != 1)
+        {
+            throw new InvalidOperationException($"{name}: expected '{expectedValue}' once, got {count}.");
         }
     }
 }
