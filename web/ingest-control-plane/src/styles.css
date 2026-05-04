@@ -133,25 +133,46 @@ h2 {
 }
 
 .package-status-item {
+  display: block;
+}
+
+.package-status-button {
   display: grid;
   grid-template-columns:
     minmax(160px, 1.2fr) minmax(180px, 1.4fr) minmax(160px, 1fr) auto;
   gap: 12px;
   align-items: center;
+  width: 100%;
   border: 1px solid #d6dde5;
   border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
   padding: 12px;
+  text-align: left;
 }
 
-.package-status-item strong,
-.package-status-item code,
-.package-status-item span {
+.package-status-button:hover,
+.package-status-button[aria-pressed="true"] {
+  border-color: #93b8d8;
+  box-shadow: 0 8px 18px rgb(17 24 39 / 8%);
+}
+
+.package-status-button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.package-status-button strong,
+.package-status-button code,
+.package-status-button span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.package-status-item code,
-.package-status-item span:not(.package-status-item__state) {
+.package-status-button code,
+.package-status-button span:not(.package-status-item__state) {
   color: #576574;
   font-size: 0.84rem;
 }
@@ -424,7 +445,7 @@ h2 {
 
   .workflow-metadata,
   .workflow-graph,
-  .package-status-item,
+  .package-status-button,
   .node-details-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -442,7 +463,7 @@ h2 {
 
   .workflow-metadata,
   .workflow-graph,
-  .package-status-item,
+  .package-status-button,
   .node-details-grid {
     grid-template-columns: 1fr;
   }

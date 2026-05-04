@@ -84,6 +84,24 @@ function formatStatus(status: WorkflowNode["status"]) {
   return status.toLowerCase();
 }
 
+function formatNodeKind(kind: WorkflowNode["kind"] | string) {
+  return kind
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (firstCharacter) => firstCharacter.toUpperCase());
+}
+
+function formatNodeReference(node: WorkflowNode) {
+  if (node.workItemId) {
+    return `Work item ${node.workItemId}`;
+  }
+
+  if (node.childWorkflowInstanceId) {
+    return `Child workflow ${node.childWorkflowInstanceId}`;
+  }
+
+  return `Node ${node.nodeId}`;
+}
+
 function formatUpdatedAt(updatedAt: string) {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -106,14 +124,14 @@ function NodeCard({
       <button
         type="button"
         className={`workflow-node workflow-node--${formatStatus(node.status)}`}
-        aria-label={`${node.displayName} ${formatStatus(node.status)}`}
+        aria-label={`${node.displayName} ${formatStatus(node.status)} ${formatNodeKind(node.kind)}`}
         aria-pressed={selected}
         onClick={() => onSelect(node)}
       >
         <span className="workflow-node__status">{node.status}</span>
         <strong>{node.displayName}</strong>
-        <span>{node.kind}</span>
-        <code>{node.workItemId ?? node.childWorkflowInstanceId ?? node.nodeId}</code>
+        <span>{formatNodeKind(node.kind)}</span>
+        <code>{formatNodeReference(node)}</code>
       </button>
     </li>
   );
@@ -228,6 +246,7 @@ export function App() {
   const [workflowGraphLoadState, setWorkflowGraphLoadState] =
     useState<WorkflowGraphLoadState>("ready");
   const [packageStatuses, setPackageStatuses] = useState<IngestPackageStatus[]>([]);
+  const [selectedWorkflowInstanceId, setSelectedWorkflowInstanceId] = useState<string>();
   const [graph, setGraph] = useState<WorkflowGraph>(mockedWorkflowGraph);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode>();
   const [workflowNodeDetailsLoadState, setWorkflowNodeDetailsLoadState] =
@@ -285,6 +304,16 @@ export function App() {
     }
   }, []);
 
+  const selectPackageWorkflow = useCallback((workflowInstanceId: string) => {
+    if (selectedWorkflowInstanceId !== workflowInstanceId) {
+      setSelectedNode(undefined);
+      setWorkflowNodeDetails(undefined);
+      setWorkflowNodeDetailsLoadState("idle");
+    }
+
+    setSelectedWorkflowInstanceId(workflowInstanceId);
+  }, [selectedWorkflowInstanceId]);
+
   useEffect(() => {
     void loadPackageStatuses();
     const refreshIntervalId = window.setInterval(
@@ -298,12 +327,20 @@ export function App() {
   }, [loadPackageStatuses]);
 
   useEffect(() => {
-    const selectedWorkflowInstanceId = packageStatuses[0]?.workflowInstanceId;
+    if (
+      packageStatusLoadState === "ready" &&
+      !selectedWorkflowInstanceId &&
+      packageStatuses[0]?.workflowInstanceId
+    ) {
+      setSelectedWorkflowInstanceId(packageStatuses[0].workflowInstanceId);
+    }
+  }, [packageStatusLoadState, packageStatuses, selectedWorkflowInstanceId]);
 
+  useEffect(() => {
     if (packageStatusLoadState === "ready" && selectedWorkflowInstanceId) {
       void loadWorkflowGraph(selectedWorkflowInstanceId);
     }
-  }, [loadWorkflowGraph, packageStatusLoadState, packageStatuses]);
+  }, [loadWorkflowGraph, packageStatusLoadState, packageStatuses, selectedWorkflowInstanceId]);
 
   async function startLocalIngest() {
     setLocalWatcherStatus("starting");
@@ -372,12 +409,22 @@ export function App() {
           <ol className="package-status-list">
             {packageStatuses.map((packageStatus) => (
               <li key={packageStatus.packageId} className="package-status-item">
-                <span className="package-status-item__state">
-                  {packageStatus.status}
-                </span>
-                <strong>{packageStatus.packageId}</strong>
-                <code>{packageStatus.workflowInstanceId}</code>
-                <span>Updated {formatUpdatedAt(packageStatus.updatedAt)}</span>
+                <button
+                  type="button"
+                  className="package-status-button"
+                  aria-label={`Select package ${packageStatus.packageId} workflow ${packageStatus.workflowInstanceId}`}
+                  aria-pressed={
+                    selectedWorkflowInstanceId === packageStatus.workflowInstanceId
+                  }
+                  onClick={() => selectPackageWorkflow(packageStatus.workflowInstanceId)}
+                >
+                  <span className="package-status-item__state">
+                    {packageStatus.status}
+                  </span>
+                  <strong>{packageStatus.packageId}</strong>
+                  <code>{packageStatus.workflowInstanceId}</code>
+                  <span>Updated {formatUpdatedAt(packageStatus.updatedAt)}</span>
+                </button>
               </li>
             ))}
           </ol>
