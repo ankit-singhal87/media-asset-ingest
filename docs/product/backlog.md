@@ -30,6 +30,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-4 / USER-STORY-6 / USER-STORY-8: expose broker-ready command
   publish metadata at the local outbox boundary without changing non-command
   dispatch behavior.
+- MILESTONE-4 / USER-STORY-6 / USER-STORY-8: define static command-bus topology
+  readiness for semantic Azure Service Bus command topics and light, medium,
+  and heavy subscriptions.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-13: add package workflow selection
   to the control plane and preserve or clear node detail state according to the
   selected workflow.

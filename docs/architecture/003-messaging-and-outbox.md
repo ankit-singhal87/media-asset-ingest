@@ -18,6 +18,12 @@ Each command message carries an `executionClass` application property. Topic
 subscriptions named `light`, `medium`, and `heavy` filter on that property, and
 matching command-runner deployments consume only their subscription.
 
+The static command-bus topology is represented in the command contracts so
+application, outbox, and deployment slices can validate the same semantic topic
+and subscription names before Azure resources exist. This readiness model is a
+contract and documentation boundary only: it does not provision Azure Service Bus
+topics, create subscriptions, or perform paid cloud validation.
+
 The first routing policy is:
 
 - `light`: input size below 512 MB

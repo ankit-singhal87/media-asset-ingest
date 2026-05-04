@@ -149,6 +149,9 @@ messages or paste command output unless it explains a decision.
   duplicated node-card list, bound React-managed activation handlers to rendered
   Mermaid SVG nodes, added compact accessible node selection, and enabled child
   workflow drilldown with parent back navigation.
+- Added TASK-4-3 static command-bus topology readiness in the Courier contract
+  lane, covering semantic command topics, light/medium/heavy subscription
+  filters, and documentation that keeps Azure resource creation out of scope.
 
 ## Update Rule
 

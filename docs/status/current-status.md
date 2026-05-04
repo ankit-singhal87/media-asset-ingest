@@ -101,6 +101,9 @@
 - TASK-4-2 added local command dispatch boundary metadata so
   `MediaCommandEnvelope` outbox publishes expose broker-ready `executionClass`
   application properties while non-command messages keep existing behavior.
+- TASK-4-3 defined the static command-bus topology readiness model for semantic
+  command topics and the `light`, `medium`, and `heavy` execution-class
+  subscriptions without provisioning Azure resources.
 - TASK-8-2 added multi-package workflow selection in the React control plane,
   preserving node detail during same-workflow refreshes and clearing detail when
   the operator switches workflows.
