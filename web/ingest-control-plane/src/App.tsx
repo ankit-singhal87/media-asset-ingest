@@ -127,7 +127,9 @@ function NodeDetailsPanel({
           <h2>{selectedNode?.displayName ?? "Node details"}</h2>
           {selectedNode && <span>{selectedNode.nodeId}</span>}
         </div>
-        {selectedNode && <span>{selectedNode.status}</span>}
+        {selectedNode && (
+          <span className="node-details-status">{selectedNode.status}</span>
+        )}
       </div>
       {!selectedNode && <p>Select a workflow node to inspect details.</p>}
       {selectedNode && loadState === "loading" && (
@@ -137,36 +139,64 @@ function NodeDetailsPanel({
         <p role="status">Node details unavailable</p>
       )}
       {selectedNode && loadState === "ready" && details && (
-        <div className="node-details-grid">
-          <div>
-            <h3>Timeline</h3>
-            <ol className="node-detail-rows">
-              {details.timeline.map((entry) => (
-                <li key={`${entry.occurredAt}-${entry.message}`}>
-                  <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
-                  <strong>{entry.status}</strong>
-                  <span>{entry.message}</span>
-                  <code>{entry.correlationId}</code>
-                </li>
-              ))}
-            </ol>
+        <>
+          <dl className="node-details-metadata" aria-label="selected node metadata">
+            <div>
+              <dt>Status</dt>
+              <dd>{selectedNode.status}</dd>
+            </div>
+            <div>
+              <dt>Kind</dt>
+              <dd>{formatNodeKind(selectedNode.kind)}</dd>
+            </div>
+            <div>
+              <dt>Reference</dt>
+              <dd>{formatNodeReference(selectedNode)}</dd>
+            </div>
+            <div>
+              <dt>Workflow</dt>
+              <dd>{selectedNode.workflowInstanceId}</dd>
+            </div>
+          </dl>
+          <div className="node-details-grid">
+            <div>
+              <h3>Timeline</h3>
+              {details.timeline.length === 0 ? (
+                <p>No timeline entries recorded for this node yet.</p>
+              ) : (
+                <ol className="node-detail-rows">
+                  {details.timeline.map((entry) => (
+                    <li key={`${entry.occurredAt}-${entry.message}`}>
+                      <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
+                      <strong>{entry.status}</strong>
+                      <span>{entry.message}</span>
+                      <code>{entry.correlationId}</code>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+            <div>
+              <h3>Logs</h3>
+              {details.logs.length === 0 ? (
+                <p>No log entries recorded for this node yet.</p>
+              ) : (
+                <ol className="node-detail-rows">
+                  {details.logs.map((entry) => (
+                    <li key={`${entry.occurredAt}-${entry.message}`}>
+                      <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
+                      <strong>{entry.level}</strong>
+                      <span>{entry.message}</span>
+                      <code>{entry.correlationId}</code>
+                      {entry.traceId && <code>{entry.traceId}</code>}
+                      {entry.spanId && <code>{entry.spanId}</code>}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
           </div>
-          <div>
-            <h3>Logs</h3>
-            <ol className="node-detail-rows">
-              {details.logs.map((entry) => (
-                <li key={`${entry.occurredAt}-${entry.message}`}>
-                  <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
-                  <strong>{entry.level}</strong>
-                  <span>{entry.message}</span>
-                  <code>{entry.correlationId}</code>
-                  {entry.traceId && <code>{entry.traceId}</code>}
-                  {entry.spanId && <code>{entry.spanId}</code>}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+        </>
       )}
     </section>
   );
@@ -498,7 +528,12 @@ export function App() {
 
       <section className="graph-section" aria-labelledby="graph-heading">
         <div className="section-heading">
-          <h2 id="graph-heading">{graph.workflowName}</h2>
+          <div>
+            <h2 id="graph-heading">{graph.workflowName}</h2>
+            {graph.parentWorkflowInstanceId && (
+              <span>Child workflow of {graph.parentWorkflowInstanceId}</span>
+            )}
+          </div>
           <span>Mermaid workflow graph</span>
         </div>
         {workflowGraphLoadState === "loading" && (

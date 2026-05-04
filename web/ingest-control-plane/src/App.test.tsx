@@ -284,6 +284,61 @@ describe("workflow graph control plane", () => {
     expect(within(details).getByText(/trace-classify-001/i)).toBeInTheDocument();
   });
 
+  it("renders selected node context and empty detail states without hiding the node reference", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(audioNodeDetailsResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: /audio essence pending work item/i })
+    );
+
+    const details = await screen.findByRole("region", {
+      name: /selected workflow node details/i
+    });
+
+    expect(within(details).getByRole("heading", { name: /audio essence/i })).toBeInTheDocument();
+    expect(within(details).getAllByText("Pending")).toHaveLength(2);
+    expect(within(details).getByText("Work Item")).toBeInTheDocument();
+    expect(within(details).getByText("Work item audio-001")).toBeInTheDocument();
+    expect(within(details).getByText("workflow-local-001")).toBeInTheDocument();
+    expect(within(details).getByText(/No timeline entries recorded/i)).toBeInTheDocument();
+    expect(within(details).getByText(/No log entries recorded/i)).toBeInTheDocument();
+  });
+
   it("drills into a child workflow when the operator clicks a Mermaid child workflow node", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
@@ -331,6 +386,7 @@ describe("workflow graph control plane", () => {
     });
 
     expect(await screen.findByRole("heading", { name: /proxy child workflow/i })).toBeInTheDocument();
+    expect(screen.getByText(/Child workflow of workflow-local-001/i)).toBeInTheDocument();
     expect(screen.getByText(/Package PKG-2026-05-03-001/i)).toBeInTheDocument();
     expect(
       await screen.findByRole("button", { name: /generate proxy command running activity/i })
@@ -462,8 +518,10 @@ describe("workflow graph control plane", () => {
       name: /selected workflow node details/i
     });
 
-    expect(within(details).getByRole("heading", { name: /classify package/i })).toBeInTheDocument();
-    expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
+    expect(
+      await within(details).findByRole("heading", { name: /classify package/i })
+    ).toBeInTheDocument();
+    expect(await within(details).findByText(/Classification started/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /start ingest/i }));
 
@@ -737,6 +795,13 @@ const classifyNodeDetailsResponse = {
       spanId: "span-classify-001"
     }
   ]
+};
+
+const audioNodeDetailsResponse = {
+  workflowInstanceId: "workflow-local-001",
+  nodeId: "audio",
+  timeline: [],
+  logs: []
 };
 
 const secondWorkflowGraphResponse = {
