@@ -109,7 +109,12 @@ try
     await VerifyObservationLoopUsesConfiguredMountPath();
     await VerifyObservationLoopScansRepeatedlyUntilCancelled();
     await VerifyObservationLoopDoesNotReportUnchangedPackageTwice();
+    await VerifyObservationLoopReportsPackageAgainWhenReadinessFilesArrive();
     await VerifyObservationLoopStopsWhenCancellationIsRequested();
+    VerifyManifestReadinessRequiresManifestAndChecksum();
+    VerifyScannerEnumeratesRecursivePhysicalFiles();
+    VerifyZeroByteDoneMarkerIsRequired();
+    VerifyDoneMarkerReconciliationIsIdempotent();
     VerifyManifestDiscrepancyWarnings();
     VerifyMalformedManifestWarningDoesNotStopDiskDiscovery();
 }
@@ -332,6 +337,63 @@ static async Task VerifyObservationLoopDoesNotReportUnchangedPackageTwice()
     }
 }
 
+static async Task VerifyObservationLoopReportsPackageAgainWhenReadinessFilesArrive()
+{
+    var mountPath = CreateTestDirectory();
+
+    try
+    {
+        var packagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-a")).FullName;
+        var reports = new List<(IngestPackageCandidate Candidate, bool Ready)>();
+        var readinessGate = new ManifestReadinessGate();
+        var delayCalls = 0;
+        using var cancellation = new CancellationTokenSource();
+
+        var loop = new IngestMountObservationLoop(
+            new IngestMountObservationLoopOptions(mountPath, TimeSpan.FromMilliseconds(50)),
+            new CallbackIngestPackageCandidateSink((candidate, _) =>
+            {
+                reports.Add((candidate, readinessGate.IsReady(candidate)));
+                return ValueTask.CompletedTask;
+            }),
+            (_, _) =>
+            {
+                delayCalls++;
+
+                if (delayCalls == 1)
+                {
+                    File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{}");
+                }
+                else if (delayCalls == 2)
+                {
+                    File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "not-a-real-checksum");
+                }
+                else
+                {
+                    cancellation.Cancel();
+                }
+
+                return ValueTask.CompletedTask;
+            });
+
+        await loop.RunAsync(cancellation.Token);
+
+        AssertSequenceEqual(
+            [packagePath, packagePath, packagePath],
+            reports.Select(report => report.Candidate.PackagePath).ToArray(),
+            "observation loop readiness transition package reports");
+        AssertSequenceEqual(
+            [false, false, true],
+            reports.Select(report => report.Ready).ToArray(),
+            "observation loop readiness transition states");
+        AssertEqual(3, delayCalls, "observation loop readiness transition delay count");
+    }
+    finally
+    {
+        DeleteTestDirectory(mountPath);
+    }
+}
+
 static async Task VerifyObservationLoopStopsWhenCancellationIsRequested()
 {
     var mountPath = CreateTestDirectory();
@@ -357,6 +419,129 @@ static async Task VerifyObservationLoopStopsWhenCancellationIsRequested()
     finally
     {
         DeleteTestDirectory(mountPath);
+    }
+}
+
+static void VerifyManifestReadinessRequiresManifestAndChecksum()
+{
+    var packagePath = CreateTestDirectory();
+
+    try
+    {
+        var candidate = new IngestPackageCandidate(packagePath);
+        var readinessGate = new ManifestReadinessGate();
+
+        AssertFalse(readinessGate.IsReady(candidate), "missing manifest and checksum readiness");
+
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{}");
+
+        AssertFalse(readinessGate.IsReady(candidate), "manifest-only readiness");
+
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "not-a-real-checksum");
+
+        AssertTrue(readinessGate.IsReady(candidate), "manifest and checksum readiness");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
+    }
+}
+
+static void VerifyScannerEnumeratesRecursivePhysicalFiles()
+{
+    var packagePath = CreateTestDirectory();
+    var mediaPath = Directory.CreateDirectory(Path.Combine(packagePath, "media", "camera-a")).FullName;
+    var sidecarPath = Directory.CreateDirectory(Path.Combine(packagePath, "sidecars", "captions", "en")).FullName;
+
+    try
+    {
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{}");
+        File.WriteAllText(Path.Combine(mediaPath, "clip.mov"), "not-real-media");
+        File.WriteAllText(Path.Combine(sidecarPath, "clip.srt"), "not-real-captions");
+
+        var files = new IngestMountScanner().FindPackageFiles(new IngestPackageCandidate(packagePath));
+
+        AssertSequenceEqual(
+            [
+                "manifest.json",
+                Path.Combine("media", "camera-a", "clip.mov"),
+                Path.Combine("sidecars", "captions", "en", "clip.srt"),
+            ],
+            files.Select(file => file.PackageRelativePath).ToArray(),
+            "recursive physical file relative paths");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
+    }
+}
+
+static void VerifyZeroByteDoneMarkerIsRequired()
+{
+    var packagePath = CreateTestDirectory();
+
+    try
+    {
+        var candidate = new IngestPackageCandidate(packagePath);
+        var doneMarkerGate = new DoneMarkerReadinessGate();
+        var markerPath = Path.Combine(packagePath, DoneMarkerReadinessGate.DoneMarkerFileName);
+
+        AssertFalse(doneMarkerGate.IsDone(candidate), "missing done marker readiness");
+
+        File.WriteAllText(markerPath, "upload-not-complete");
+
+        AssertFalse(doneMarkerGate.IsDone(candidate), "non-empty done marker readiness");
+
+        File.WriteAllText(markerPath, string.Empty);
+
+        AssertTrue(doneMarkerGate.IsDone(candidate), "zero-byte done marker readiness");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
+    }
+}
+
+static void VerifyDoneMarkerReconciliationIsIdempotent()
+{
+    var packagePath = CreateTestDirectory();
+    var mediaPath = Directory.CreateDirectory(Path.Combine(packagePath, "media")).FullName;
+
+    try
+    {
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{}");
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "not-a-real-checksum");
+        File.WriteAllText(Path.Combine(mediaPath, "clip.mov"), "not-real-media");
+        File.WriteAllText(Path.Combine(mediaPath, "late.mov"), "late-media");
+        File.WriteAllText(Path.Combine(packagePath, DoneMarkerReadinessGate.DoneMarkerFileName), string.Empty);
+
+        var scanner = new IngestMountScanner();
+        var candidate = new IngestPackageCandidate(packagePath);
+        var doneMarkerGate = new DoneMarkerReadinessGate();
+
+        var firstReconciliation = scanner.ReconcilePackageFilesOnDoneMarker(candidate, doneMarkerGate);
+        var secondReconciliation = scanner.ReconcilePackageFilesOnDoneMarker(candidate, doneMarkerGate);
+
+        AssertTrue(firstReconciliation.DoneMarkerObserved, "first done marker reconciliation state");
+        AssertTrue(secondReconciliation.DoneMarkerObserved, "second done marker reconciliation state");
+        AssertSequenceEqual(
+            firstReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
+            secondReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
+            "idempotent done marker reconciliation relative paths");
+        AssertSequenceEqual(
+            [
+                DoneMarkerReadinessGate.DoneMarkerFileName,
+                "manifest.json",
+                "manifest.json.checksum",
+                Path.Combine("media", "clip.mov"),
+                Path.Combine("media", "late.mov"),
+            ],
+            secondReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
+            "idempotent done marker reconciliation expected paths");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
     }
 }
 
