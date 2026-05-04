@@ -195,6 +195,45 @@ public sealed class PostgresIngestPersistenceStore(
         await transaction.CommitAsync(cancellationToken);
     }
 
+    public async Task<IngestPackageState?> GetPackageStateAsync(
+        string packageId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(packageId))
+        {
+            throw new ArgumentException("Package id is required.", nameof(packageId));
+        }
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                package_id,
+                workflow_instance_id,
+                status,
+                updated_at
+            FROM ingest_package_states
+            WHERE package_id = @package_id;
+            """;
+        AddParameter(command, "@package_id", packageId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new IngestPackageState(
+            PackageId: reader.GetString(0),
+            WorkflowInstanceId: reader.GetString(1),
+            Status: reader.GetString(2),
+            UpdatedAt: ReadDateTimeOffset(reader, 3));
+    }
+
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingOutboxMessagesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
