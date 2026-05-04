@@ -4,22 +4,6 @@ namespace MediaIngest.Workflow;
 
 public static class PackageWorkflowGraphProjection
 {
-    private static readonly PreparedChildWork[] PackageLifecyclePlan =
-    [
-        new("scan-package", "Package scan"),
-        new("classify-files", "Classify discovered files"),
-        new("dispatch-processing", "Dispatch processing work"),
-        new("reconcile-package", "Reconcile package"),
-        new("finalize-package", "Finalize package")
-    ];
-
-    private static readonly PreparedChildWork[] PackageBusinessStatusPlan =
-    [
-        new("scan-package", "Package scan"),
-        new("classify-files", "Classify discovered files"),
-        new("dispatch-processing", "Dispatch processing work")
-    ];
-
     public static WorkflowGraphDto FromLifecycle(PackageWorkflowLifecycle lifecycle)
     {
         ArgumentNullException.ThrowIfNull(lifecycle);
@@ -39,7 +23,7 @@ public static class PackageWorkflowGraphProjection
             snapshot.PackageId,
             workflowInstanceId,
             MapLifecycleState(snapshot.State),
-            PackageLifecyclePlan);
+            PackageWorkflowChildWorkPlan.FullLifecycle);
     }
 
     public static WorkflowGraphDto FromPackageStatus(
@@ -66,7 +50,46 @@ public static class PackageWorkflowGraphProjection
             packageId,
             workflowInstanceId,
             MapPackageStatus(status),
-            PackageBusinessStatusPlan);
+            PackageWorkflowChildWorkPlan.BusinessStatus);
+    }
+
+    public static WorkflowGraphDto FromChildWorkflowNode(
+        WorkflowGraphDto parentGraph,
+        WorkflowNodeDto childWorkflowNode)
+    {
+        ArgumentNullException.ThrowIfNull(parentGraph);
+        ArgumentNullException.ThrowIfNull(childWorkflowNode);
+
+        if (childWorkflowNode.Kind != WorkflowNodeKind.ChildWorkflow)
+        {
+            throw new ArgumentException("Node must be a child workflow node.", nameof(childWorkflowNode));
+        }
+
+        if (string.IsNullOrWhiteSpace(childWorkflowNode.ChildWorkflowInstanceId))
+        {
+            throw new ArgumentException("Child workflow instance id is required.", nameof(childWorkflowNode));
+        }
+
+        var childWork = PackageWorkflowChildWorkPlan.FindByNodeId(childWorkflowNode.NodeId)
+            ?? throw new ArgumentException("Unknown child workflow node id.", nameof(childWorkflowNode));
+
+        var childRootNode = new WorkflowNodeDto(
+            NodeId: $"{childWorkflowNode.NodeId}-root",
+            DisplayName: childWorkflowNode.DisplayName,
+            Kind: WorkflowNodeKind.WorkflowStep,
+            Status: childWorkflowNode.Status,
+            WorkflowInstanceId: childWorkflowNode.ChildWorkflowInstanceId,
+            PackageId: parentGraph.PackageId,
+            WorkItemId: childWorkflowNode.WorkItemId,
+            ChildWorkflowInstanceId: null);
+
+        return new WorkflowGraphDto(
+            WorkflowInstanceId: childWorkflowNode.ChildWorkflowInstanceId,
+            WorkflowName: childWork.WorkflowName,
+            PackageId: parentGraph.PackageId,
+            ParentWorkflowInstanceId: parentGraph.WorkflowInstanceId,
+            Nodes: [childRootNode],
+            Edges: []);
     }
 
     private static WorkflowGraphDto CreateGraph(
@@ -92,12 +115,12 @@ public static class PackageWorkflowGraphProjection
         nodes.AddRange(workflowPlan.Select((work, index) => new WorkflowNodeDto(
             NodeId: work.NodeId,
             DisplayName: work.DisplayName,
-            Kind: WorkflowNodeKind.Activity,
+            Kind: WorkflowNodeKind.ChildWorkflow,
             Status: childStatuses[index],
             WorkflowInstanceId: workflowInstanceId,
             PackageId: packageId,
             WorkItemId: work.NodeId,
-            ChildWorkflowInstanceId: null)));
+            ChildWorkflowInstanceId: CreateChildWorkflowInstanceId(workflowInstanceId, work.NodeId))));
 
         var edges = CreateEdges(workflowPlan);
 
@@ -149,6 +172,11 @@ public static class PackageWorkflowGraphProjection
         }
 
         return [.. edges];
+    }
+
+    private static string CreateChildWorkflowInstanceId(string parentWorkflowInstanceId, string nodeId)
+    {
+        return $"{parentWorkflowInstanceId}/{nodeId}";
     }
 
     private static WorkflowNodeStatus[] MapChildStatuses(WorkflowNodeStatus packageStatus, int childCount)
