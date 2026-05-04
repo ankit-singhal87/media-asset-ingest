@@ -45,6 +45,8 @@ manifest_input="$package_input/manifest.json"
 checksum_input="$package_input/manifest.json.checksum"
 manifest_output="$package_output/manifest.json"
 checksum_output="$package_output/manifest.json.checksum"
+status_json="$repo_root/.tmp-local-e2e-status.json"
+graph_json="$repo_root/.tmp-local-e2e-graph.json"
 
 print_plan() {
   printf '%s\n' "Local ingest smoke plan:"
@@ -84,11 +86,16 @@ if ! command -v curl >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s\n' "jq is required for the local ingest smoke script." >&2
+  exit 1
+fi
+
 print_plan
 
 printf '%s\n' "Resetting smoke package folders..."
-rm -rf -- "$package_input" "$package_output"
-mkdir -p -- "$package_input" "$output_root"
+rm -rf -- "$package_input" "$package_output" "$status_json" "$graph_json"
+mkdir -p -- "$package_input/media" "$package_input/sidecars" "$output_root"
 
 printf '%s\n' "Posting ingest start..."
 curl -fsS -X POST "$api_url/api/ingest/start" >/dev/null
@@ -96,15 +103,32 @@ curl -fsS -X POST "$api_url/api/ingest/start" >/dev/null
 printf '%s\n' "Creating package manifest files..."
 printf '{"asset":"%s"}\n' "$package_id" > "$manifest_input"
 printf '%s\n' "local-smoke-checksum" > "$checksum_input"
+printf '%s\n' "not-real-video" > "$package_input/media/source.mov"
+printf '%s\n' "not-real-audio" > "$package_input/media/mix.wav"
+printf '%s\n' "not-real-caption" > "$package_input/sidecars/caption.srt"
+printf '%s\n' "opaque metadata" > "$package_input/notes.bin"
 
 elapsed=0
 while [ "$elapsed" -le "$timeout_seconds" ]; do
   if [ -f "$manifest_output" ] && [ -f "$checksum_output" ]; then
-    printf '%s\n' "Local ingest smoke passed."
-    printf '%s\n' "Observed output files:"
-    printf '  %s\n' "$manifest_output"
-    printf '  %s\n' "$checksum_output"
-    exit 0
+    curl -fsS "$api_url/api/ingest/status" > "$status_json"
+    workflow_id=$(jq -r --arg package_id "$package_id" '.packages[] | select(.packageId == $package_id) | .workflowInstanceId' "$status_json")
+
+    if [ -n "$workflow_id" ]; then
+      curl -fsS "$api_url/api/workflows/$workflow_id/graph" > "$graph_json"
+      command_node_count=$(jq '[.nodes[] | select(.nodeId | startswith("command-"))] | length' "$graph_json")
+
+      if [ "$command_node_count" -ge 4 ]; then
+        printf '%s\n' "Local ingest smoke passed."
+        printf '%s\n' "Observed output files:"
+        printf '  %s\n' "$manifest_output"
+        printf '  %s\n' "$checksum_output"
+        printf '  workflow: %s\n' "$workflow_id"
+        printf '  command_nodes: %s\n' "$command_node_count"
+        rm -f -- "$status_json" "$graph_json"
+        exit 0
+      fi
+    fi
   fi
 
   if [ "$elapsed" -eq "$timeout_seconds" ]; then
@@ -118,4 +142,5 @@ done
 printf '%s\n' "Local ingest smoke failed: expected output files were not created before timeout." >&2
 printf 'Missing or late: %s\n' "$manifest_output" >&2
 printf 'Missing or late: %s\n' "$checksum_output" >&2
+printf '%s\n' "Expected ingest status plus a workflow graph with at least four command nodes." >&2
 exit 1

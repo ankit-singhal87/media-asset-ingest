@@ -89,6 +89,7 @@ scripts-check:
 	@sh -n scripts/dev/test-dotnet.sh
 	@sh -n scripts/dev/github-projects.sh
 	@sh -n scripts/dev/test-github-projects.sh
+	@sh -n scripts/dev/local-e2e-smoke.sh
 
 github-projects-script-test:
 	@sh scripts/dev/test-github-projects.sh

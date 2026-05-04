@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../MediaIngest.Essence/MediaIngest.Essence.csproj" />
     <ProjectReference Include="../MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
     <ProjectReference Include="../MediaIngest.Worker.Outbox/MediaIngest.Worker.Outbox.csproj" />
     <ProjectReference Include="../MediaIngest.Worker.Watcher/MediaIngest.Worker.Watcher.csproj" />

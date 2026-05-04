@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MediaIngest.Contracts.Commands;
 using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 
@@ -16,6 +17,11 @@ public sealed class LocalManifestTransferPublisher : IOutboxMessagePublisher
     {
         ArgumentNullException.ThrowIfNull(publishRequest);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (publishRequest.Message.MessageType == nameof(MediaCommandEnvelope))
+        {
+            return;
+        }
 
         var request = JsonSerializer.Deserialize<LocalManifestTransferRequest>(publishRequest.Message.PayloadJson)
             ?? throw new InvalidOperationException("Local manifest transfer payload is required.");

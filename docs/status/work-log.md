@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Added TASK-3-2 integrated local ingest demo behavior: ready packages now scan
+  non-metadata files into classified, routed command envelopes, dispatch those
+  outbox records locally, project command nodes into the workflow graph, and
+  validate the smoke script against output files plus workflow command nodes.
 - Updated USER-STORY-16 local ingest documentation after the backend, UI, and
   runtime support slices merged, including the fixed API port, Vite `/api`
   proxy, **Start ingest** flow, `input/<asset>/` manifest pair, expected

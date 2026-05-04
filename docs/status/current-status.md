@@ -88,6 +88,11 @@
 - USER-STORY-17 added static Kubernetes and Dapr readiness assets for the API,
   UI, PostgreSQL dependency, internal service networking, workflow state, and
   Azure Service Bus pub/sub placeholders without running cloud validation.
+- TASK-3-2 integrated the local ingest demo across watcher discovery, essence
+  classification, command routing, the in-memory outbox, workflow graph
+  projection, and the local smoke script. Ready packages now create routed
+  command envelopes for every non-metadata file and expose those command nodes
+  through the workflow graph API.
 
 ## Ready For Review
 
@@ -97,8 +102,8 @@
 
 ## Next
 
-- Coordinator can review the USER-STORY-16 local ingest documentation branch
-  and decide whether to authorize PR creation.
+- Review TASK-3-2 local integration behavior and decide whether to authorize PR
+  creation.
 - Review USER-STORY-17 static runtime readiness assets before any approved
   cluster or Azure validation.
 
