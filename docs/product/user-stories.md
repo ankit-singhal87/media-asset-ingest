@@ -23,7 +23,7 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | USER-STORY-14 | Drill into nested workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
 | USER-STORY-15 | Navigate back from child workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
 | USER-STORY-16 | Develop with Docker-first tooling | MILESTONE-1, MILESTONE-2 | Developer experience | Forge | In Progress |
-| USER-STORY-17 | Deploy to Kubernetes | MILESTONE-2, MILESTONE-9 | Platform | Forge | Planned |
+| USER-STORY-17 | Deploy to Kubernetes | MILESTONE-2, MILESTONE-9 | Platform | Forge | In Review |
 
 ## USER-STORY-1: Watch Ingest Mount
 
@@ -628,14 +628,16 @@ Components involved:
 - `deploy/docker`
 - `deploy/k8s`
 - `deploy/dapr`
-- `deploy/azure`
 - `docs/architecture`
 - `docs/automation`
 
 Acceptance themes:
 
-- Services are containerized.
-- Kubernetes manifests or Helm assets are documented.
+- API and UI services have container build assets.
+- Static Kubernetes manifests document the internal API, UI, PostgreSQL, and
+  Dapr sidecar runtime shape.
+- Dapr component templates represent PostgreSQL workflow state and Azure Service
+  Bus command topics through placeholder secret references.
 - Azure deployment guidance avoids paid actions by default.
 - Cloud execution requires explicit approval.
 

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media-ingest
+  labels:
+    app.kubernetes.io/name: media-ingest
+    app.kubernetes.io/part-of: media-asset-ingest

@@ -1,0 +1,15 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: commandbus
+  namespace: media-ingest
+spec:
+  type: pubsub.azure.servicebus.topics
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: media-ingest-servicebus
+        key: connection-string
+auth:
+  secretStore: kubernetes

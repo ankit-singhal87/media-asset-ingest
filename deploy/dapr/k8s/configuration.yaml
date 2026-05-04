@@ -1,0 +1,8 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: media-ingest-dapr
+  namespace: media-ingest
+spec:
+  tracing:
+    samplingRate: "1"

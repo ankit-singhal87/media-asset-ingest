@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: workflowstatestore
+  namespace: media-ingest
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: media-ingest-postgres
+        key: connection-string
+    - name: tableName
+      value: dapr_workflow_state
+auth:
+  secretStore: kubernetes
