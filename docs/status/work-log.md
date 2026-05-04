@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Reconciled runtime hygiene after merged PRs #73, #74, and #75: removed the
+  stale local-main PR next action, documented post-8-1 task-index scope,
+  aligned story status wording with merged done-marker, UI, and static runtime
+  readiness work, and cleaned merged local worktrees plus ignored state files.
 - Added TASK-3-2 integrated local ingest demo behavior: ready packages now scan
   non-metadata files into classified, routed command envelopes, dispatch those
   outbox records locally, project command nodes into the workflow graph, and
@@ -83,8 +87,8 @@ messages or paste command output unless it explains a decision.
 - Added the TASK-5-1 workflow skeleton that starts a package workflow from an
   accepted package ingest request and prepares the initial scan, classify, and
   dispatch child work plan.
-- Added TASK-6-1 specialized video, audio, text, and other agent skeletons with
-  smoke tests proving each worker owns only its assigned media category.
+- Added TASK-6-1 specialized video, audio, text, and other worker skeletons
+  with smoke tests proving each worker owns only its assigned media category.
 - Added TASK-7-1 observability correlation field foundation with a canonical
   field catalog, correlation context, and smoke-test coverage in
   `make test-dotnet`.
@@ -97,7 +101,7 @@ messages or paste command output unless it explains a decision.
   after the local task merges.
 - Simplified future GitHub tracking to issues, PRs, parent/child navigation when
   useful, and simple Project status only.
-- Replaced the media-specific agent skeleton direction with generic command
+- Replaced the media-specific worker skeleton direction with generic command
   routing contracts and light, medium, or heavy execution classes.
 - Added focused .NET smoke-test targets, focused validation targets, an agent
   preflight command, and a repo-local ignored Docker .NET cache to reduce
