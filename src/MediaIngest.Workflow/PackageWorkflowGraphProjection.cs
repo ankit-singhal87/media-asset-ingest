@@ -73,6 +73,16 @@ public static class PackageWorkflowGraphProjection
         var childWork = PackageWorkflowChildWorkPlan.FindByNodeId(childWorkflowNode.NodeId)
             ?? throw new ArgumentException("Unknown child workflow node id.", nameof(childWorkflowNode));
 
+        var parentNavigationNode = new WorkflowNodeDto(
+            NodeId: $"{childWorkflowNode.NodeId}-parent",
+            DisplayName: "Parent workflow",
+            Kind: WorkflowNodeKind.ChildWorkflow,
+            Status: childWorkflowNode.Status,
+            WorkflowInstanceId: childWorkflowNode.ChildWorkflowInstanceId,
+            PackageId: parentGraph.PackageId,
+            WorkItemId: null,
+            ChildWorkflowInstanceId: parentGraph.WorkflowInstanceId);
+
         var childRootNode = new WorkflowNodeDto(
             NodeId: $"{childWorkflowNode.NodeId}-root",
             DisplayName: childWorkflowNode.DisplayName,
@@ -88,8 +98,14 @@ public static class PackageWorkflowGraphProjection
             WorkflowName: childWork.WorkflowName,
             PackageId: parentGraph.PackageId,
             ParentWorkflowInstanceId: parentGraph.WorkflowInstanceId,
-            Nodes: [childRootNode],
-            Edges: []);
+            Nodes: [parentNavigationNode, childRootNode],
+            Edges:
+            [
+                new WorkflowEdgeDto(
+                    EdgeId: $"{parentNavigationNode.NodeId}-{childRootNode.NodeId}",
+                    SourceNodeId: parentNavigationNode.NodeId,
+                    TargetNodeId: childRootNode.NodeId)
+            ]);
     }
 
     private static WorkflowGraphDto CreateGraph(

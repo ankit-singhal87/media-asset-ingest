@@ -67,13 +67,57 @@ AssertEqual("finalize-package", succeededGraph.Nodes[6].NodeId, "succeeded graph
 AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[6].Status, "succeeded graph finalization status");
 AssertEqual("package-package-001/finalize-package", succeededGraph.Nodes[6].ChildWorkflowInstanceId, "succeeded graph finalization child workflow instance");
 
+var childWorkflowNodes = succeededGraph.Nodes
+    .Where(node => node.Kind == WorkflowNodeKind.ChildWorkflow)
+    .ToArray();
+AssertEqual(6, childWorkflowNodes.Length, "parent graph child workflow node count");
+AssertAll(
+    childWorkflowNodes,
+    node => node.WorkflowInstanceId == succeededGraph.WorkflowInstanceId,
+    "parent child workflow node belongs to parent workflow");
+AssertAll(
+    childWorkflowNodes,
+    node => node.PackageId == succeededGraph.PackageId,
+    "parent child workflow node preserves package id");
+AssertAll(
+    childWorkflowNodes,
+    node => node.WorkItemId == node.NodeId,
+    "parent child workflow node exposes work item drilldown metadata");
+AssertAll(
+    childWorkflowNodes,
+    node => node.ChildWorkflowInstanceId == $"{succeededGraph.WorkflowInstanceId}/{node.NodeId}",
+    "parent child workflow node exposes child workflow drilldown metadata");
+
 var scanChildGraph = PackageWorkflowGraphProjection.FromChildWorkflowNode(succeededGraph, succeededGraph.Nodes[1]);
 AssertEqual("package-package-001/scan-package", scanChildGraph.WorkflowInstanceId, "scan child graph workflow instance id");
 AssertEqual(WorkflowContractNames.PackageScanWorkflow, scanChildGraph.WorkflowName, "scan child graph workflow name");
 AssertEqual("package-package-001", scanChildGraph.ParentWorkflowInstanceId, "scan child graph parent workflow instance id");
 AssertEqual("package-001", scanChildGraph.PackageId, "scan child graph package id");
-AssertEqual(1, scanChildGraph.Nodes.Count, "scan child graph node count");
-AssertEqual("scan-package-root", scanChildGraph.Nodes[0].NodeId, "scan child graph root node id");
+AssertEqual(2, scanChildGraph.Nodes.Count, "scan child graph node count");
+AssertEqual(1, scanChildGraph.Edges.Count, "scan child graph edge count");
+AssertEqual("scan-package-parent", scanChildGraph.Nodes[0].NodeId, "scan child graph parent navigation node id");
+AssertEqual(WorkflowNodeKind.ChildWorkflow, scanChildGraph.Nodes[0].Kind, "scan child graph parent navigation node kind");
+AssertEqual("package-package-001/scan-package", scanChildGraph.Nodes[0].WorkflowInstanceId, "scan child graph parent navigation workflow instance id");
+AssertEqual("package-package-001", scanChildGraph.Nodes[0].ChildWorkflowInstanceId, "scan child graph parent navigation target");
+AssertEqual("scan-package-root", scanChildGraph.Nodes[1].NodeId, "scan child graph root node id");
+AssertEqual("scan-package", scanChildGraph.Nodes[1].WorkItemId, "scan child graph root work item metadata");
+AssertEqual("scan-package-parent-scan-package-root", scanChildGraph.Edges[0].EdgeId, "scan child graph parent edge id");
+AssertEqual("scan-package-parent", scanChildGraph.Edges[0].SourceNodeId, "scan child graph parent edge source");
+AssertEqual("scan-package-root", scanChildGraph.Edges[0].TargetNodeId, "scan child graph parent edge target");
+
+var childWorkflowNamesByNodeId = start.PreparedChildWork.ToDictionary(work => work.NodeId, work => work.WorkflowName);
+foreach (var childWorkflowNode in childWorkflowNodes)
+{
+    var childGraph = PackageWorkflowGraphProjection.FromChildWorkflowNode(succeededGraph, childWorkflowNode);
+
+    AssertEqual(childWorkflowNode.ChildWorkflowInstanceId, childGraph.WorkflowInstanceId, $"{childWorkflowNode.NodeId} child graph workflow instance id");
+    AssertEqual(childWorkflowNamesByNodeId[childWorkflowNode.NodeId], childGraph.WorkflowName, $"{childWorkflowNode.NodeId} child graph workflow name");
+    AssertEqual(succeededGraph.WorkflowInstanceId, childGraph.ParentWorkflowInstanceId, $"{childWorkflowNode.NodeId} child graph parent workflow instance id");
+    AssertEqual(succeededGraph.PackageId, childGraph.PackageId, $"{childWorkflowNode.NodeId} child graph package id");
+    AssertEqual(childWorkflowNode.Status, childGraph.Nodes[1].Status, $"{childWorkflowNode.NodeId} child graph root status");
+    AssertEqual(childWorkflowNode.WorkItemId, childGraph.Nodes[1].WorkItemId, $"{childWorkflowNode.NodeId} child graph root work item id");
+    AssertEqual(succeededGraph.WorkflowInstanceId, childGraph.Nodes[0].ChildWorkflowInstanceId, $"{childWorkflowNode.NodeId} child graph parent navigation target");
+}
 
 var failingLifecycle = PackageWorkflowLifecycle.Observe(request);
 failingLifecycle.MarkReady(new DateTimeOffset(2026, 5, 3, 12, 4, 0, TimeSpan.Zero));
@@ -128,4 +172,18 @@ static void AssertThrows<TException>(Action action, string name)
     }
 
     throw new InvalidOperationException($"{name}: expected {typeof(TException).Name}.");
+}
+
+static void AssertAll<T>(IEnumerable<T> values, Func<T, bool> predicate, string name)
+{
+    var index = 0;
+    foreach (var value in values)
+    {
+        if (!predicate(value))
+        {
+            throw new InvalidOperationException($"{name}: item {index} failed.");
+        }
+
+        index++;
+    }
 }
