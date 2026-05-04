@@ -26,6 +26,17 @@ public static class PackageWorkflowGraphProjection
             PackageWorkflowChildWorkPlan.FullLifecycle);
     }
 
+    public static WorkflowGraphDto FromWorkflowStart(PackageWorkflowStart start)
+    {
+        ArgumentNullException.ThrowIfNull(start);
+
+        return CreateGraph(
+            start.PackageId,
+            start.WorkflowInstanceId,
+            WorkflowNodeStatus.Queued,
+            start.PreparedChildWork);
+    }
+
     public static WorkflowGraphDto FromPackageStatus(
         string packageId,
         string workflowInstanceId,
@@ -136,7 +147,9 @@ public static class PackageWorkflowGraphProjection
             WorkflowInstanceId: workflowInstanceId,
             PackageId: packageId,
             WorkItemId: work.NodeId,
-            ChildWorkflowInstanceId: CreateChildWorkflowInstanceId(workflowInstanceId, work.NodeId))));
+            ChildWorkflowInstanceId: string.IsNullOrWhiteSpace(work.WorkflowInstanceId)
+                ? CreateChildWorkflowInstanceId(workflowInstanceId, work.NodeId)
+                : work.WorkflowInstanceId)));
 
         var edges = CreateEdges(workflowPlan);
 

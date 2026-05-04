@@ -49,6 +49,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-8 / USER-STORY-13: add persisted local business timeline and node
   diagnostic log backing for workflow node details, covering package start,
   command dispatch, done-marker reconciliation, success, and failure details.
+- MILESTONE-5 / USER-STORY-10: expand nested workflow behavior contracts so
+  prepared child workflow work has stable child identifiers, parent workflow
+  references, and graph projection from package workflow start state.
 
 ## Ready For Planning
 
@@ -56,8 +59,6 @@ epic/story granularity; detailed implementation tasks belong in plans.
   validation slice beyond static Compose checks.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.
-- MILESTONE-5 / USER-STORY-10: expand nested workflow contracts and behavior.
-
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service

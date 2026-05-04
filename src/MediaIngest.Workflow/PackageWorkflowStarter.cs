@@ -18,13 +18,15 @@ public sealed class PackageWorkflowStarter
             throw new ArgumentException("Package path is required.", nameof(request));
         }
 
+        var workflowInstanceId = $"package-{request.PackageId}";
+
         return new PackageWorkflowStart(
             PackageId: request.PackageId,
             PackagePath: request.PackagePath,
             WorkflowName: WorkflowContractNames.PackageIngestWorkflow,
-            WorkflowInstanceId: $"package-{request.PackageId}",
+            WorkflowInstanceId: workflowInstanceId,
             CorrelationId: request.CorrelationId,
             AcceptedAt: request.AcceptedAt,
-            PreparedChildWork: PackageWorkflowChildWorkPlan.FullLifecycle);
+            PreparedChildWork: PackageWorkflowChildWorkPlan.PrepareForParent(workflowInstanceId));
     }
 }

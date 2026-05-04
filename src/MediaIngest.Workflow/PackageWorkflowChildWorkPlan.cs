@@ -55,4 +55,25 @@ internal static class PackageWorkflowChildWorkPlan
     {
         return FullLifecycle.FirstOrDefault(work => work.NodeId == nodeId);
     }
+
+    public static PreparedChildWork[] PrepareForParent(string parentWorkflowInstanceId)
+    {
+        if (string.IsNullOrWhiteSpace(parentWorkflowInstanceId))
+        {
+            throw new ArgumentException("Parent workflow instance id is required.", nameof(parentWorkflowInstanceId));
+        }
+
+        return FullLifecycle
+            .Select(work => work with
+            {
+                WorkflowInstanceId = CreateChildWorkflowInstanceId(parentWorkflowInstanceId, work.NodeId),
+                ParentWorkflowInstanceId = parentWorkflowInstanceId
+            })
+            .ToArray();
+    }
+
+    private static string CreateChildWorkflowInstanceId(string parentWorkflowInstanceId, string nodeId)
+    {
+        return $"{parentWorkflowInstanceId}/{nodeId}";
+    }
 }
