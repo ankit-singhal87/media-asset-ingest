@@ -105,6 +105,11 @@ try
         ],
         finalReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
         "ready package final reconciliation relative paths");
+
+    await VerifyObservationLoopUsesConfiguredMountPath();
+    await VerifyObservationLoopScansRepeatedlyUntilCancelled();
+    await VerifyObservationLoopDoesNotReportUnchangedPackageTwice();
+    await VerifyObservationLoopStopsWhenCancellationIsRequested();
 }
 finally
 {
@@ -115,6 +120,180 @@ finally
 }
 
 Console.WriteLine("MediaIngest watcher smoke tests passed.");
+
+static async Task VerifyObservationLoopUsesConfiguredMountPath()
+{
+    var firstMountPath = CreateTestDirectory();
+    var secondMountPath = CreateTestDirectory();
+
+    try
+    {
+        var ignoredPackagePath = Directory.CreateDirectory(Path.Combine(firstMountPath, "ignored-package")).FullName;
+        var observedPackagePath = Directory.CreateDirectory(Path.Combine(secondMountPath, "observed-package")).FullName;
+        var reports = new List<IngestPackageCandidate>();
+        using var cancellation = new CancellationTokenSource();
+
+        var loop = new IngestMountObservationLoop(
+            new IngestMountObservationLoopOptions(secondMountPath, TimeSpan.FromMilliseconds(50)),
+            new CallbackIngestPackageCandidateSink((candidate, _) =>
+            {
+                reports.Add(candidate);
+                cancellation.Cancel();
+                return ValueTask.CompletedTask;
+            }));
+
+        await loop.RunAsync(cancellation.Token);
+
+        AssertSequenceEqual(
+            [observedPackagePath],
+            reports.Select(report => report.PackagePath).ToArray(),
+            "observation loop configured mount reports");
+        AssertFalse(
+            reports.Any(report => report.PackagePath == ignoredPackagePath),
+            "observation loop ignored mount reports");
+    }
+    finally
+    {
+        DeleteTestDirectory(firstMountPath);
+        DeleteTestDirectory(secondMountPath);
+    }
+}
+
+static async Task VerifyObservationLoopScansRepeatedlyUntilCancelled()
+{
+    var mountPath = CreateTestDirectory();
+
+    try
+    {
+        var firstPackagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-a")).FullName;
+        var secondPackagePath = Path.Combine(mountPath, "package-b");
+        var reports = new List<IngestPackageCandidate>();
+        var delayCalls = 0;
+        using var cancellation = new CancellationTokenSource();
+
+        var loop = new IngestMountObservationLoop(
+            new IngestMountObservationLoopOptions(mountPath, TimeSpan.FromMilliseconds(50)),
+            new CallbackIngestPackageCandidateSink((candidate, _) =>
+            {
+                reports.Add(candidate);
+                return ValueTask.CompletedTask;
+            }),
+            (_, _) =>
+            {
+                delayCalls++;
+
+                if (delayCalls == 1)
+                {
+                    Directory.CreateDirectory(secondPackagePath);
+                }
+                else
+                {
+                    cancellation.Cancel();
+                }
+
+                return ValueTask.CompletedTask;
+            });
+
+        await loop.RunAsync(cancellation.Token);
+
+        AssertSequenceEqual(
+            [firstPackagePath, Path.GetFullPath(secondPackagePath)],
+            reports.Select(report => report.PackagePath).ToArray(),
+            "observation loop repeated scan reports");
+        AssertEqual(2, delayCalls, "observation loop repeated scan delay count");
+    }
+    finally
+    {
+        DeleteTestDirectory(mountPath);
+    }
+}
+
+static async Task VerifyObservationLoopDoesNotReportUnchangedPackageTwice()
+{
+    var mountPath = CreateTestDirectory();
+
+    try
+    {
+        var packagePath = Directory.CreateDirectory(Path.Combine(mountPath, "package-a")).FullName;
+        var reports = new List<IngestPackageCandidate>();
+        var delayCalls = 0;
+        using var cancellation = new CancellationTokenSource();
+
+        var loop = new IngestMountObservationLoop(
+            new IngestMountObservationLoopOptions(mountPath, TimeSpan.FromMilliseconds(50)),
+            new CallbackIngestPackageCandidateSink((candidate, _) =>
+            {
+                reports.Add(candidate);
+                return ValueTask.CompletedTask;
+            }),
+            (_, _) =>
+            {
+                delayCalls++;
+
+                if (delayCalls == 2)
+                {
+                    cancellation.Cancel();
+                }
+
+                return ValueTask.CompletedTask;
+            });
+
+        await loop.RunAsync(cancellation.Token);
+
+        AssertSequenceEqual(
+            [packagePath],
+            reports.Select(report => report.PackagePath).ToArray(),
+            "observation loop unchanged package reports");
+        AssertEqual(2, delayCalls, "observation loop unchanged package delay count");
+    }
+    finally
+    {
+        DeleteTestDirectory(mountPath);
+    }
+}
+
+static async Task VerifyObservationLoopStopsWhenCancellationIsRequested()
+{
+    var mountPath = CreateTestDirectory();
+
+    try
+    {
+        var reports = new List<IngestPackageCandidate>();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var loop = new IngestMountObservationLoop(
+            new IngestMountObservationLoopOptions(mountPath, TimeSpan.FromMilliseconds(50)),
+            new CallbackIngestPackageCandidateSink((candidate, _) =>
+            {
+                reports.Add(candidate);
+                return ValueTask.CompletedTask;
+            }));
+
+        await loop.RunAsync(cancellation.Token);
+
+        AssertEqual(0, reports.Count, "observation loop cancelled report count");
+    }
+    finally
+    {
+        DeleteTestDirectory(mountPath);
+    }
+}
+
+static string CreateTestDirectory()
+{
+    var path = Path.Combine(Path.GetTempPath(), "media-ingest-watcher-tests", Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(path);
+    return path;
+}
+
+static void DeleteTestDirectory(string path)
+{
+    if (Directory.Exists(path))
+    {
+        Directory.Delete(path, recursive: true);
+    }
+}
 
 static void AssertEqual<T>(T expected, T actual, string name)
 {

@@ -8,8 +8,10 @@
   across watcher, persistence/outbox, workflow, command routing, observability,
   a local generic command runner foundation, and the React control plane. The
   local ingest demo now waits for a zero-byte `done.marker` before terminal
-  success, routes command publish metadata for local outbox dispatch, and lets
-  the UI select among multiple package workflow graphs.
+  success, routes command publish metadata for local outbox dispatch, lets the
+  UI select among multiple package workflow graphs, renders interactive Mermaid
+  graph nodes, and carries static Kubernetes/Dapr readiness assets for the
+  intended container runtime.
 
 ## Completed
 
@@ -53,7 +55,7 @@
 - TASK-3-1 added the ingest watcher scanner foundation.
 - TASK-4-1 added the persistence and outbox foundation.
 - TASK-5-1 added the Dapr workflow skeleton.
-- TASK-6-1 initially added media-specific agent worker skeletons; these were
+- TASK-6-1 initially added media-specific worker skeletons; these were
   superseded by generic command-routing contracts.
 - TASK-7-1 added the observability correlation field foundation.
 - TASK-8-1 scaffolded the React workflow control plane with mocked workflow
@@ -66,7 +68,7 @@
   to closed, `status:complete`, and Project `Done`; future tracking is
   lightweight status only.
 - Command routing now uses semantic command topics and light, medium, or heavy
-  execution classes instead of media-specific agent projects.
+  execution classes instead of media-specific command runner projects.
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
   validation targets, an agent preflight command, and a repo-local ignored
   Docker .NET cache for faster repeated validation.
@@ -119,7 +121,6 @@
 
 ## Next
 
-- Push or open a PR for the local `main` integration when authorized.
 - Plan the next runtime slice: Azure Service Bus runner consumption, richer
   node log/timeline data sources, or local container runtime validation.
 

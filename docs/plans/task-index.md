@@ -14,6 +14,12 @@ Project is only a lightweight status board.
 
 ## Tasks
 
+This index is a legacy local mirror for task files that exist under
+`docs/plans/tasks/`. It is not an exhaustive ledger of every post-8-1 GitHub
+task or merged PR: later short-lived task branches used GitHub issues, PRs,
+status docs, work logs, and ignored `.worktrees/state/` records as the durable
+coordination trail unless a local task file was created or renamed.
+
 | Task ID | GitHub issue | Title | Primary lane | Task file | Local status |
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-2-1 | #30 | Create .NET solution skeleton | Forge | `docs/plans/tasks/TASK-2-1-create-dotnet-solution.md` | Completed |

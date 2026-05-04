@@ -39,6 +39,19 @@ Use a transactional outbox in PostgreSQL. Business state changes and outbound
 messages are committed in the same transaction. A dedicated outbox dispatcher
 publishes pending messages to Azure Service Bus.
 
+The local publisher boundary uses Dapr pub/sub over the sidecar HTTP API instead
+of an Azure SDK. The dispatcher passes an `OutboxPublishRequest` to an
+`IOutboxMessagePublisher`; the Dapr implementation posts the message JSON to
+`/v1.0/publish/commandbus/{destination}`, where `destination` is the semantic
+command topic stored on the outbox message. Application properties that were
+already computed for the outbox request are forwarded as Dapr metadata query
+parameters, so command metadata such as `executionClass=heavy` reaches the
+broker boundary without the dispatcher making routing decisions.
+
+This boundary is local runtime plumbing only. It does not provision Azure
+Service Bus topics, create subscriptions, run paid cloud validation, or add Azure
+SDK dependencies.
+
 ## Responsibility Split
 
 - Domain/application logic decides which command should be sent and which

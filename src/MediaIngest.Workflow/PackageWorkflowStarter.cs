@@ -4,15 +4,6 @@ namespace MediaIngest.Workflow;
 
 public sealed class PackageWorkflowStarter
 {
-    private static readonly PreparedChildWork[] PackageStartPlan =
-    [
-        new("scan-package", "Package scan"),
-        new("classify-files", "Classify discovered files"),
-        new("dispatch-processing", "Dispatch processing work"),
-        new("reconcile-package", "Reconcile package"),
-        new("finalize-package", "Finalize package")
-    ];
-
     public PackageWorkflowStart Start(PackageIngestRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -34,6 +25,6 @@ public sealed class PackageWorkflowStarter
             WorkflowInstanceId: $"package-{request.PackageId}",
             CorrelationId: request.CorrelationId,
             AcceptedAt: request.AcceptedAt,
-            PreparedChildWork: PackageStartPlan);
+            PreparedChildWork: PackageWorkflowChildWorkPlan.FullLifecycle);
     }
 }
