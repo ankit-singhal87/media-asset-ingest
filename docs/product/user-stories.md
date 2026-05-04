@@ -10,18 +10,18 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | USER-STORY-1 | Watch ingest mount | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Complete |
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | In Progress |
-| USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
+| USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Complete |
 | USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Completed |
-| USER-STORY-6 | Route work through ASB command topics | MILESTONE-4 | Messaging | Courier | Planned |
+| USER-STORY-6 | Route work through ASB command topics | MILESTONE-4 | Messaging | Courier | In Progress |
 | USER-STORY-7 | Execute generic media commands | MILESTONE-6 | Command execution | Essence | In Progress |
 | USER-STORY-8 | Use transactional outbox | MILESTONE-4 | Outbox | Courier | In Progress |
 | USER-STORY-9 | Orchestrate package lifecycle with Dapr | MILESTONE-5 | Workflow | Pulse | In Progress |
 | USER-STORY-10 | Support nested workflows | MILESTONE-5 | Workflow | Pulse | Planned |
 | USER-STORY-11 | Record command runner progress | MILESTONE-6, MILESTONE-7 | Observability | Beacon | In Progress |
 | USER-STORY-12 | Visualize workflow execution | MILESTONE-8 | Workflow UI | Canvas | In Progress |
-| USER-STORY-13 | Inspect node logs | MILESTONE-8 | Workflow UI | Canvas | Planned |
-| USER-STORY-14 | Drill into nested workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
-| USER-STORY-15 | Navigate back from child workflows | MILESTONE-8 | Workflow UI | Canvas | Planned |
+| USER-STORY-13 | Inspect node logs | MILESTONE-8 | Workflow UI | Canvas | In Progress |
+| USER-STORY-14 | Drill into nested workflows | MILESTONE-8 | Workflow UI | Canvas | In Progress |
+| USER-STORY-15 | Navigate back from child workflows | MILESTONE-8 | Workflow UI | Canvas | In Progress |
 | USER-STORY-16 | Develop with Docker-first tooling | MILESTONE-1, MILESTONE-2 | Developer experience | Forge | In Progress |
 | USER-STORY-17 | Deploy to Kubernetes | MILESTONE-2, MILESTONE-9 | Platform | Forge | In Review |
 
@@ -164,6 +164,9 @@ Acceptance themes:
 - Work may begin before done marker exists.
 - Zero-byte `done.marker` file triggers final package rescan.
 - Late files are enqueued before package finalization.
+- Current merged slice covers local watcher/workflow graph reconciliation;
+  remaining production hardening will follow later runtime persistence and Dapr
+  workflow integration.
 
 Dependencies:
 
@@ -493,6 +496,8 @@ Acceptance themes:
 - Node details show business timeline entries.
 - Logs are filtered by workflow and node correlation fields.
 - Failure context is visible without raw log search.
+- Current UI slice supports interactive node selection and detail display;
+  timeline and log-backed data sources remain planned.
 
 Dependencies:
 
@@ -529,6 +534,8 @@ Acceptance themes:
 - Parent graph nodes can link to child workflow graphs.
 - Child graph view preserves parent context.
 - Nested workflow status is visible at parent and child levels.
+- Current UI slice supports child graph drilldown from Mermaid nodes; durable
+  backend child-workflow sources remain planned.
 
 Dependencies:
 
@@ -562,6 +569,8 @@ Acceptance themes:
 - UI supports back traversal from child to parent workflow.
 - Navigation preserves selected package context.
 - Direct links to child workflow views remain possible.
+- Current UI slice supports parent back traversal during interactive graph
+  drilldown; direct-link behavior remains planned.
 
 Dependencies:
 
@@ -640,6 +649,9 @@ Acceptance themes:
   Bus command topics through placeholder secret references.
 - Azure deployment guidance avoids paid actions by default.
 - Cloud execution requires explicit approval.
+- Current readiness is static and review-oriented: manifests and Dapr component
+  templates are present, while applying them to a cluster or provisioning Azure
+  resources remains deferred.
 
 Dependencies:
 
