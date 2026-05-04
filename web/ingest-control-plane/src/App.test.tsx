@@ -7,10 +7,28 @@ vi.mock("mermaid", () => ({
   default: {
     initialize: vi.fn(),
     render: vi.fn(async (_id: string, diagram: string) => ({
-      svg: `<svg role="img" data-diagram="${encodeURIComponent(diagram)}"></svg>`
+      svg: renderMockMermaidSvg(diagram)
     }))
   }
 }));
+
+function renderMockMermaidSvg(diagram: string) {
+  const nodes = diagram
+    .split("\n")
+    .map((line) => line.match(/^\s+([A-Za-z_][A-Za-z0-9_]*)\["(.+)"\]:::/))
+    .filter((match): match is RegExpMatchArray => Boolean(match))
+    .map((match) => {
+      const label = match[2]
+        .replace(/#quot;/g, "\"")
+        .replace(/#91;/g, "[")
+        .replace(/#93;/g, "]");
+
+      return `<g id="flowchart-${match[1]}-0" class="node"><text>${label}</text></g>`;
+    })
+    .join("");
+
+  return `<svg role="img" data-diagram="${encodeURIComponent(diagram)}">${nodes}</svg>`;
+}
 
 describe("workflow graph control plane", () => {
   afterEach(() => {
@@ -33,7 +51,7 @@ describe("workflow graph control plane", () => {
         })
       );
 
-    render(<App />);
+    const { container } = render(<App />);
 
     expect(
       screen.getByRole("heading", { name: /workflow control plane/i })
@@ -45,17 +63,14 @@ describe("workflow graph control plane", () => {
 
     expect(graph).toHaveClass("workflow-diagram__svg");
     expect(graph.innerHTML).toContain("<svg");
+    expect(screen.queryByRole("list", { name: /workflow graph node status/i })).not.toBeInTheDocument();
+    expect(container.querySelector(".workflow-node")).not.toBeInTheDocument();
+    expect(graph.innerHTML).toContain("Manifest detected");
+    expect(graph.innerHTML).toContain("Classify package");
+    expect(graph.innerHTML).toContain("Proxy workflow");
+    expect(graph.innerHTML).toContain("Audio essence");
     expect(
-      screen.getByRole("button", { name: /manifest detected succeeded/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /classify package running/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /proxy workflow waiting/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /audio essence pending/i })
+      screen.getByRole("combobox", { name: /inspect workflow diagram node/i })
     ).toBeInTheDocument();
 
     expect(screen.getByText(/pending: 1/i)).toBeInTheDocument();
@@ -211,11 +226,11 @@ describe("workflow graph control plane", () => {
 
     expect(await screen.findByText(/Package PKG-2026-05-03-002/i)).toBeInTheDocument();
     expect(
-      await screen.findByRole("button", { name: /transcode proxy queued/i })
+      await screen.findByRole("button", { name: /transcode proxy queued work item/i })
     ).toBeInTheDocument();
   });
 
-  it("loads node details when the operator selects a workflow graph node", async () => {
+  it("loads node details when the operator clicks a Mermaid workflow graph node", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
         new Response(
@@ -253,7 +268,9 @@ describe("workflow graph control plane", () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
     });
-    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /classify package running activity/i })
+    );
 
     const details = await screen.findByRole("region", {
       name: /selected workflow node details/i
@@ -265,6 +282,113 @@ describe("workflow graph control plane", () => {
     expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
     expect(within(details).getByText(/Command runner accepted classify work/i)).toBeInTheDocument();
     expect(within(details).getByText(/trace-classify-001/i)).toBeInTheDocument();
+  });
+
+  it("drills into a child workflow when the operator clicks a Mermaid child workflow node", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(childWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: /proxy workflow waiting child workflow/i })
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-proxy-001/graph");
+    });
+
+    expect(await screen.findByRole("heading", { name: /proxy child workflow/i })).toBeInTheDocument();
+    expect(screen.getByText(/Package PKG-2026-05-03-001/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /generate proxy command running activity/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/select a workflow node to inspect details/i)).toBeInTheDocument();
+  });
+
+  it("returns to the parent workflow with back navigation after child workflow drilldown", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(childWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(
+      await screen.findByRole("button", { name: /proxy workflow waiting child workflow/i })
+    );
+
+    expect(await screen.findByRole("heading", { name: /proxy child workflow/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /back to package ingest workflow/i }));
+
+    expect(screen.getByRole("heading", { name: /package ingest workflow/i })).toBeInTheDocument();
+    expect(screen.getByText(/Package PKG-2026-05-03-001/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /proxy workflow waiting child workflow/i })
+    ).toBeInTheDocument();
   });
 
   it("keeps selected node details visible when package status refreshes for the same workflow", async () => {
@@ -330,7 +454,9 @@ describe("workflow graph control plane", () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
     });
-    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /classify package running activity/i })
+    );
 
     const details = await screen.findByRole("region", {
       name: /selected workflow node details/i
@@ -402,7 +528,9 @@ describe("workflow graph control plane", () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
     });
-    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /classify package running activity/i })
+    );
 
     const details = await screen.findByRole("region", {
       name: /selected workflow node details/i
@@ -645,4 +773,24 @@ const secondWorkflowGraphResponse = {
       targetNodeId: "proxy-command"
     }
   ]
+};
+
+const childWorkflowGraphResponse = {
+  workflowInstanceId: "workflow-proxy-001",
+  workflowName: "Proxy child workflow",
+  packageId: "PKG-2026-05-03-001",
+  parentWorkflowInstanceId: "workflow-local-001",
+  nodes: [
+    {
+      nodeId: "generate-command",
+      displayName: "Generate proxy command",
+      kind: "Activity",
+      status: "Running",
+      workflowInstanceId: "workflow-proxy-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: null,
+      childWorkflowInstanceId: null
+    }
+  ],
+  edges: []
 };

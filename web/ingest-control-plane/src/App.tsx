@@ -5,6 +5,7 @@ import {
   buildMermaidFlowchart,
   mockedWorkflowGraph,
   summarizeStatuses,
+  toMermaidNodeId,
   type WorkflowGraph,
   type WorkflowNode,
   type WorkflowNodeDetails
@@ -110,33 +111,6 @@ function formatUpdatedAt(updatedAt: string) {
   }).format(new Date(updatedAt));
 }
 
-function NodeCard({
-  node,
-  selected,
-  onSelect
-}: {
-  node: WorkflowNode;
-  selected: boolean;
-  onSelect: (node: WorkflowNode) => void;
-}) {
-  return (
-    <li>
-      <button
-        type="button"
-        className={`workflow-node workflow-node--${formatStatus(node.status)}`}
-        aria-label={`${node.displayName} ${formatStatus(node.status)} ${formatNodeKind(node.kind)}`}
-        aria-pressed={selected}
-        onClick={() => onSelect(node)}
-      >
-        <span className="workflow-node__status">{node.status}</span>
-        <strong>{node.displayName}</strong>
-        <span>{formatNodeKind(node.kind)}</span>
-        <code>{formatNodeReference(node)}</code>
-      </button>
-    </li>
-  );
-}
-
 function NodeDetailsPanel({
   selectedNode,
   details,
@@ -198,12 +172,22 @@ function NodeDetailsPanel({
   );
 }
 
-function MermaidWorkflowDiagram({ graph }: { graph: WorkflowGraph }) {
+function MermaidWorkflowDiagram({
+  graph,
+  selectedNodeId,
+  onNodeActivate
+}: {
+  graph: WorkflowGraph;
+  selectedNodeId?: string;
+  onNodeActivate: (node: WorkflowNode) => void;
+}) {
   const [diagramSvg, setDiagramSvg] = useState("");
+  const diagramRef = useRef<HTMLDivElement>(null);
   const diagramSyntax = useMemo(() => buildMermaidFlowchart(graph), [graph]);
 
   useEffect(() => {
     let cancelled = false;
+    setDiagramSvg("");
 
     mermaid.initialize({
       startOnLoad: false,
@@ -224,12 +208,58 @@ function MermaidWorkflowDiagram({ graph }: { graph: WorkflowGraph }) {
     };
   }, [diagramSyntax, graph.workflowInstanceId]);
 
+  useEffect(() => {
+    const diagramElement = diagramRef.current;
+
+    if (!diagramElement || !diagramSvg) {
+      return undefined;
+    }
+
+    const cleanups = graph.nodes.flatMap((node) => {
+      const mermaidId = toMermaidNodeId(node.nodeId);
+      const svgNodes = Array.from(
+        diagramElement.querySelectorAll<SVGGElement>(`[id^="flowchart-${mermaidId}-"]`)
+      );
+
+      return svgNodes.map((svgNode) => {
+        const activateNode = () => onNodeActivate(node);
+        const activateNodeFromKeyboard = (event: KeyboardEvent) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            activateNode();
+          }
+        };
+
+        svgNode.classList.add("workflow-diagram__node");
+        svgNode.setAttribute("role", "button");
+        svgNode.setAttribute("tabindex", "0");
+        svgNode.setAttribute(
+          "aria-label",
+          `${node.displayName} ${formatStatus(node.status)} ${formatNodeKind(node.kind)}`
+        );
+        svgNode.setAttribute("aria-pressed", String(selectedNodeId === node.nodeId));
+        svgNode.addEventListener("click", activateNode);
+        svgNode.addEventListener("keydown", activateNodeFromKeyboard);
+
+        return () => {
+          svgNode.removeEventListener("click", activateNode);
+          svgNode.removeEventListener("keydown", activateNodeFromKeyboard);
+        };
+      });
+    });
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }, [diagramSvg, graph.nodes, onNodeActivate, selectedNodeId]);
+
   if (!diagramSvg) {
     return <p role="status">Rendering workflow diagram...</p>;
   }
 
   return (
     <div
+      ref={diagramRef}
       role="img"
       aria-label="workflow diagram"
       className="workflow-diagram__svg"
@@ -248,11 +278,11 @@ export function App() {
   const [packageStatuses, setPackageStatuses] = useState<IngestPackageStatus[]>([]);
   const [selectedWorkflowInstanceId, setSelectedWorkflowInstanceId] = useState<string>();
   const [graph, setGraph] = useState<WorkflowGraph>(mockedWorkflowGraph);
+  const [workflowNavigationStack, setWorkflowNavigationStack] = useState<WorkflowGraph[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode>();
   const [workflowNodeDetailsLoadState, setWorkflowNodeDetailsLoadState] =
     useState<WorkflowNodeDetailsLoadState>("idle");
   const [workflowNodeDetails, setWorkflowNodeDetails] = useState<WorkflowNodeDetails>();
-  const activeWorkflowInstanceIdRef = useRef(graph.workflowInstanceId);
   const statusSummary = summarizeStatuses(graph.nodes);
   const progressedNodeCount = graph.nodes.filter((node) =>
     progressedStatuses.has(node.status)
@@ -269,25 +299,25 @@ export function App() {
     }
   }, []);
 
+  const clearNodeDetails = useCallback(() => {
+    setSelectedNode(undefined);
+    setWorkflowNodeDetails(undefined);
+    setWorkflowNodeDetailsLoadState("idle");
+  }, []);
+
   const loadWorkflowGraph = useCallback(async (workflowInstanceId: string) => {
     setWorkflowGraphLoadState("loading");
-
-    if (activeWorkflowInstanceIdRef.current !== workflowInstanceId) {
-      setSelectedNode(undefined);
-      setWorkflowNodeDetails(undefined);
-      setWorkflowNodeDetailsLoadState("idle");
-    }
+    clearNodeDetails();
 
     try {
       const workflowGraph = await fetchWorkflowGraph(workflowInstanceId);
 
-      activeWorkflowInstanceIdRef.current = workflowGraph.workflowInstanceId;
       setGraph(workflowGraph);
       setWorkflowGraphLoadState("ready");
     } catch {
       setWorkflowGraphLoadState("error");
     }
-  }, []);
+  }, [clearNodeDetails]);
 
   const loadWorkflowNodeDetails = useCallback(async (node: WorkflowNode) => {
     setSelectedNode(node);
@@ -304,15 +334,38 @@ export function App() {
     }
   }, []);
 
-  const selectPackageWorkflow = useCallback((workflowInstanceId: string) => {
-    if (selectedWorkflowInstanceId !== workflowInstanceId) {
-      setSelectedNode(undefined);
-      setWorkflowNodeDetails(undefined);
-      setWorkflowNodeDetailsLoadState("idle");
+  const activateWorkflowNode = useCallback((node: WorkflowNode) => {
+    if (node.kind === "ChildWorkflow" && node.childWorkflowInstanceId) {
+      setWorkflowNavigationStack((navigationStack) => [...navigationStack, graph]);
+      void loadWorkflowGraph(node.childWorkflowInstanceId);
+      return;
     }
 
+    void loadWorkflowNodeDetails(node);
+  }, [graph, loadWorkflowGraph, loadWorkflowNodeDetails]);
+
+  const navigateToParentWorkflow = useCallback(() => {
+    setWorkflowNavigationStack((navigationStack) => {
+      const parentGraph = navigationStack.at(-1);
+
+      if (!parentGraph) {
+        return navigationStack;
+      }
+
+      setGraph(parentGraph);
+      setWorkflowGraphLoadState("ready");
+      clearNodeDetails();
+
+      return navigationStack.slice(0, -1);
+    });
+  }, [clearNodeDetails]);
+
+  const selectPackageWorkflow = useCallback((workflowInstanceId: string) => {
+    clearNodeDetails();
+    setWorkflowNavigationStack([]);
+
     setSelectedWorkflowInstanceId(workflowInstanceId);
-  }, [selectedWorkflowInstanceId]);
+  }, [clearNodeDetails]);
 
   useEffect(() => {
     void loadPackageStatuses();
@@ -340,7 +393,7 @@ export function App() {
     if (packageStatusLoadState === "ready" && selectedWorkflowInstanceId) {
       void loadWorkflowGraph(selectedWorkflowInstanceId);
     }
-  }, [loadWorkflowGraph, packageStatusLoadState, packageStatuses, selectedWorkflowInstanceId]);
+  }, [loadWorkflowGraph, packageStatusLoadState, selectedWorkflowInstanceId]);
 
   async function startLocalIngest() {
     setLocalWatcherStatus("starting");
@@ -455,18 +508,46 @@ export function App() {
           <p role="status">Workflow graph unavailable</p>
         )}
         <div className="workflow-diagram">
-          <MermaidWorkflowDiagram graph={graph} />
+          <MermaidWorkflowDiagram
+            graph={graph}
+            selectedNodeId={selectedNode?.nodeId}
+            onNodeActivate={activateWorkflowNode}
+          />
         </div>
-        <ol className="workflow-graph" aria-label="workflow graph node status">
-          {graph.nodes.map((node) => (
-            <NodeCard
-              key={node.nodeId}
-              node={node}
-              selected={selectedNode?.nodeId === node.nodeId}
-              onSelect={loadWorkflowNodeDetails}
-            />
-          ))}
-        </ol>
+        <div className="workflow-diagram-actions">
+          {workflowNavigationStack.length > 0 && (
+            <button
+              type="button"
+              className="workflow-back-button"
+              onClick={navigateToParentWorkflow}
+            >
+              Back to {workflowNavigationStack.at(-1)?.workflowName}
+            </button>
+          )}
+          <label>
+            <span>Inspect workflow diagram node</span>
+            <select
+              aria-label="Inspect workflow diagram node"
+              value={selectedNode?.nodeId ?? ""}
+              onChange={(event) => {
+                const node = graph.nodes.find(
+                  (candidate) => candidate.nodeId === event.target.value
+                );
+
+                if (node) {
+                  activateWorkflowNode(node);
+                }
+              }}
+            >
+              <option value="">Choose a node</option>
+              {graph.nodes.map((node) => (
+                <option key={node.nodeId} value={node.nodeId}>
+                  {node.displayName} - {node.status} - {formatNodeReference(node)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </section>
 
       <NodeDetailsPanel

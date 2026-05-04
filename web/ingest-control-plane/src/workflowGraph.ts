@@ -177,20 +177,20 @@ export function summarizeStatuses(nodes: WorkflowNode[]) {
 
 export function buildMermaidFlowchart(graph: WorkflowGraph) {
   const nodeIdMap = new Map(
-    graph.nodes.map((node) => [node.nodeId, sanitizeMermaidId(node.nodeId)])
+    graph.nodes.map((node) => [node.nodeId, toMermaidNodeId(node.nodeId)])
   );
   const lines = ["flowchart LR"];
 
   for (const node of graph.nodes) {
-    const mermaidId = nodeIdMap.get(node.nodeId) ?? sanitizeMermaidId(node.nodeId);
+    const mermaidId = nodeIdMap.get(node.nodeId) ?? toMermaidNodeId(node.nodeId);
     lines.push(
       `  ${mermaidId}["${escapeMermaidLabel(node.displayName)}"]:::${formatStatusClass(node.status)}`
     );
   }
 
   graph.edges.forEach((edge) => {
-    const sourceId = nodeIdMap.get(edge.sourceNodeId) ?? sanitizeMermaidId(edge.sourceNodeId);
-    const targetId = nodeIdMap.get(edge.targetNodeId) ?? sanitizeMermaidId(edge.targetNodeId);
+    const sourceId = nodeIdMap.get(edge.sourceNodeId) ?? toMermaidNodeId(edge.sourceNodeId);
+    const targetId = nodeIdMap.get(edge.targetNodeId) ?? toMermaidNodeId(edge.targetNodeId);
     lines.push(`  ${sourceId} --> ${targetId}`);
   });
 
@@ -209,7 +209,7 @@ export function buildMermaidFlowchart(graph: WorkflowGraph) {
   return lines.join("\n");
 }
 
-function sanitizeMermaidId(nodeId: string) {
+export function toMermaidNodeId(nodeId: string) {
   const sanitized = nodeId.replace(/[^A-Za-z0-9_]/g, "_");
 
   return /^[A-Za-z_]/.test(sanitized) ? sanitized : `node_${sanitized}`;
