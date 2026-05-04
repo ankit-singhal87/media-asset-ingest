@@ -46,16 +46,16 @@ describe("workflow graph control plane", () => {
     expect(graph).toHaveClass("workflow-diagram__svg");
     expect(graph.innerHTML).toContain("<svg");
     expect(
-      screen.getByRole("listitem", { name: /manifest detected succeeded/i })
+      screen.getByRole("button", { name: /manifest detected succeeded/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("listitem", { name: /classify package running/i })
+      screen.getByRole("button", { name: /classify package running/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("listitem", { name: /proxy workflow waiting/i })
+      screen.getByRole("button", { name: /proxy workflow waiting/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("listitem", { name: /audio essence pending/i })
+      screen.getByRole("button", { name: /audio essence pending/i })
     ).toBeInTheDocument();
 
     expect(screen.getByText(/pending: 1/i)).toBeInTheDocument();
@@ -152,6 +152,143 @@ describe("workflow graph control plane", () => {
       expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
     });
     expect(await screen.findByRole("img", { name: /workflow diagram/i })).toBeInTheDocument();
+  });
+
+  it("loads node details when the operator selects a workflow graph node", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(classifyNodeDetailsResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+
+    const details = await screen.findByRole("region", {
+      name: /selected workflow node details/i
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/nodes/classify");
+    expect(within(details).getByRole("heading", { name: /classify package/i })).toBeInTheDocument();
+    expect(within(details).getAllByText("node-classify")).toHaveLength(2);
+    expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
+    expect(within(details).getByText(/Command runner accepted classify work/i)).toBeInTheDocument();
+    expect(within(details).getByText(/trace-classify-001/i)).toBeInTheDocument();
+  });
+
+  it("keeps selected node details visible when package status refreshes for the same workflow", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(classifyNodeDetailsResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:05Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+
+    const details = await screen.findByRole("region", {
+      name: /selected workflow node details/i
+    });
+
+    expect(within(details).getByRole("heading", { name: /classify package/i })).toBeInTheDocument();
+    expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /start ingest/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/ingest/start", { method: "POST" });
+    });
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+
+    expect(within(details).getByRole("heading", { name: /classify package/i })).toBeInTheDocument();
+    expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
   });
 
   it("refreshes real package status while the operator watches ingest progress", async () => {
@@ -314,5 +451,28 @@ const liveWorkflowGraphResponse = {
     { edgeId: "classify-subtitle", sourceNodeId: "classify", targetNodeId: "subtitle" },
     { edgeId: "classify-video", sourceNodeId: "classify", targetNodeId: "video" },
     { edgeId: "video-done", sourceNodeId: "video", targetNodeId: "done" }
+  ]
+};
+
+const classifyNodeDetailsResponse = {
+  workflowInstanceId: "workflow-local-001",
+  nodeId: "classify",
+  timeline: [
+    {
+      occurredAt: "2026-05-03T18:42:00Z",
+      status: "Running",
+      message: "Classification started",
+      correlationId: "node-classify"
+    }
+  ],
+  logs: [
+    {
+      occurredAt: "2026-05-03T18:42:03Z",
+      level: "Information",
+      message: "Command runner accepted classify work",
+      correlationId: "node-classify",
+      traceId: "trace-classify-001",
+      spanId: "span-classify-001"
+    }
   ]
 };

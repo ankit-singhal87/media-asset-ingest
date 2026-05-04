@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import mermaid from "mermaid";
 
 import {
@@ -6,12 +6,14 @@ import {
   mockedWorkflowGraph,
   summarizeStatuses,
   type WorkflowGraph,
-  type WorkflowNode
+  type WorkflowNode,
+  type WorkflowNodeDetails
 } from "./workflowGraph";
 
 type LocalWatcherStatus = "idle" | "starting" | "watching" | "error";
 type PackageStatusLoadState = "loading" | "ready" | "error";
 type WorkflowGraphLoadState = "ready" | "loading" | "error";
+type WorkflowNodeDetailsLoadState = "idle" | "loading" | "ready" | "error";
 
 type IngestPackageStatus = {
   packageId: string;
@@ -66,6 +68,18 @@ async function fetchWorkflowGraph(workflowInstanceId: string) {
   return (await response.json()) as WorkflowGraph;
 }
 
+async function fetchWorkflowNodeDetails(workflowInstanceId: string, nodeId: string) {
+  const response = await fetch(
+    `/api/workflows/${encodeURIComponent(workflowInstanceId)}/nodes/${encodeURIComponent(nodeId)}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Workflow node details failed with ${response.status}`);
+  }
+
+  return (await response.json()) as WorkflowNodeDetails;
+}
+
 function formatStatus(status: WorkflowNode["status"]) {
   return status.toLowerCase();
 }
@@ -78,17 +92,91 @@ function formatUpdatedAt(updatedAt: string) {
   }).format(new Date(updatedAt));
 }
 
-function NodeCard({ node }: { node: WorkflowNode }) {
+function NodeCard({
+  node,
+  selected,
+  onSelect
+}: {
+  node: WorkflowNode;
+  selected: boolean;
+  onSelect: (node: WorkflowNode) => void;
+}) {
   return (
-    <li
-      className={`workflow-node workflow-node--${formatStatus(node.status)}`}
-      aria-label={`${node.displayName} ${formatStatus(node.status)}`}
-    >
-      <span className="workflow-node__status">{node.status}</span>
-      <strong>{node.displayName}</strong>
-      <span>{node.kind}</span>
-      <code>{node.workItemId ?? node.childWorkflowInstanceId ?? node.nodeId}</code>
+    <li>
+      <button
+        type="button"
+        className={`workflow-node workflow-node--${formatStatus(node.status)}`}
+        aria-label={`${node.displayName} ${formatStatus(node.status)}`}
+        aria-pressed={selected}
+        onClick={() => onSelect(node)}
+      >
+        <span className="workflow-node__status">{node.status}</span>
+        <strong>{node.displayName}</strong>
+        <span>{node.kind}</span>
+        <code>{node.workItemId ?? node.childWorkflowInstanceId ?? node.nodeId}</code>
+      </button>
     </li>
+  );
+}
+
+function NodeDetailsPanel({
+  selectedNode,
+  details,
+  loadState
+}: {
+  selectedNode?: WorkflowNode;
+  details?: WorkflowNodeDetails;
+  loadState: WorkflowNodeDetailsLoadState;
+}) {
+  return (
+    <section className="node-details-panel" aria-label="selected workflow node details">
+      <div className="section-heading">
+        <div>
+          <h2>{selectedNode?.displayName ?? "Node details"}</h2>
+          {selectedNode && <span>{selectedNode.nodeId}</span>}
+        </div>
+        {selectedNode && <span>{selectedNode.status}</span>}
+      </div>
+      {!selectedNode && <p>Select a workflow node to inspect details.</p>}
+      {selectedNode && loadState === "loading" && (
+        <p role="status">Loading node details...</p>
+      )}
+      {selectedNode && loadState === "error" && (
+        <p role="status">Node details unavailable</p>
+      )}
+      {selectedNode && loadState === "ready" && details && (
+        <div className="node-details-grid">
+          <div>
+            <h3>Timeline</h3>
+            <ol className="node-detail-rows">
+              {details.timeline.map((entry) => (
+                <li key={`${entry.occurredAt}-${entry.message}`}>
+                  <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
+                  <strong>{entry.status}</strong>
+                  <span>{entry.message}</span>
+                  <code>{entry.correlationId}</code>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <h3>Logs</h3>
+            <ol className="node-detail-rows">
+              {details.logs.map((entry) => (
+                <li key={`${entry.occurredAt}-${entry.message}`}>
+                  <time dateTime={entry.occurredAt}>{formatUpdatedAt(entry.occurredAt)}</time>
+                  <strong>{entry.level}</strong>
+                  <span>{entry.message}</span>
+                  <code>{entry.correlationId}</code>
+                  {entry.traceId && <code>{entry.traceId}</code>}
+                  {entry.spanId && <code>{entry.spanId}</code>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -141,6 +229,11 @@ export function App() {
     useState<WorkflowGraphLoadState>("ready");
   const [packageStatuses, setPackageStatuses] = useState<IngestPackageStatus[]>([]);
   const [graph, setGraph] = useState<WorkflowGraph>(mockedWorkflowGraph);
+  const [selectedNode, setSelectedNode] = useState<WorkflowNode>();
+  const [workflowNodeDetailsLoadState, setWorkflowNodeDetailsLoadState] =
+    useState<WorkflowNodeDetailsLoadState>("idle");
+  const [workflowNodeDetails, setWorkflowNodeDetails] = useState<WorkflowNodeDetails>();
+  const activeWorkflowInstanceIdRef = useRef(graph.workflowInstanceId);
   const statusSummary = summarizeStatuses(graph.nodes);
   const progressedNodeCount = graph.nodes.filter((node) =>
     progressedStatuses.has(node.status)
@@ -160,13 +253,35 @@ export function App() {
   const loadWorkflowGraph = useCallback(async (workflowInstanceId: string) => {
     setWorkflowGraphLoadState("loading");
 
+    if (activeWorkflowInstanceIdRef.current !== workflowInstanceId) {
+      setSelectedNode(undefined);
+      setWorkflowNodeDetails(undefined);
+      setWorkflowNodeDetailsLoadState("idle");
+    }
+
     try {
       const workflowGraph = await fetchWorkflowGraph(workflowInstanceId);
 
+      activeWorkflowInstanceIdRef.current = workflowGraph.workflowInstanceId;
       setGraph(workflowGraph);
       setWorkflowGraphLoadState("ready");
     } catch {
       setWorkflowGraphLoadState("error");
+    }
+  }, []);
+
+  const loadWorkflowNodeDetails = useCallback(async (node: WorkflowNode) => {
+    setSelectedNode(node);
+    setWorkflowNodeDetails(undefined);
+    setWorkflowNodeDetailsLoadState("loading");
+
+    try {
+      const details = await fetchWorkflowNodeDetails(node.workflowInstanceId, node.nodeId);
+
+      setWorkflowNodeDetails(details);
+      setWorkflowNodeDetailsLoadState("ready");
+    } catch {
+      setWorkflowNodeDetailsLoadState("error");
     }
   }, []);
 
@@ -297,10 +412,21 @@ export function App() {
         </div>
         <ol className="workflow-graph" aria-label="workflow graph node status">
           {graph.nodes.map((node) => (
-            <NodeCard key={node.nodeId} node={node} />
+            <NodeCard
+              key={node.nodeId}
+              node={node}
+              selected={selectedNode?.nodeId === node.nodeId}
+              onSelect={loadWorkflowNodeDetails}
+            />
           ))}
         </ol>
       </section>
+
+      <NodeDetailsPanel
+        selectedNode={selectedNode}
+        details={workflowNodeDetails}
+        loadState={workflowNodeDetailsLoadState}
+      />
     </main>
   );
 }

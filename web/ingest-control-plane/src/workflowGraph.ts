@@ -40,6 +40,29 @@ export type WorkflowGraph = {
   edges: WorkflowEdge[];
 };
 
+export type WorkflowTimelineEntry = {
+  occurredAt: string;
+  status: WorkflowNodeStatus;
+  message: string;
+  correlationId: string;
+};
+
+export type WorkflowNodeLogEntry = {
+  occurredAt: string;
+  level: string;
+  message: string;
+  correlationId: string;
+  traceId?: string | null;
+  spanId?: string | null;
+};
+
+export type WorkflowNodeDetails = {
+  workflowInstanceId: string;
+  nodeId: string;
+  timeline: WorkflowTimelineEntry[];
+  logs: WorkflowNodeLogEntry[];
+};
+
 type WorkflowStatusStyle = {
   fill: string;
   stroke: string;

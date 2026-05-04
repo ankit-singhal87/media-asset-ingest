@@ -50,6 +50,18 @@ try
     var missingGraph = runtimeService.GetWorkflowGraph("missing-workflow");
     AssertNull(missingGraph, "missing graph");
 
+    var nodeDetails = runtimeService.GetWorkflowNodeDetails("package-asset-001", "scan-package")
+        ?? throw new InvalidOperationException("workflow node details endpoint source returned null.");
+    AssertEqual("package-asset-001", nodeDetails.WorkflowInstanceId, "node details workflow instance id");
+    AssertEqual("scan-package", nodeDetails.NodeId, "node details node id");
+    AssertEqual("Succeeded", nodeDetails.Timeline.Single().Status.ToString(), "node details timeline status");
+    AssertEqual("correlation-asset-001", nodeDetails.Timeline.Single().CorrelationId, "node details timeline correlation");
+    AssertEqual("Information", nodeDetails.Logs.Single().Level, "node details log level");
+    AssertEqual("correlation-asset-001", nodeDetails.Logs.Single().CorrelationId, "node details log correlation");
+
+    var missingNodeDetails = runtimeService.GetWorkflowNodeDetails("package-asset-001", "missing-node");
+    AssertNull(missingNodeDetails, "missing node details");
+
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json")), "manifest copied");
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json.checksum")), "checksum copied");
     AssertFalse(File.Exists(Path.Combine(outputPath, "asset-001", "source.mov")), "source file not copied");
@@ -101,6 +113,17 @@ try
     var graphJson = await graphResponse.Content.ReadAsStringAsync();
     AssertContains("\"workflowInstanceId\":\"package-asset-001\"", graphJson, "graph endpoint workflow instance id");
     AssertContains("\"packageId\":\"asset-001\"", graphJson, "graph endpoint package id");
+
+    using var nodeDetailsResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/nodes/scan-package");
+    AssertEqual(System.Net.HttpStatusCode.OK, nodeDetailsResponse.StatusCode, "node details endpoint status");
+    var nodeDetailsJson = await nodeDetailsResponse.Content.ReadAsStringAsync();
+    AssertContains("\"workflowInstanceId\":\"package-asset-001\"", nodeDetailsJson, "node details endpoint workflow instance id");
+    AssertContains("\"nodeId\":\"scan-package\"", nodeDetailsJson, "node details endpoint node id");
+    AssertContains("\"timeline\":[", nodeDetailsJson, "node details endpoint timeline");
+    AssertContains("\"logs\":[", nodeDetailsJson, "node details endpoint logs");
+
+    using var missingNodeDetailsResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/nodes/missing-node");
+    AssertEqual(System.Net.HttpStatusCode.NotFound, missingNodeDetailsResponse.StatusCode, "missing node details endpoint status");
 
     using var missingGraphResponse = await apiHost.HttpClient.GetAsync("/api/workflows/missing-workflow/graph");
     AssertEqual(System.Net.HttpStatusCode.NotFound, missingGraphResponse.StatusCode, "missing graph endpoint status");
