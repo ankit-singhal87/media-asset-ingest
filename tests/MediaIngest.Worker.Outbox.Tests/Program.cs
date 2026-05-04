@@ -10,9 +10,11 @@ await NonCommandMessagesDoNotPublishCommandApplicationProperties();
 await OutboxPublishersCannotDropApplicationProperties();
 await DispatchPendingMessagesDoesNothingWhenNoMessagesArePending();
 await DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails();
+await DispatchPendingMessagesMarksOnlySuccessfullyPublishedMessages();
 await OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice();
 await ClaimedMessagesCanBeRetriedAfterTheClaimExpires();
 await DaprPublisherPublishesPayloadToTheDestinationTopic();
+await DaprPublisherRequestsRawPayloadToPreserveBrokerMessageBody();
 await DaprPublisherMapsApplicationPropertiesToDaprMetadata();
 await DaprPublisherSurfacesNonSuccessResponses();
 
@@ -164,6 +166,42 @@ static async Task DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails
     AssertEqual(null, store.OutboxMessages[0].DispatchedAt, "failed publish leaves message pending");
 }
 
+static async Task DispatchPendingMessagesMarksOnlySuccessfullyPublishedMessages()
+{
+    var store = new InMemoryIngestPersistenceStore();
+    var firstMessage = CreateMessage(
+        messageId: "message-success-before-failure",
+        destination: "media.command.create_proxy",
+        messageType: "MediaCommandEnvelope",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 16, 0, TimeSpan.Zero));
+    var secondMessage = CreateMessage(
+        messageId: "message-failure-after-success",
+        destination: "media.command.create_thumbnail",
+        messageType: "MediaCommandEnvelope",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 17, 0, TimeSpan.Zero));
+
+    await store.SaveAsync(new PersistenceBatch([], [firstMessage, secondMessage]));
+
+    var publisher = new FailsOnSecondPublishOutboxPublisher("broker unavailable");
+    var dispatchTime = new DateTimeOffset(2026, 5, 3, 12, 18, 0, TimeSpan.Zero);
+    var dispatcher = new OutboxDispatcher(store, publisher, new FixedTimeProvider(dispatchTime));
+    var failed = false;
+
+    try
+    {
+        await dispatcher.DispatchPendingAsync();
+    }
+    catch (InvalidOperationException ex) when (ex.Message == "broker unavailable")
+    {
+        failed = true;
+    }
+
+    AssertTrue(failed, "second publish failure is surfaced");
+    AssertEqual(2, publisher.PublishAttempts, "publish attempts before failure");
+    AssertEqual(dispatchTime, store.OutboxMessages[0].DispatchedAt, "successful message is marked dispatched");
+    AssertEqual(null, store.OutboxMessages[1].DispatchedAt, "failed message remains pending");
+}
+
 static async Task OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice()
 {
     var store = new InMemoryIngestPersistenceStore();
@@ -256,7 +294,7 @@ static async Task DaprPublisherPublishesPayloadToTheDestinationTopic()
 
     AssertEqual(HttpMethod.Post, handler.Requests[0].Method, "dapr publish method");
     AssertEqual(
-        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.create_proxy",
+        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.create_proxy?metadata.rawPayload=true",
         handler.Requests[0].RequestUri?.ToString(),
         "dapr publish topic URL");
     AssertEqual(
@@ -264,6 +302,35 @@ static async Task DaprPublisherPublishesPayloadToTheDestinationTopic()
         handler.RequestBodies[0],
         "dapr publish payload body");
     AssertEqual("application/json; charset=utf-8", handler.Requests[0].Content?.Headers.ContentType?.ToString(), "dapr content type");
+}
+
+static async Task DaprPublisherRequestsRawPayloadToPreserveBrokerMessageBody()
+{
+    var handler = new RecordingHttpMessageHandler(HttpStatusCode.NoContent, "");
+    using var httpClient = new HttpClient(handler)
+    {
+        BaseAddress = new Uri("http://127.0.0.1:3500")
+    };
+    var publisher = new DaprOutboxMessagePublisher(httpClient, "commandbus");
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-dapr-raw-payload",
+            destination: "media.command.create_proxy",
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 3, 12, 42, 0, TimeSpan.Zero),
+            payloadJson: """{"commandId":"command-raw","executionClass":"light"}"""),
+        new Dictionary<string, string>(StringComparer.Ordinal));
+
+    await publisher.PublishAsync(request);
+
+    AssertEqual(
+        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.create_proxy?metadata.rawPayload=true",
+        handler.Requests[0].RequestUri?.ToString(),
+        "dapr raw payload metadata URL");
+    AssertEqual(
+        """{"commandId":"command-raw","executionClass":"light"}""",
+        handler.RequestBodies[0],
+        "dapr raw payload body");
 }
 
 static async Task DaprPublisherMapsApplicationPropertiesToDaprMetadata()
@@ -289,7 +356,7 @@ static async Task DaprPublisherMapsApplicationPropertiesToDaprMetadata()
     await publisher.PublishAsync(request);
 
     AssertEqual(
-        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.archive_asset?metadata.executionClass=heavy",
+        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.archive_asset?metadata.executionClass=heavy&metadata.rawPayload=true",
         handler.Requests[0].RequestUri?.ToString(),
         "dapr publish metadata URL");
 }
@@ -391,6 +458,25 @@ internal sealed class FailsOnceOutboxPublisher(string failureMessage) : IOutboxM
         PublishAttempts++;
 
         if (PublishAttempts == 1)
+        {
+            throw new InvalidOperationException(failureMessage);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class FailsOnSecondPublishOutboxPublisher(string failureMessage) : IOutboxMessagePublisher
+{
+    public int PublishAttempts { get; private set; }
+
+    public Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
+    {
+        _ = request;
+        cancellationToken.ThrowIfCancellationRequested();
+        PublishAttempts++;
+
+        if (PublishAttempts == 2)
         {
             throw new InvalidOperationException(failureMessage);
         }

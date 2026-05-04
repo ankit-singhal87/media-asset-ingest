@@ -4,6 +4,8 @@ namespace MediaIngest.Worker.Outbox;
 
 public sealed class DaprOutboxMessagePublisher(HttpClient httpClient, string pubSubName) : IOutboxMessagePublisher
 {
+    private const string RawPayloadMetadataName = "rawPayload";
+
     public async Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
     {
         using var httpRequest = new HttpRequestMessage(
@@ -31,12 +33,8 @@ public sealed class DaprOutboxMessagePublisher(HttpClient httpClient, string pub
     {
         var path = $"v1.0/publish/{Uri.EscapeDataString(pubSubName)}/{Uri.EscapeDataString(request.Message.Destination)}";
 
-        if (request.ApplicationProperties.Count == 0)
-        {
-            return path;
-        }
-
         var metadata = request.ApplicationProperties
+            .Append(new KeyValuePair<string, string>(RawPayloadMetadataName, "true"))
             .OrderBy(property => property.Key, StringComparer.Ordinal)
             .Select(property =>
                 $"metadata.{Uri.EscapeDataString(property.Key)}={Uri.EscapeDataString(property.Value)}");
