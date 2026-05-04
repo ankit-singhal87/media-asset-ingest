@@ -22,7 +22,7 @@ public sealed class OutboxDispatcher(
 
         foreach (var message in pendingMessages)
         {
-            await publisher.PublishAsync(message, cancellationToken);
+            await publisher.PublishAsync(OutboxPublishRequest.From(message), cancellationToken);
             await persistenceStore.MarkOutboxMessageDispatchedAsync(
                 message.MessageId,
                 dispatchClock.GetUtcNow(),

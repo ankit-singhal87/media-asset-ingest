@@ -4,5 +4,5 @@ namespace MediaIngest.Worker.Outbox;
 
 public interface IOutboxMessagePublisher
 {
-    Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default);
+    Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default);
 }

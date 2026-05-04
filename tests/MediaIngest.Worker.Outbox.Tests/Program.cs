@@ -2,6 +2,8 @@ using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 
 await DispatchPendingMessagesPublishesAndMarksThemWithTheDispatchTime();
+await DispatchPendingCommandMessagesPublishesExecutionClassMetadata();
+await OutboxPublishersCannotDropApplicationProperties();
 await DispatchPendingMessagesDoesNothingWhenNoMessagesArePending();
 await DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails();
 await OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice();
@@ -31,9 +33,48 @@ static async Task DispatchPendingMessagesPublishesAndMarksThemWithTheDispatchTim
     AssertEqual(1, firstRun, "first dispatch count");
     AssertEqual(0, secondRun, "second dispatch count");
     AssertEqual(1, publisher.Published.Count, "published message count");
-    AssertEqual("media.command.create_proxy", publisher.Published[0].Destination, "published destination");
-    AssertEqual("MediaCommandEnvelope", publisher.Published[0].MessageType, "published message type");
+    AssertEqual("media.command.create_proxy", publisher.Published[0].Message.Destination, "published destination");
+    AssertEqual("MediaCommandEnvelope", publisher.Published[0].Message.MessageType, "published message type");
     AssertEqual(dispatchedAt, store.OutboxMessages[0].DispatchedAt, "dispatched timestamp");
+}
+
+static async Task DispatchPendingCommandMessagesPublishesExecutionClassMetadata()
+{
+    var store = new InMemoryIngestPersistenceStore();
+    var message = CreateMessage(
+        messageId: "message-command-heavy",
+        destination: "media.command.archive_asset",
+        messageType: "MediaCommandEnvelope",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 6, 0, TimeSpan.Zero),
+        executionClass: "heavy");
+
+    await store.SaveAsync(new PersistenceBatch([], [message]));
+
+    var publisher = new RecordingOutboxPublisher();
+    var dispatcher = new OutboxDispatcher(
+        store,
+        publisher,
+        new FixedTimeProvider(new DateTimeOffset(2026, 5, 3, 12, 7, 0, TimeSpan.Zero)));
+
+    var dispatchedCount = await dispatcher.DispatchPendingAsync();
+
+    AssertEqual(1, dispatchedCount, "command dispatch count");
+    AssertEqual(1, publisher.Published.Count, "command publish request count");
+    AssertEqual("media.command.archive_asset", publisher.Published[0].Message.Destination, "command publish destination");
+    AssertEqual("heavy", publisher.Published[0].ApplicationProperties["executionClass"], "command execution class property");
+}
+
+static Task OutboxPublishersCannotDropApplicationProperties()
+{
+    var publisherMethods = typeof(IOutboxMessagePublisher)
+        .GetMethods()
+        .Where(method => method.Name == nameof(IOutboxMessagePublisher.PublishAsync))
+        .ToArray();
+
+    AssertEqual(1, publisherMethods.Length, "publisher publish overload count");
+    AssertEqual(typeof(OutboxPublishRequest), publisherMethods[0].GetParameters()[0].ParameterType, "publisher request type");
+
+    return Task.CompletedTask;
 }
 
 static async Task DispatchPendingMessagesDoesNothingWhenNoMessagesArePending()
@@ -107,7 +148,7 @@ static async Task OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice()
 
     AssertEqual(1, dispatchCounts.Sum(), "overlapping dispatch count");
     AssertEqual(1, publisher.Published.Count, "overlapping published message count");
-    AssertEqual("message-003", publisher.Published[0].MessageId, "overlapping published message id");
+    AssertEqual("message-003", publisher.Published[0].Message.MessageId, "overlapping published message id");
 }
 
 static async Task ClaimedMessagesCanBeRetriedAfterTheClaimExpires()
@@ -154,13 +195,14 @@ static OutboxMessage CreateMessage(
     string messageId,
     string destination,
     string messageType,
-    DateTimeOffset createdAt)
+    DateTimeOffset createdAt,
+    string executionClass = "light")
 {
     return new OutboxMessage(
         MessageId: messageId,
         Destination: destination,
         MessageType: messageType,
-        PayloadJson: """{"packageId":"package-001"}""",
+        PayloadJson: $$"""{"packageId":"package-001","executionClass":"{{executionClass}}"}""",
         CorrelationId: "correlation-001",
         CreatedAt: createdAt);
 }
@@ -183,20 +225,20 @@ static void AssertTrue(bool condition, string name)
 
 internal sealed class RecordingOutboxPublisher : IOutboxMessagePublisher
 {
-    public List<OutboxMessage> Published { get; } = [];
+    public List<OutboxPublishRequest> Published { get; } = [];
 
-    public Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
     {
-        Published.Add(message);
+        Published.Add(request);
         return Task.CompletedTask;
     }
 }
 
 internal sealed class FailingOutboxPublisher(string failureMessage) : IOutboxMessagePublisher
 {
-    public Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
     {
-        _ = message;
+        _ = request;
         throw new InvalidOperationException(failureMessage);
     }
 }
@@ -205,9 +247,9 @@ internal sealed class FailsOnceOutboxPublisher(string failureMessage) : IOutboxM
 {
     public int PublishAttempts { get; private set; }
 
-    public Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
     {
-        _ = message;
+        _ = request;
         cancellationToken.ThrowIfCancellationRequested();
         PublishAttempts++;
 
@@ -225,11 +267,11 @@ internal sealed class BlockingOutboxPublisher : IOutboxMessagePublisher
     private readonly TaskCompletionSource firstPublishAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource allowPublishes = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public List<OutboxMessage> Published { get; } = [];
+    public List<OutboxPublishRequest> Published { get; } = [];
 
-    public async Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(OutboxPublishRequest request, CancellationToken cancellationToken = default)
     {
-        Published.Add(message);
+        Published.Add(request);
         firstPublishAttempted.TrySetResult();
         await allowPublishes.Task.WaitAsync(cancellationToken);
     }
