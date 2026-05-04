@@ -3,6 +3,10 @@ kind: Component
 metadata:
   name: commandbus
   namespace: media-ingest
+  labels:
+    app.kubernetes.io/name: commandbus
+    app.kubernetes.io/component: dapr-pubsub
+    app.kubernetes.io/part-of: media-asset-ingest
 spec:
   type: pubsub.azure.servicebus.topics
   version: v1

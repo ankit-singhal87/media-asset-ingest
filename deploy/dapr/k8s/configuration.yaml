@@ -3,6 +3,10 @@ kind: Configuration
 metadata:
   name: media-ingest-dapr
   namespace: media-ingest
+  labels:
+    app.kubernetes.io/name: media-ingest-dapr
+    app.kubernetes.io/component: dapr-configuration
+    app.kubernetes.io/part-of: media-asset-ingest
 spec:
   tracing:
     samplingRate: "1"
