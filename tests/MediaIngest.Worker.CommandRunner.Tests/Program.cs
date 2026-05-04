@@ -128,6 +128,38 @@ AssertEqual(correlationEnvelope.CommandId, progressFields[CorrelationFieldNames.
 AssertEqual(expectedCorrelation.TraceId, progressFields[CorrelationFieldNames.TraceId], "trace correlation field");
 AssertEqual(expectedCorrelation.SpanId, progressFields[CorrelationFieldNames.SpanId], "span correlation field");
 
+var processWorkDirectory = Directory.CreateTempSubdirectory("media-ingest-command-runner-tests-");
+try
+{
+    var processExecutor = new LocalProcessCommandExecutor(TimeSpan.FromSeconds(5), maxCapturedOutputCharacters: 64);
+    var processEnvelope = CreateEnvelope(ExecutionClass.Light, "command-local-process") with
+    {
+        CommandLine = "printf local-ok",
+        WorkingDirectory = processWorkDirectory.FullName
+    };
+
+    var processResult = await processExecutor.ExecuteAsync(processEnvelope);
+
+    AssertTrue(processResult.IsSuccess, "local process executor succeeds on zero exit code");
+    AssertEqual("exit-code-0 stdout: local-ok", processResult.Message, "local process executor captures stdout");
+
+    var boundedExecutor = new LocalProcessCommandExecutor(TimeSpan.FromSeconds(5), maxCapturedOutputCharacters: 4);
+    var boundedEnvelope = CreateEnvelope(ExecutionClass.Light, "command-local-process-bounded") with
+    {
+        CommandLine = "printf 1234567890; exit 7",
+        WorkingDirectory = processWorkDirectory.FullName
+    };
+
+    var boundedResult = await boundedExecutor.ExecuteAsync(boundedEnvelope);
+
+    AssertTrue(!boundedResult.IsSuccess, "local process executor fails on non-zero exit code");
+    AssertEqual("exit-code-7 stdout: 1234 [truncated]", boundedResult.Message, "local process executor bounds captured output");
+}
+finally
+{
+    processWorkDirectory.Delete(recursive: true);
+}
+
 Console.WriteLine("MediaIngest command runner tests passed.");
 
 static MediaCommandEnvelope CreateEnvelope(ExecutionClass executionClass, string commandId)
