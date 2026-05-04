@@ -5,6 +5,11 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Added the TASK-2-3 Docker-first local runtime smoke slice: `make
+  local-runtime-smoke` starts the Compose API, UI, and PostgreSQL stack, waits
+  for local API/UI HTTP responses, runs the existing manifest ingest smoke
+  against the containerized API with manifest-output assertions plus workflow
+  command-node evidence, and stops the stack without cloud resources or secrets.
 - Reconciled runtime hygiene after merged PRs #73, #74, and #75: removed the
   stale local-main PR next action, documented post-8-1 task-index scope,
   aligned story status wording with merged done-marker, UI, and static runtime

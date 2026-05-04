@@ -69,6 +69,10 @@ Optional overrides:
 - `SMOKE_PACKAGE_ID` changes the package folder name.
 - `SMOKE_TIMEOUT_SECONDS` changes the output polling timeout.
 - `SMOKE_INTERVAL_SECONDS` changes the output polling interval.
+- `SMOKE_EXPECT_COPIED_FILES` changes copied output assertions. The default
+  `all` mode expects manifest, media, sidecar, and metadata files under
+  `output/<asset>/`; `manifest` mode expects only the manifest pair while still
+  verifying workflow command-node evidence.
 
 ## Local Compose Config
 
@@ -114,4 +118,41 @@ For a no-Docker plan that does not change files or start containers:
 
 ```bash
 sh scripts/dev/local-compose-check.sh --dry-run
+```
+
+For a Docker-first runtime smoke that starts the local API, UI, and PostgreSQL
+Compose stack, waits for API and UI HTTP responses, runs the scripted local
+ingest smoke against the containerized API, and then stops the stack:
+
+```bash
+make local-runtime-smoke
+```
+
+The target runs:
+
+```bash
+sh scripts/dev/local-compose-check.sh --runtime-smoke
+```
+
+Use this command when the local Docker runtime slice is in scope. It uses only
+local containers, repo-root `input/` and `output/` bind mounts, and local HTTP
+endpoints; it does not push images, read secrets, create Azure resources, or
+perform paid cloud actions. Set `LOCAL_COMPOSE_KEEP_RUNNING=1` to leave the
+stack running after the smoke for manual inspection. Override
+`LOCAL_COMPOSE_API_PORT`, `LOCAL_COMPOSE_UI_PORT`, or
+`LOCAL_COMPOSE_POSTGRES_PORT` when another local process is already using the
+default `5000`, `5173`, or `5432` ports. The script exports the current host
+UID and GID as `LOCAL_COMPOSE_UID` and `LOCAL_COMPOSE_GID` so API-created
+bind-mounted smoke files remain host-writable.
+
+The Compose runtime smoke runs `local-e2e-smoke.sh` with
+`SMOKE_EXPECT_COPIED_FILES=manifest` because the current local API copies the
+manifest pair and represents media, sidecar, and metadata files as command
+nodes. Full copied-file assertions remain available for smoke environments that
+provide command-runner output behavior.
+
+For a no-Docker runtime-smoke plan:
+
+```bash
+sh scripts/dev/local-compose-check.sh --runtime-smoke --dry-run
 ```

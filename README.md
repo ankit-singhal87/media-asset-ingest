@@ -83,6 +83,24 @@ That target runs:
 docker compose -f deploy/docker/compose.yaml down
 ```
 
+Run the Docker-first runtime smoke when you need local runtime evidence beyond
+static Compose validation:
+
+```bash
+make local-runtime-smoke
+```
+
+That target starts the API, UI, and PostgreSQL Compose stack, waits for local
+API and UI HTTP responses, runs the scripted manifest ingest smoke against the
+containerized API, and stops the stack. The smoke expects the copied manifest
+pair plus workflow command-node evidence for media, sidecar, and metadata
+files. It uses only local containers, repo-root `input/` and `output/` bind
+mounts, and local HTTP endpoints. Override `LOCAL_COMPOSE_API_PORT`,
+`LOCAL_COMPOSE_UI_PORT`, or `LOCAL_COMPOSE_POSTGRES_PORT` if another local
+process already owns the default ports. The smoke script runs the API container
+with the current host UID/GID so bind-mounted smoke output remains writable by
+the host user.
+
 ## Local Manifest Ingest Demo
 
 This local workflow exercises the manifest start path through the API, React
