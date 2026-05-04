@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MediaIngest.Worker.CommandRunner.Tests</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.CommandRunner.Tests</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
+    <ProjectReference Include="../../src/MediaIngest.Observability/MediaIngest.Observability.csproj" />
+    <ProjectReference Include="../../src/MediaIngest.Worker.CommandRunner/MediaIngest.Worker.CommandRunner.csproj" />
+  </ItemGroup>
+</Project>

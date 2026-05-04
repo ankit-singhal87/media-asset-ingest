@@ -34,6 +34,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-4 / USER-STORY-6 / USER-STORY-8: define static command-bus topology
   readiness for semantic Azure Service Bus command topics and light, medium,
   and heavy subscriptions.
+- MILESTONE-6 / USER-STORY-7: add the first local generic command runner
+  foundation for light, medium, and heavy execution classes without Azure
+  Service Bus consumption or real media command execution.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-13: add package workflow selection
   to the control plane and preserve or clear node detail state according to the
   selected workflow.
@@ -57,11 +60,10 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 ## Later
 
-- MILESTONE-6 / USER-STORY-7: implement light, medium, and heavy command
-  runner services.
+- MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service
+  Bus subscriptions and real media command execution.
 - MILESTONE-8 / USER-STORY-13: expand node diagnostics beyond local persisted
   records into production log aggregation and OpenTelemetry trace linkage.
-- MILESTONE-9 / USER-STORY-17: add Kubernetes and Dapr deployment assets.
 - MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.
 
 ## Update Rule

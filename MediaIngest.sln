@@ -34,6 +34,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Api", "src\Medi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Api.Tests", "tests\MediaIngest.Api.Tests\MediaIngest.Api.Tests.csproj", "{6E1CF5CB-149D-4B70-ACB7-BB429588D439}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.CommandRunner", "src\MediaIngest.Worker.CommandRunner\MediaIngest.Worker.CommandRunner.csproj", "{380B62F9-A130-46B6-BDA4-4CA28E60B1FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.CommandRunner.Tests", "tests\MediaIngest.Worker.CommandRunner.Tests\MediaIngest.Worker.CommandRunner.Tests.csproj", "{BBB65566-E121-49BB-ACFF-453B160B9AF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +108,14 @@ Global
 		{6E1CF5CB-149D-4B70-ACB7-BB429588D439}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E1CF5CB-149D-4B70-ACB7-BB429588D439}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E1CF5CB-149D-4B70-ACB7-BB429588D439}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380B62F9-A130-46B6-BDA4-4CA28E60B1FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380B62F9-A130-46B6-BDA4-4CA28E60B1FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380B62F9-A130-46B6-BDA4-4CA28E60B1FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380B62F9-A130-46B6-BDA4-4CA28E60B1FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBB65566-E121-49BB-ACFF-453B160B9AF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBB65566-E121-49BB-ACFF-453B160B9AF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBB65566-E121-49BB-ACFF-453B160B9AF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBB65566-E121-49BB-ACFF-453B160B9AF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

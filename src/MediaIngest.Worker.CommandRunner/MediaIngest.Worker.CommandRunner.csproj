@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Worker.CommandRunner</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.CommandRunner</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
+    <ProjectReference Include="../MediaIngest.Observability/MediaIngest.Observability.csproj" />
+  </ItemGroup>
+</Project>

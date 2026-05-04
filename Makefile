@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -78,6 +78,9 @@ test-dotnet-workflow:
 
 test-dotnet-observability:
 	@sh scripts/dev/test-dotnet.sh observability
+
+test-dotnet-command-runner:
+	@sh scripts/dev/test-dotnet.sh command-runner
 
 docs-check:
 	@npm run docs:check
