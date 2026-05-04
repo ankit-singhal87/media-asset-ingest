@@ -38,4 +38,16 @@ public sealed class IngestMountScanner
             .OrderBy(file => file.PackageRelativePath, StringComparer.Ordinal)
             .ToArray();
     }
+
+    public DoneMarkerReconciliation ReconcilePackageFilesOnDoneMarker(
+        IngestPackageCandidate candidate,
+        DoneMarkerReadinessGate doneMarkerGate)
+    {
+        ArgumentNullException.ThrowIfNull(doneMarkerGate);
+
+        return new DoneMarkerReconciliation(
+            candidate,
+            doneMarkerGate.IsDone(candidate),
+            FindPackageFiles(candidate));
+    }
 }
