@@ -164,6 +164,35 @@ try
     AssertEqual("Failed", conflictStatus.Packages[0].Status, "conflict package status");
     AssertEqual("existing output", File.ReadAllText(Path.Combine(conflictOutputPackagePath, "manifest.json")), "conflict output preserved");
 
+    var apiInputPath = Path.Combine(repoRoot, "api-input");
+    var apiOutputPath = Path.Combine(repoRoot, "api-output");
+    var apiPackagePath = Path.Combine(apiInputPath, "asset-http-001");
+    Directory.CreateDirectory(apiPackagePath);
+    File.WriteAllText(Path.Combine(apiPackagePath, "manifest.json"), "{\"id\":\"asset-http-001\"}");
+    File.WriteAllText(Path.Combine(apiPackagePath, "manifest.json.checksum"), "opaque checksum");
+    File.WriteAllText(Path.Combine(apiPackagePath, "clip.mp4"), "video essence");
+
+    await using var freshApiHost = await IngestApiApplication.StartAsync(apiInputPath, apiOutputPath);
+    using var emptyStatusResponse = await freshApiHost.HttpClient.GetAsync("/api/ingest/status");
+    AssertEqual(System.Net.HttpStatusCode.OK, emptyStatusResponse.StatusCode, "fresh api status endpoint status");
+    using var emptyStatusJson = JsonDocument.Parse(await emptyStatusResponse.Content.ReadAsStringAsync());
+    AssertEqual(0, emptyStatusJson.RootElement.GetProperty("packages").GetArrayLength(), "fresh api status package count");
+
+    using var acceptedStartResponse = await freshApiHost.HttpClient.PostAsync("/api/ingest/start", content: null);
+    AssertEqual(System.Net.HttpStatusCode.Accepted, acceptedStartResponse.StatusCode, "fresh api start endpoint status");
+    using var acceptedStartJson = JsonDocument.Parse(await acceptedStartResponse.Content.ReadAsStringAsync());
+    var startedPackage = acceptedStartJson.RootElement.GetProperty("startedPackages").EnumerateArray().Single();
+    AssertEqual("asset-http-001", startedPackage.GetProperty("packageId").GetString(), "fresh api started package id");
+    AssertEqual("package-asset-http-001", startedPackage.GetProperty("workflowInstanceId").GetString(), "fresh api started workflow id");
+
+    using var startedStatusResponse = await freshApiHost.HttpClient.GetAsync("/api/ingest/status");
+    AssertEqual(System.Net.HttpStatusCode.OK, startedStatusResponse.StatusCode, "started api status endpoint status");
+    using var startedStatusJson = JsonDocument.Parse(await startedStatusResponse.Content.ReadAsStringAsync());
+    var statusPackage = startedStatusJson.RootElement.GetProperty("packages").EnumerateArray().Single();
+    AssertEqual("asset-http-001", statusPackage.GetProperty("packageId").GetString(), "started api status package id");
+    AssertEqual("package-asset-http-001", statusPackage.GetProperty("workflowInstanceId").GetString(), "started api status workflow id");
+    AssertEqual("Started", statusPackage.GetProperty("status").GetString(), "started api status value");
+
     await using var apiHost = await IngestApiApplication.StartAsync(inputPath, outputPath);
     using var apiStartResponse = await apiHost.HttpClient.PostAsync("/api/ingest/start", content: null);
     AssertEqual(System.Net.HttpStatusCode.Conflict, apiStartResponse.StatusCode, "api host start status");
@@ -172,6 +201,10 @@ try
     var graphJson = await graphResponse.Content.ReadAsStringAsync();
     AssertContains("\"workflowInstanceId\":\"package-asset-001\"", graphJson, "graph endpoint workflow instance id");
     AssertContains("\"packageId\":\"asset-001\"", graphJson, "graph endpoint package id");
+    AssertContains("\"nodes\":[", graphJson, "graph endpoint node list");
+    AssertContains("\"edges\":[", graphJson, "graph endpoint edge list");
+    AssertContains("\"nodeId\":\"command-media-source-mov\"", graphJson, "graph endpoint command node");
+    AssertContains("\"sourceNodeId\":\"package-start\"", graphJson, "graph endpoint edge source");
 
     using var nodeDetailsResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/nodes/scan-package");
     AssertEqual(System.Net.HttpStatusCode.OK, nodeDetailsResponse.StatusCode, "node details endpoint status");
@@ -180,6 +213,9 @@ try
     AssertContains("\"nodeId\":\"scan-package\"", nodeDetailsJson, "node details endpoint node id");
     AssertContains("\"timeline\":[", nodeDetailsJson, "node details endpoint timeline");
     AssertContains("\"logs\":[", nodeDetailsJson, "node details endpoint logs");
+    AssertContains("\"status\":3", nodeDetailsJson, "node details endpoint timeline status");
+    AssertContains("\"level\":\"Information\"", nodeDetailsJson, "node details endpoint log level");
+    AssertContains("\"correlationId\":\"correlation-asset-001\"", nodeDetailsJson, "node details endpoint correlation");
     AssertContains("Package scan found 7 files for asset-001.", nodeDetailsJson, "node details endpoint persisted message");
 
     using var missingNodeDetailsResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/nodes/missing-node");
