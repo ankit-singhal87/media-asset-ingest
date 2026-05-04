@@ -3,19 +3,35 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 
+vi.mock("mermaid", () => ({
+  default: {
+    initialize: vi.fn(),
+    render: vi.fn(async (_id: string, diagram: string) => ({
+      svg: `<svg role="img" data-diagram="${encodeURIComponent(diagram)}"></svg>`
+    }))
+  }
+}));
+
 describe("workflow graph control plane", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
-  it("displays mocked workflow nodes and enough state to inspect progress", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ packages: [] }), {
-        headers: { "Content-Type": "application/json" },
-        status: 200
-      })
-    );
+  it("renders the live workflow graph with Mermaid and enough state to inspect progress", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
 
     render(<App />);
 
@@ -25,28 +41,31 @@ describe("workflow graph control plane", () => {
     expect(screen.getByText(/package PKG-2026-05-03-001/i)).toBeInTheDocument();
     expect(screen.getByText(/5 of 7 nodes progressed/i)).toBeInTheDocument();
 
-    const graph = screen.getByRole("list", { name: /mocked workflow graph/i });
-    const nodes = within(graph).getAllByRole("listitem");
+    const graph = await screen.findByRole("img", { name: /workflow diagram/i });
 
-    expect(nodes).toHaveLength(7);
+    expect(graph).toHaveClass("workflow-diagram__svg");
+    expect(graph.innerHTML).toContain("<svg");
     expect(
-      within(graph).getByRole("listitem", { name: /manifest detected succeeded/i })
+      screen.getByRole("listitem", { name: /manifest detected succeeded/i })
     ).toBeInTheDocument();
     expect(
-      within(graph).getByRole("listitem", { name: /classify package running/i })
+      screen.getByRole("listitem", { name: /classify package running/i })
     ).toBeInTheDocument();
     expect(
-      within(graph).getByRole("listitem", { name: /proxy workflow waiting/i })
+      screen.getByRole("listitem", { name: /proxy workflow waiting/i })
     ).toBeInTheDocument();
     expect(
-      within(graph).getByRole("listitem", { name: /audio essence pending/i })
+      screen.getByRole("listitem", { name: /audio essence pending/i })
     ).toBeInTheDocument();
 
     expect(screen.getByText(/pending: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/running: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/failed: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/waiting: 1/i)).toBeInTheDocument();
-    expect(await screen.findByText(/no packages reported yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/queued: 0/i)).toBeInTheDocument();
+    expect(screen.getByText(/skipped: 0/i)).toBeInTheDocument();
+    expect(screen.getByText(/cancelled: 0/i)).toBeInTheDocument();
+    expect(screen.getByText(/no packages reported yet/i)).toBeInTheDocument();
   });
 
   it("starts local ingest watching when the operator clicks Start ingest", async () => {
@@ -61,6 +80,12 @@ describe("workflow graph control plane", () => {
       .mockResolvedValueOnce(new Response(null, { status: 202 }))
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
           headers: { "Content-Type": "application/json" },
           status: 200
         })
@@ -86,24 +111,31 @@ describe("workflow graph control plane", () => {
   });
 
   it("shows real package status from the ingest status endpoint separately from the mocked graph", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          packages: [
-            {
-              packageId: "PKG-LOCAL-001",
-              workflowInstanceId: "workflow-local-001",
-              status: "Running",
-              updatedAt: "2026-05-03T18:42:00Z"
-            }
-          ]
-        }),
-        {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
           headers: { "Content-Type": "application/json" },
           status: 200
-        }
-      )
-    );
+        })
+      );
 
     render(<App />);
 
@@ -116,9 +148,10 @@ describe("workflow graph control plane", () => {
     expect(within(statusPanel).getByText("Running")).toBeInTheDocument();
     expect(within(statusPanel).getByText(/May 3, 2026/)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith("/api/ingest/status");
-    expect(
-      screen.getByRole("list", { name: /mocked workflow graph/i })
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    expect(await screen.findByRole("img", { name: /workflow diagram/i })).toBeInTheDocument();
   });
 
   it("refreshes real package status while the operator watches ingest progress", async () => {
@@ -149,6 +182,12 @@ describe("workflow graph control plane", () => {
             status: 200
           }
         )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
     );
 
     render(<App />);
@@ -167,7 +206,7 @@ describe("workflow graph control plane", () => {
       name: /real package status/i
     });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(within(statusPanel).getByText("PKG-LIVE-001")).toBeInTheDocument();
     expect(within(statusPanel).getByText("Succeeded")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/ingest/status");
@@ -190,3 +229,90 @@ describe("workflow graph control plane", () => {
     expect(await screen.findByText(/local watcher: error/i)).toBeInTheDocument();
   });
 });
+
+const liveWorkflowGraphResponse = {
+  workflowInstanceId: "workflow-local-001",
+  workflowName: "Package ingest workflow",
+  packageId: "PKG-2026-05-03-001",
+  parentWorkflowInstanceId: null,
+  nodes: [
+    {
+      nodeId: "manifest",
+      displayName: "Manifest detected",
+      kind: "WorkflowStep",
+      status: "Succeeded",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: null,
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "classify",
+      displayName: "Classify package",
+      kind: "Activity",
+      status: "Running",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: null,
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "proxy",
+      displayName: "Proxy workflow",
+      kind: "ChildWorkflow",
+      status: "Waiting",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: null,
+      childWorkflowInstanceId: "workflow-proxy-001"
+    },
+    {
+      nodeId: "audio",
+      displayName: "Audio essence",
+      kind: "WorkItem",
+      status: "Pending",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: "audio-001",
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "subtitle",
+      displayName: "Subtitle sidecar",
+      kind: "WorkItem",
+      status: "Failed",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: "subtitle-001",
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "video",
+      displayName: "Source video work item",
+      kind: "WorkItem",
+      status: "Succeeded",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: "video-001",
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "done",
+      displayName: "Done marker reconciliation",
+      kind: "WorkflowStep",
+      status: "Succeeded",
+      workflowInstanceId: "workflow-local-001",
+      packageId: "PKG-2026-05-03-001",
+      workItemId: null,
+      childWorkflowInstanceId: null
+    }
+  ],
+  edges: [
+    { edgeId: "manifest-classify", sourceNodeId: "manifest", targetNodeId: "classify" },
+    { edgeId: "classify-proxy", sourceNodeId: "classify", targetNodeId: "proxy" },
+    { edgeId: "classify-audio", sourceNodeId: "classify", targetNodeId: "audio" },
+    { edgeId: "classify-subtitle", sourceNodeId: "classify", targetNodeId: "subtitle" },
+    { edgeId: "classify-video", sourceNodeId: "classify", targetNodeId: "video" },
+    { edgeId: "video-done", sourceNodeId: "video", targetNodeId: "done" }
+  ]
+};

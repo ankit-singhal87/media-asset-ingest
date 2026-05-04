@@ -232,9 +232,27 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin: 0;
+  margin: 18px 0 0;
   padding: 0;
   list-style: none;
+}
+
+.workflow-diagram {
+  overflow: auto;
+  border: 1px solid #d6dde5;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.workflow-diagram__svg {
+  min-width: 720px;
+}
+
+.workflow-diagram__svg svg {
+  display: block;
+  width: 100%;
+  min-height: 260px;
 }
 
 .workflow-node {
@@ -272,9 +290,14 @@ h2 {
   border-left-color: #7b8794;
 }
 
-.workflow-node--pending .workflow-node__status {
+.workflow-node--pending .workflow-node__status,
+.workflow-node--queued .workflow-node__status {
   background: #e5eaf0;
   color: #344054;
+}
+
+.workflow-node--queued {
+  border-left-color: #7b8794;
 }
 
 .workflow-node--running {
@@ -311,6 +334,17 @@ h2 {
 .workflow-node--waiting .workflow-node__status {
   background: #ede9fe;
   color: #5b21b6;
+}
+
+.workflow-node--skipped,
+.workflow-node--cancelled {
+  border-left-color: #8a94a3;
+}
+
+.workflow-node--skipped .workflow-node__status,
+.workflow-node--cancelled .workflow-node__status {
+  background: #eef2f5;
+  color: #4b5563;
 }
 
 @media (max-width: 900px) {

@@ -75,6 +75,10 @@
   expect both manifest files under `output/<asset>/`.
 - USER-STORY-3 physical file enumeration now scans ready package directories
   recursively in the watcher without wiring discovery into copy behavior.
+- USER-STORY-12 now has a Mermaid-backed control-plane graph path: the API
+  exposes workflow graph DTOs by workflow instance, workflow lifecycle state
+  projects to graph node statuses, and the React UI renders Mermaid diagrams
+  while keeping package status and local start controls intact.
 
 ## Ready For Review
 

@@ -1,9 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import mermaid from "mermaid";
 
-import { mockedWorkflowGraph, summarizeStatuses, type WorkflowNode } from "./workflowGraph";
+import {
+  buildMermaidFlowchart,
+  mockedWorkflowGraph,
+  summarizeStatuses,
+  type WorkflowGraph,
+  type WorkflowNode
+} from "./workflowGraph";
 
 type LocalWatcherStatus = "idle" | "starting" | "watching" | "error";
 type PackageStatusLoadState = "loading" | "ready" | "error";
+type WorkflowGraphLoadState = "ready" | "loading" | "error";
 
 type IngestPackageStatus = {
   packageId: string;
@@ -26,10 +34,13 @@ const progressedStatuses = new Set<WorkflowNode["status"]>([
 
 const statusOrder: WorkflowNode["status"][] = [
   "Pending",
+  "Queued",
   "Running",
   "Failed",
   "Waiting",
-  "Succeeded"
+  "Succeeded",
+  "Skipped",
+  "Cancelled"
 ];
 const packageStatusRefreshIntervalMs = 5000;
 
@@ -43,6 +54,16 @@ async function fetchPackageStatuses() {
   const statusResponse = (await response.json()) as IngestStatusResponse;
 
   return statusResponse.packages;
+}
+
+async function fetchWorkflowGraph(workflowInstanceId: string) {
+  const response = await fetch(`/api/workflows/${encodeURIComponent(workflowInstanceId)}/graph`);
+
+  if (!response.ok) {
+    throw new Error(`Workflow graph failed with ${response.status}`);
+  }
+
+  return (await response.json()) as WorkflowGraph;
 }
 
 function formatStatus(status: WorkflowNode["status"]) {
@@ -71,13 +92,55 @@ function NodeCard({ node }: { node: WorkflowNode }) {
   );
 }
 
+function MermaidWorkflowDiagram({ graph }: { graph: WorkflowGraph }) {
+  const [diagramSvg, setDiagramSvg] = useState("");
+  const diagramSyntax = useMemo(() => buildMermaidFlowchart(graph), [graph]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base"
+    });
+
+    void mermaid
+      .render(`workflow-graph-${graph.workflowInstanceId.replace(/[^A-Za-z0-9_-]/g, "-")}`, diagramSyntax)
+      .then(({ svg }) => {
+        if (!cancelled) {
+          setDiagramSvg(svg);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [diagramSyntax, graph.workflowInstanceId]);
+
+  if (!diagramSvg) {
+    return <p role="status">Rendering workflow diagram...</p>;
+  }
+
+  return (
+    <div
+      role="img"
+      aria-label="workflow diagram"
+      className="workflow-diagram__svg"
+      dangerouslySetInnerHTML={{ __html: diagramSvg }}
+    />
+  );
+}
+
 export function App() {
-  const graph = mockedWorkflowGraph;
   const [localWatcherStatus, setLocalWatcherStatus] =
     useState<LocalWatcherStatus>("idle");
   const [packageStatusLoadState, setPackageStatusLoadState] =
     useState<PackageStatusLoadState>("loading");
+  const [workflowGraphLoadState, setWorkflowGraphLoadState] =
+    useState<WorkflowGraphLoadState>("ready");
   const [packageStatuses, setPackageStatuses] = useState<IngestPackageStatus[]>([]);
+  const [graph, setGraph] = useState<WorkflowGraph>(mockedWorkflowGraph);
   const statusSummary = summarizeStatuses(graph.nodes);
   const progressedNodeCount = graph.nodes.filter((node) =>
     progressedStatuses.has(node.status)
@@ -94,6 +157,19 @@ export function App() {
     }
   }, []);
 
+  const loadWorkflowGraph = useCallback(async (workflowInstanceId: string) => {
+    setWorkflowGraphLoadState("loading");
+
+    try {
+      const workflowGraph = await fetchWorkflowGraph(workflowInstanceId);
+
+      setGraph(workflowGraph);
+      setWorkflowGraphLoadState("ready");
+    } catch {
+      setWorkflowGraphLoadState("error");
+    }
+  }, []);
+
   useEffect(() => {
     void loadPackageStatuses();
     const refreshIntervalId = window.setInterval(
@@ -105,6 +181,14 @@ export function App() {
       window.clearInterval(refreshIntervalId);
     };
   }, [loadPackageStatuses]);
+
+  useEffect(() => {
+    const selectedWorkflowInstanceId = packageStatuses[0]?.workflowInstanceId;
+
+    if (packageStatusLoadState === "ready" && selectedWorkflowInstanceId) {
+      void loadWorkflowGraph(selectedWorkflowInstanceId);
+    }
+  }, [loadWorkflowGraph, packageStatusLoadState, packageStatuses]);
 
   async function startLocalIngest() {
     setLocalWatcherStatus("starting");
@@ -200,9 +284,18 @@ export function App() {
       <section className="graph-section" aria-labelledby="graph-heading">
         <div className="section-heading">
           <h2 id="graph-heading">{graph.workflowName}</h2>
-          <span>Mocked workflow graph data</span>
+          <span>Mermaid workflow graph</span>
         </div>
-        <ol className="workflow-graph" aria-label="mocked workflow graph">
+        {workflowGraphLoadState === "loading" && (
+          <p role="status">Loading workflow graph...</p>
+        )}
+        {workflowGraphLoadState === "error" && (
+          <p role="status">Workflow graph unavailable</p>
+        )}
+        <div className="workflow-diagram">
+          <MermaidWorkflowDiagram graph={graph} />
+        </div>
+        <ol className="workflow-graph" aria-label="workflow graph node status">
           {graph.nodes.map((node) => (
             <NodeCard key={node.nodeId} node={node} />
           ))}

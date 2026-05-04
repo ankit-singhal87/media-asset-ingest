@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MediaIngest.Contracts.Workflow;
 using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 using MediaIngest.Worker.Watcher;
@@ -146,6 +147,27 @@ public sealed class IngestRuntimeService(
             .ToArray();
 
         return new IngestStatusResponse(packages);
+    }
+
+    public WorkflowGraphDto? GetWorkflowGraph(string workflowInstanceId)
+    {
+        if (string.IsNullOrWhiteSpace(workflowInstanceId))
+        {
+            return null;
+        }
+
+        var packageState = store.PackageStates
+            .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
+            .Select(group => group.Last())
+            .SingleOrDefault(packageState =>
+                string.Equals(packageState.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal));
+
+        return packageState is null
+            ? null
+            : PackageWorkflowGraphProjection.FromPackageStatus(
+                packageState.PackageId,
+                packageState.WorkflowInstanceId,
+                packageState.Status);
     }
 
     public async ValueTask DisposeAsync()
