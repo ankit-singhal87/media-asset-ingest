@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { mockedWorkflowGraph, summarizeStatuses, type WorkflowNode } from "./workflowGraph";
 
@@ -31,6 +31,19 @@ const statusOrder: WorkflowNode["status"][] = [
   "Waiting",
   "Succeeded"
 ];
+const packageStatusRefreshIntervalMs = 5000;
+
+async function fetchPackageStatuses() {
+  const response = await fetch("/api/ingest/status");
+
+  if (!response.ok) {
+    throw new Error(`Ingest status failed with ${response.status}`);
+  }
+
+  const statusResponse = (await response.json()) as IngestStatusResponse;
+
+  return statusResponse.packages;
+}
 
 function formatStatus(status: WorkflowNode["status"]) {
   return status.toLowerCase();
@@ -70,38 +83,28 @@ export function App() {
     progressedStatuses.has(node.status)
   ).length;
 
-  useEffect(() => {
-    let isCurrent = true;
+  const loadPackageStatuses = useCallback(async () => {
+    try {
+      const packages = await fetchPackageStatuses();
 
-    async function loadPackageStatuses() {
-      try {
-        const response = await fetch("/api/ingest/status");
-
-        if (!response.ok) {
-          throw new Error(`Ingest status failed with ${response.status}`);
-        }
-
-        const statusResponse = (await response.json()) as IngestStatusResponse;
-
-        if (!isCurrent) {
-          return;
-        }
-
-        setPackageStatuses(statusResponse.packages);
-        setPackageStatusLoadState("ready");
-      } catch {
-        if (isCurrent) {
-          setPackageStatusLoadState("error");
-        }
-      }
+      setPackageStatuses(packages);
+      setPackageStatusLoadState("ready");
+    } catch {
+      setPackageStatusLoadState("error");
     }
+  }, []);
 
+  useEffect(() => {
     void loadPackageStatuses();
+    const refreshIntervalId = window.setInterval(
+      () => void loadPackageStatuses(),
+      packageStatusRefreshIntervalMs
+    );
 
     return () => {
-      isCurrent = false;
+      window.clearInterval(refreshIntervalId);
     };
-  }, []);
+  }, [loadPackageStatuses]);
 
   async function startLocalIngest() {
     setLocalWatcherStatus("starting");
@@ -114,6 +117,7 @@ export function App() {
       }
 
       setLocalWatcherStatus("watching");
+      void loadPackageStatuses();
     } catch {
       setLocalWatcherStatus("error");
     }

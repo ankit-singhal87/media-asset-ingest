@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
@@ -6,6 +6,7 @@ import { App } from "./App";
 describe("workflow graph control plane", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it("displays mocked workflow nodes and enough state to inspect progress", async () => {
@@ -57,7 +58,13 @@ describe("workflow graph control plane", () => {
           status: 200
         })
       )
-      .mockResolvedValueOnce(new Response(null, { status: 202 }));
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
 
     render(<App />);
 
@@ -73,6 +80,9 @@ describe("workflow graph control plane", () => {
       });
     });
     expect(await screen.findByText(/local watcher: watching/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(3, "/api/ingest/status");
+    });
   });
 
   it("shows real package status from the ingest status endpoint separately from the mocked graph", async () => {
@@ -109,6 +119,58 @@ describe("workflow graph control plane", () => {
     expect(
       screen.getByRole("list", { name: /mocked workflow graph/i })
     ).toBeInTheDocument();
+  });
+
+  it("refreshes real package status while the operator watches ingest progress", async () => {
+    vi.useFakeTimers();
+
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ packages: [] }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LIVE-001",
+                workflowInstanceId: "workflow-live-001",
+                status: "Succeeded",
+                updatedAt: "2026-05-03T18:45:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+    );
+
+    render(<App />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText(/no packages reported yet/i)).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    const statusPanel = screen.getByRole("region", {
+      name: /real package status/i
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(within(statusPanel).getByText("PKG-LIVE-001")).toBeInTheDocument();
+    expect(within(statusPanel).getByText("Succeeded")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/ingest/status");
   });
 
   it("shows an error status when local ingest start fails", async () => {

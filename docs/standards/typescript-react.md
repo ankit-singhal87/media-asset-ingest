@@ -23,5 +23,8 @@ ingest packages and workflow state.
   Testing Library.
 - Run `npm test` and `npm run build` from `web/ingest-control-plane` when
   changing React behavior.
+- The control-plane build uses the TypeScript 7 native preview through
+  `@typescript/native-preview` and `tsgo`; do not reintroduce the JavaScript
+  `typescript` compiler unless a compatibility task explicitly requires it.
 - Keep package-local generated output such as `node_modules`, `dist`, coverage,
   and TypeScript build metadata out of Git.
