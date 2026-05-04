@@ -46,6 +46,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-9 / USER-STORY-17: add static Kubernetes and Dapr readiness assets
   for internal API/UI services, PostgreSQL, workflow state, and Azure Service
   Bus command-topic placeholders without running cloud validation.
+- MILESTONE-8 / USER-STORY-13: add persisted local business timeline and node
+  diagnostic log backing for workflow node details, covering package start,
+  command dispatch, done-marker reconciliation, success, and failure details.
 
 ## Ready For Planning
 
@@ -59,8 +62,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service
   Bus subscriptions and real media command execution.
-- MILESTONE-8 / USER-STORY-12 / USER-STORY-13: expand workflow graph data with
-  node detail, timeline, and log-backed status sources.
+- MILESTONE-8 / USER-STORY-13: expand node diagnostics beyond local persisted
+  records into production log aggregation and OpenTelemetry trace linkage.
 - MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.
 
 ## Update Rule

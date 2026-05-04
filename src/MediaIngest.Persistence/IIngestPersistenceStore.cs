@@ -15,4 +15,14 @@ public interface IIngestPersistenceStore
         string messageId,
         DateTimeOffset dispatchedAt,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<BusinessTimelineRecord>> GetWorkflowNodeTimelineAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<NodeDiagnosticLogRecord>> GetWorkflowNodeLogsAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default);
 }
