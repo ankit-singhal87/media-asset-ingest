@@ -22,7 +22,8 @@ public sealed class IngestMountScanner
             .Select(filePath => new IngestPackageFile(
                 packagePath,
                 Path.GetFullPath(filePath),
-                Path.GetRelativePath(packagePath, filePath)))
+                Path.GetRelativePath(packagePath, filePath),
+                new FileInfo(filePath).Length))
             .OrderBy(file => file.PackageRelativePath, StringComparer.Ordinal)
             .ToArray();
     }
