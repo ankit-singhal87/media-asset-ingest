@@ -25,6 +25,11 @@ AssertEqual(1, store.OutboxMessages.Count, "saved outbox message count");
 AssertEqual("package-001", store.PackageStates[0].PackageId, "business state package id");
 AssertEqual("message-001", store.OutboxMessages[0].MessageId, "outbox message id");
 
+await store.SaveAsync(new PersistenceBatch([], [command]));
+
+AssertEqual(1, store.OutboxMessages.Count, "duplicate outbox message id is idempotent");
+AssertEqual("message-001", store.OutboxMessages[0].MessageId, "idempotent outbox message id");
+
 var rejected = false;
 
 try
@@ -57,6 +62,7 @@ AssertTrue(recordingConnection.Committed, "postgres save commits transaction");
 AssertEqual(2, recordingConnection.ExecutedCommands.Count, "postgres save command count");
 AssertContains("INSERT INTO ingest_package_states", recordingConnection.ExecutedCommands[0].CommandText, "postgres package upsert command");
 AssertContains("INSERT INTO outbox_messages", recordingConnection.ExecutedCommands[1].CommandText, "postgres outbox insert command");
+AssertContains("ON CONFLICT (message_id) DO NOTHING", recordingConnection.ExecutedCommands[1].CommandText, "postgres outbox insert idempotency");
 AssertEqual("package-001", recordingConnection.ExecutedCommands[0].Parameters["@package_id"], "postgres package id parameter");
 AssertEqual("message-001", recordingConnection.ExecutedCommands[1].Parameters["@message_id"], "postgres message id parameter");
 

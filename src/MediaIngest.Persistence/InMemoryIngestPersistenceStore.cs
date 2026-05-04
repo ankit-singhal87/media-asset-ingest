@@ -37,8 +37,27 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
 
         lock (storeLock)
         {
-            packageStates.AddRange(batch.PackageStates);
-            outboxMessages.AddRange(batch.OutboxMessages);
+            foreach (var packageState in batch.PackageStates)
+            {
+                var packageIndex = packageStates.FindIndex(existing => existing.PackageId == packageState.PackageId);
+
+                if (packageIndex >= 0)
+                {
+                    packageStates[packageIndex] = packageState;
+                }
+                else
+                {
+                    packageStates.Add(packageState);
+                }
+            }
+
+            foreach (var outboxMessage in batch.OutboxMessages)
+            {
+                if (!outboxMessages.Any(existing => existing.MessageId == outboxMessage.MessageId))
+                {
+                    outboxMessages.Add(outboxMessage);
+                }
+            }
         }
 
         return Task.CompletedTask;
@@ -58,6 +77,46 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
         }
 
         return Task.FromResult(pendingMessages);
+    }
+
+    public Task<IReadOnlyList<OutboxMessage>> ClaimPendingOutboxMessagesAsync(
+        DateTimeOffset claimedAt,
+        DateTimeOffset claimExpiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (claimExpiresAt <= claimedAt)
+        {
+            throw new ArgumentException("Outbox message claim expiry must be after the claim time.", nameof(claimExpiresAt));
+        }
+
+        IReadOnlyList<OutboxMessage> claimedMessages;
+
+        lock (storeLock)
+        {
+            var claimableMessages = outboxMessages
+                .Select((Message, Index) => (Message, Index))
+                .Where(candidate =>
+                    candidate.Message.DispatchedAt is null &&
+                    (candidate.Message.DispatchClaimExpiresAt is null ||
+                     candidate.Message.DispatchClaimExpiresAt <= claimedAt))
+                .OrderBy(candidate => candidate.Message.CreatedAt)
+                .ThenBy(candidate => candidate.Message.MessageId)
+                .ToArray();
+
+            claimedMessages = claimableMessages
+                .Select(candidate => candidate.Message with { DispatchClaimExpiresAt = claimExpiresAt })
+                .ToArray();
+
+            foreach (var claimedMessage in claimedMessages)
+            {
+                var messageIndex = outboxMessages.FindIndex(message => message.MessageId == claimedMessage.MessageId);
+                outboxMessages[messageIndex] = claimedMessage;
+            }
+        }
+
+        return Task.FromResult(claimedMessages);
     }
 
     public Task MarkOutboxMessageDispatchedAsync(
@@ -81,7 +140,14 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
                 throw new InvalidOperationException($"Outbox message '{messageId}' was not found.");
             }
 
-            outboxMessages[messageIndex] = outboxMessages[messageIndex] with { DispatchedAt = dispatchedAt };
+            if (outboxMessages[messageIndex].DispatchedAt is null)
+            {
+                outboxMessages[messageIndex] = outboxMessages[messageIndex] with
+                {
+                    DispatchedAt = dispatchedAt,
+                    DispatchClaimExpiresAt = null
+                };
+            }
         }
 
         return Task.CompletedTask;

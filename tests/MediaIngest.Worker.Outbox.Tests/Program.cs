@@ -4,6 +4,8 @@ using MediaIngest.Worker.Outbox;
 await DispatchPendingMessagesPublishesAndMarksThemWithTheDispatchTime();
 await DispatchPendingMessagesDoesNothingWhenNoMessagesArePending();
 await DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails();
+await OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice();
+await ClaimedMessagesCanBeRetriedAfterTheClaimExpires();
 
 Console.WriteLine("MediaIngest outbox dispatcher smoke tests passed.");
 
@@ -77,6 +79,77 @@ static async Task DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails
     AssertEqual(null, store.OutboxMessages[0].DispatchedAt, "failed publish leaves message pending");
 }
 
+static async Task OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice()
+{
+    var store = new InMemoryIngestPersistenceStore();
+    var message = CreateMessage(
+        messageId: "message-003",
+        destination: "media.command.inspect",
+        messageType: "MediaCommandEnvelope",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 20, 0, TimeSpan.Zero));
+
+    await store.SaveAsync(new PersistenceBatch([], [message]));
+
+    var publisher = new BlockingOutboxPublisher();
+    var dispatchClock = new FixedTimeProvider(new DateTimeOffset(2026, 5, 3, 12, 25, 0, TimeSpan.Zero));
+    var firstDispatcher = new OutboxDispatcher(store, publisher, dispatchClock);
+    var secondDispatcher = new OutboxDispatcher(store, publisher, dispatchClock);
+
+    var firstRun = firstDispatcher.DispatchPendingAsync();
+    await publisher.WaitForFirstPublishAttemptAsync();
+
+    var secondRun = secondDispatcher.DispatchPendingAsync();
+    await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+    publisher.AllowPublishes();
+
+    var dispatchCounts = await Task.WhenAll(firstRun, secondRun);
+
+    AssertEqual(1, dispatchCounts.Sum(), "overlapping dispatch count");
+    AssertEqual(1, publisher.Published.Count, "overlapping published message count");
+    AssertEqual("message-003", publisher.Published[0].MessageId, "overlapping published message id");
+}
+
+static async Task ClaimedMessagesCanBeRetriedAfterTheClaimExpires()
+{
+    var store = new InMemoryIngestPersistenceStore();
+    var message = CreateMessage(
+        messageId: "message-004",
+        destination: "media.command.retry",
+        messageType: "MediaCommandEnvelope",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 30, 0, TimeSpan.Zero));
+
+    await store.SaveAsync(new PersistenceBatch([], [message]));
+
+    var timeProvider = new MutableTimeProvider(new DateTimeOffset(2026, 5, 3, 12, 35, 0, TimeSpan.Zero));
+    var publisher = new FailsOnceOutboxPublisher("broker unavailable");
+    var dispatcher = new OutboxDispatcher(store, publisher, timeProvider, TimeSpan.FromSeconds(5));
+
+    var failed = false;
+
+    try
+    {
+        await dispatcher.DispatchPendingAsync();
+    }
+    catch (InvalidOperationException ex) when (ex.Message == "broker unavailable")
+    {
+        failed = true;
+    }
+
+    AssertTrue(failed, "first publish failure is surfaced");
+
+    var claimedRunCount = await dispatcher.DispatchPendingAsync();
+
+    timeProvider.UtcNow = timeProvider.UtcNow.AddSeconds(5);
+
+    var retryRunCount = await dispatcher.DispatchPendingAsync();
+
+    AssertEqual(0, claimedRunCount, "claimed message dispatch count before expiry");
+    AssertEqual(1, retryRunCount, "expired claim retry dispatch count");
+    AssertEqual(2, publisher.PublishAttempts, "expired claim retry publish attempts");
+    AssertEqual(timeProvider.UtcNow, store.OutboxMessages[0].DispatchedAt, "expired claim retry dispatched timestamp");
+}
+
 static OutboxMessage CreateMessage(
     string messageId,
     string destination,
@@ -128,10 +201,58 @@ internal sealed class FailingOutboxPublisher(string failureMessage) : IOutboxMes
     }
 }
 
+internal sealed class FailsOnceOutboxPublisher(string failureMessage) : IOutboxMessagePublisher
+{
+    public int PublishAttempts { get; private set; }
+
+    public Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    {
+        _ = message;
+        cancellationToken.ThrowIfCancellationRequested();
+        PublishAttempts++;
+
+        if (PublishAttempts == 1)
+        {
+            throw new InvalidOperationException(failureMessage);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class BlockingOutboxPublisher : IOutboxMessagePublisher
+{
+    private readonly TaskCompletionSource firstPublishAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource allowPublishes = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public List<OutboxMessage> Published { get; } = [];
+
+    public async Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    {
+        Published.Add(message);
+        firstPublishAttempted.TrySetResult();
+        await allowPublishes.Task.WaitAsync(cancellationToken);
+    }
+
+    public Task WaitForFirstPublishAttemptAsync() => firstPublishAttempted.Task;
+
+    public void AllowPublishes() => allowPublishes.TrySetResult();
+}
+
 internal sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
 {
     public override DateTimeOffset GetUtcNow()
     {
         return utcNow;
+    }
+}
+
+internal sealed class MutableTimeProvider(DateTimeOffset utcNow) : TimeProvider
+{
+    public DateTimeOffset UtcNow { get; set; } = utcNow;
+
+    public override DateTimeOffset GetUtcNow()
+    {
+        return UtcNow;
     }
 }
