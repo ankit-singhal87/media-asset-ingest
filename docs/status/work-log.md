@@ -145,6 +145,10 @@ messages or paste command output unless it explains a decision.
 - Added TASK-8-2 UI package workflow selection so operators can choose among
   multiple package workflow graphs, keep node details on same-workflow refresh,
   and clear node details when switching workflows.
+- Added TASK-8-3 interactive Mermaid workflow graph behavior: removed the
+  duplicated node-card list, bound React-managed activation handlers to rendered
+  Mermaid SVG nodes, added compact accessible node selection, and enabled child
+  workflow drilldown with parent back navigation.
 
 ## Update Rule
 

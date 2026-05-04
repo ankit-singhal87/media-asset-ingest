@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMermaidFlowchart,
   mockedWorkflowGraph,
+  toMermaidNodeId,
   workflowStatusPalette
 } from "./workflowGraph";
 
@@ -60,5 +61,10 @@ describe("workflow graph mermaid syntax", () => {
     expect(diagram).toContain(
       `linkStyle 0 stroke:${workflowStatusPalette.Queued.stroke}`
     );
+  });
+
+  it("exposes the stable Mermaid node identifier used for SVG interaction", () => {
+    expect(toMermaidNodeId("scan.package/1")).toBe("scan_package_1");
+    expect(toMermaidNodeId("2026-start")).toBe("node_2026_start");
   });
 });
