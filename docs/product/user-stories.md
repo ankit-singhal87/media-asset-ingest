@@ -11,7 +11,7 @@ ownership lanes. Keep detailed implementation tasks in `docs/plans/tasks`.
 | USER-STORY-2 | Start only when manifest is ready | MILESTONE-3 | Manifest | Mount | Complete |
 | USER-STORY-3 | Ingest all discovered files | MILESTONE-3 | Ingest package | Mount | In Progress |
 | USER-STORY-4 | Reconcile on done marker | MILESTONE-3 | Done marker | Mount | Planned |
-| USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Planned |
+| USER-STORY-5 | Classify media essences | MILESTONE-3 | Essence classification | Essence | Completed |
 | USER-STORY-6 | Route work through ASB command topics | MILESTONE-4 | Messaging | Courier | Planned |
 | USER-STORY-7 | Execute generic media commands | MILESTONE-6 | Command execution | Essence | In Progress |
 | USER-STORY-8 | Use transactional outbox | MILESTONE-4 | Outbox | Courier | In Progress |

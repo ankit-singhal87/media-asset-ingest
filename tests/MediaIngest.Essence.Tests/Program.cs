@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using MediaIngest.Essence.Classification;
 using MediaIngest.Essence.Checksums;
 
 var workspace = Path.Combine(Path.GetTempPath(), "media-ingest-essence-tests", Guid.NewGuid().ToString("N"));
@@ -45,7 +46,17 @@ try
     AssertEqual(new string('0', 64), mismatchedResult.ExpectedChecksumHex, "mismatched expected checksum");
     AssertEqual(expectedChecksum, mismatchedResult.ActualChecksumHex, "mismatched actual checksum");
 
-    Console.WriteLine("MediaIngest essence checksum tests passed.");
+    AssertEqual(EssenceType.VideoSource, EssenceClassifier.Classify("media/clip.mov"), "mov classifies as video source");
+    AssertEqual(EssenceType.VideoSource, EssenceClassifier.Classify("media/clip.mxf"), "mxf classifies as video source");
+    AssertEqual(EssenceType.VideoSource, EssenceClassifier.Classify("media/clip.MP4"), "mp4 classifies as video source");
+    AssertEqual(EssenceType.Text, EssenceClassifier.Classify("sidecars/captions.srt"), "srt classifies as text");
+    AssertEqual(EssenceType.Text, EssenceClassifier.Classify("sidecars/notes.txt"), "txt classifies as text");
+    AssertEqual(EssenceType.Text, EssenceClassifier.Classify("sidecars/captions.vtt"), "vtt classifies as text");
+    AssertEqual(EssenceType.Audio, EssenceClassifier.Classify("audio/dialogue.mp3"), "mp3 classifies as audio");
+    AssertEqual(EssenceType.Audio, EssenceClassifier.Classify("audio/dialogue.wav"), "wav classifies as audio");
+    AssertEqual(EssenceType.Other, EssenceClassifier.Classify("metadata/manifest.json"), "unknown extension classifies as other");
+
+    Console.WriteLine("MediaIngest essence tests passed.");
 }
 finally
 {

@@ -78,6 +78,9 @@
   `manifest.json.checksum` before package work may begin.
 - USER-STORY-3 physical file enumeration now scans ready package directories
   recursively in the watcher without wiring discovery into copy behavior.
+- USER-STORY-5 essence classification now maps discovered media extensions to
+  video/source, text, audio, or other categories, and watcher discovery exposes
+  file-size metadata for routing policy inputs.
 - USER-STORY-12 now has a Mermaid-backed control-plane graph path: the API
   exposes workflow graph DTOs by workflow instance, workflow lifecycle state
   projects to graph node statuses, and the React UI renders Mermaid diagrams

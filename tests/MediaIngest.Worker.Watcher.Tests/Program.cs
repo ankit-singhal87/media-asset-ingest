@@ -64,6 +64,16 @@ try
         discoveredFiles.Select(file => Path.Combine(readyPackagePath, file.PackageRelativePath)).ToArray(),
         discoveredFiles.Select(file => file.FilePath).ToArray(),
         "ready package discovered full paths");
+
+    var discoveredFileByRelativePath = discoveredFiles.ToDictionary(file => file.PackageRelativePath, StringComparer.Ordinal);
+    AssertEqual(
+        new FileInfo(Path.Combine(readyPackageMediaPath, "clip.mov")).Length,
+        discoveredFileByRelativePath[Path.Combine("media", "clip.mov")].FileSizeBytes,
+        "ready package discovered media file size");
+    AssertEqual(
+        new FileInfo(Path.Combine(readyPackageSidecarPath, "clip.en.srt")).Length,
+        discoveredFileByRelativePath[Path.Combine("sidecars", "captions", "clip.en.srt")].FileSizeBytes,
+        "ready package discovered sidecar file size");
 }
 finally
 {
