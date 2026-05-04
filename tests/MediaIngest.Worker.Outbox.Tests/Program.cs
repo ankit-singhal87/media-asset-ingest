@@ -17,6 +17,8 @@ await DaprPublisherPublishesPayloadToTheDestinationTopic();
 await DaprPublisherRequestsRawPayloadToPreserveBrokerMessageBody();
 await DaprPublisherMapsApplicationPropertiesToDaprMetadata();
 await DaprPublisherSurfacesNonSuccessResponses();
+await ServiceBusAdapterMapsCommandRequestsToBrokerTopology();
+await CommandBusPublisherValidatesServiceBusMappingThenUsesLocalPublisher();
 
 Console.WriteLine("MediaIngest outbox dispatcher smoke tests passed.");
 
@@ -392,6 +394,60 @@ static async Task DaprPublisherSurfacesNonSuccessResponses()
     }
 
     AssertTrue(failed, "dapr non-success response is surfaced");
+}
+
+static Task ServiceBusAdapterMapsCommandRequestsToBrokerTopology()
+{
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-servicebus-heavy",
+            destination: CommandNames.ArchiveAsset,
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 4, 9, 0, 0, TimeSpan.Zero),
+            payloadJson: """{"commandId":"command-heavy","executionClass":"heavy"}"""),
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [CommandRoute.ExecutionClassPropertyName] = "heavy"
+        });
+
+    var adapter = new ServiceBusCommandBusAdapter();
+    var brokerMessage = adapter.CreateMessage(request);
+
+    AssertEqual(CommandNames.ArchiveAsset, brokerMessage.TopicName, "service bus topic");
+    AssertEqual(CommandBusTopology.HeavySubscriptionName, brokerMessage.RoutedSubscriptionName, "service bus subscription");
+    AssertEqual(
+        """{"commandId":"command-heavy","executionClass":"heavy"}""",
+        brokerMessage.BodyJson,
+        "service bus message body");
+    AssertEqual(
+        "heavy",
+        brokerMessage.ApplicationProperties[CommandRoute.ExecutionClassPropertyName],
+        "service bus executionClass application property");
+
+    return Task.CompletedTask;
+}
+
+static async Task CommandBusPublisherValidatesServiceBusMappingThenUsesLocalPublisher()
+{
+    var localPublisher = new RecordingOutboxPublisher();
+    var publisher = new CommandBusOutboxMessagePublisher(new ServiceBusCommandBusAdapter(), localPublisher);
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-local-strategy",
+            destination: CommandNames.CreateProxy,
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 4, 9, 5, 0, TimeSpan.Zero),
+            payloadJson: """{"commandId":"command-local","executionClass":"light"}"""),
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [CommandRoute.ExecutionClassPropertyName] = "light"
+        });
+
+    await publisher.PublishAsync(request);
+
+    AssertEqual(1, localPublisher.Published.Count, "local fallback publish count");
+    AssertEqual("message-local-strategy", localPublisher.Published[0].Message.MessageId, "local fallback message id");
+    AssertEqual("light", localPublisher.Published[0].ApplicationProperties[CommandRoute.ExecutionClassPropertyName], "local fallback executionClass");
 }
 
 static OutboxMessage CreateMessage(

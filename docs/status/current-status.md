@@ -132,6 +132,11 @@
   now carries stable child workflow instance IDs and parent workflow references,
   and workflow graph projection can render queued child workflow nodes directly
   from a package workflow start.
+- TASK-4-4 defined the Service Bus command-bus adapter boundary in the outbox
+  worker. Command publish requests now map to a broker-oriented message shape
+  with semantic topic, raw command body, application properties, and routed
+  light/medium/heavy subscription name before local Dapr or in-memory publisher
+  delegation.
 
 ## Next
 
