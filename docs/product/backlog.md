@@ -36,6 +36,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-13: add package workflow selection
   to the control plane and preserve or clear node detail state according to the
   selected workflow.
+- MILESTONE-8 / USER-STORY-13 / USER-STORY-14 / USER-STORY-15: make the
+  Mermaid workflow diagram interactive, remove the duplicated node-card graph,
+  and support child workflow drilldown with parent back navigation.
 
 ## Ready For Planning
 
@@ -47,8 +50,6 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.
 - MILESTONE-5 / USER-STORY-10: expand nested workflow contracts and behavior.
-- MILESTONE-8 / USER-STORY-13 / USER-STORY-14 / USER-STORY-15: add node log
-  inspection, nested workflow drilldown, and back traversal.
 
 ## Later
 

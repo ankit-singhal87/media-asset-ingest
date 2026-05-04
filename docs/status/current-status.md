@@ -107,12 +107,15 @@
 - TASK-8-2 added multi-package workflow selection in the React control plane,
   preserving node detail during same-workflow refreshes and clearing detail when
   the operator switches workflows.
+- TASK-8-3 made the Mermaid diagram the only workflow graph UI, with
+  React-managed SVG node activation, compact keyboard-accessible node
+  selection, child workflow drilldown, and parent back navigation.
 
 ## Next
 
 - Push or open a PR for the local `main` integration when authorized.
-- Plan the next runtime slice: nested workflow drilldown, node log/timeline
-  detail, or local container runtime validation.
+- Plan the next runtime slice: richer node log/timeline data sources or local
+  container runtime validation.
 
 ## Update Rule
 
