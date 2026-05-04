@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Updated USER-STORY-16 local ingest documentation after the backend, UI, and
+  runtime support slices merged, including the fixed API port, Vite `/api`
+  proxy, **Start ingest** flow, `input/<asset>/` manifest pair, expected
+  `output/<asset>/` output, and dry-run smoke-script path.
 - Completed the USER-STORY-2 Mount readiness gate so watcher code can observe
   package directories while exposing only manifest-plus-checksum packages as
   ready to start.
