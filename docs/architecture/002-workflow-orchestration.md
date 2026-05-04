@@ -43,6 +43,12 @@ Child workflows are allowed for meaningful lifecycle chunks:
 Do not make every tiny operation its own workflow. Use child workflows when the
 boundary improves clarity, retry behavior, or UI drilldown.
 
+Prepared child workflow work includes the child workflow name, stable child
+workflow instance ID, and parent workflow instance ID before runtime execution.
+The stable child ID format is `<parent-workflow-instance-id>/<child-node-id>`.
+Graph projections must use these prepared references when they are available so
+operator drilldown matches the identifiers used to start child workflows.
+
 ## Parallelism
 
 Dapr Workflow supports fan-out/fan-in. A package workflow may start multiple

@@ -123,6 +123,10 @@
   reads stored package start, command dispatch, done-marker reconciliation,
   success, and failure records instead of synthetic package-state text. This
   does not complete production log aggregation or OpenTelemetry trace linkage.
+- TASK-5-2 expanded nested workflow behavior contracts so prepared child work
+  now carries stable child workflow instance IDs and parent workflow references,
+  and workflow graph projection can render queued child workflow nodes directly
+  from a package workflow start.
 
 ## Next
 

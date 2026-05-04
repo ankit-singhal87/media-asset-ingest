@@ -27,6 +27,19 @@ AssertEqual(WorkflowContractNames.EssenceGroupProcessingWorkflow, start.Prepared
 AssertEqual(WorkflowContractNames.ProxyCreationWorkflow, start.PreparedChildWork[3].WorkflowName, "proxy workflow name");
 AssertEqual(WorkflowContractNames.ReconciliationWorkflow, start.PreparedChildWork[4].WorkflowName, "reconciliation workflow name");
 AssertEqual(WorkflowContractNames.FinalizationWorkflow, start.PreparedChildWork[5].WorkflowName, "finalization workflow name");
+AssertAll(
+    start.PreparedChildWork,
+    work => work.ParentWorkflowInstanceId == start.WorkflowInstanceId,
+    "prepared child work carries parent workflow instance id");
+AssertAll(
+    start.PreparedChildWork,
+    work => work.WorkflowInstanceId == $"{start.WorkflowInstanceId}/{work.NodeId}",
+    "prepared child work carries stable child workflow instance id");
+
+var startGraph = PackageWorkflowGraphProjection.FromWorkflowStart(start);
+AssertEqual("package-package-001", startGraph.WorkflowInstanceId, "start graph workflow instance id");
+AssertEqual(WorkflowNodeStatus.Queued, startGraph.Nodes[0].Status, "start graph package status");
+AssertEqual("package-package-001/scan-package", startGraph.Nodes[1].ChildWorkflowInstanceId, "start graph scan child workflow instance id");
 
 var lifecycle = PackageWorkflowLifecycle.Observe(request);
 AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");
