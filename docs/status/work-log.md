@@ -160,6 +160,10 @@ messages or paste command output unless it explains a decision.
   medium, and heavy execution classes, including execution-class rejection,
   idempotent duplicate `CommandId` handling, failure recording, in-memory
   progress records, and a focused `make test-dotnet-command-runner` target.
+- Added USER-STORY-13 persisted local node timeline/log backing: persistence
+  batches now carry business timeline and node diagnostic log records, and the
+  existing workflow node details API reads stored local ingest messages instead
+  of synthetic package-state details.
 
 ## Update Rule
 

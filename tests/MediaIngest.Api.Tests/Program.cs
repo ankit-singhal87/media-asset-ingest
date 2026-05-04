@@ -104,8 +104,19 @@ try
     AssertEqual("scan-package", nodeDetails.NodeId, "node details node id");
     AssertEqual("Succeeded", nodeDetails.Timeline.Single().Status.ToString(), "node details timeline status");
     AssertEqual("correlation-asset-001", nodeDetails.Timeline.Single().CorrelationId, "node details timeline correlation");
+    AssertEqual("Package scan found 7 files for asset-001.", nodeDetails.Timeline.Single().Message, "node details persisted timeline message");
     AssertEqual("Information", nodeDetails.Logs.Single().Level, "node details log level");
     AssertEqual("correlation-asset-001", nodeDetails.Logs.Single().CorrelationId, "node details log correlation");
+    AssertEqual("Scan node persisted package file discovery for asset-001.", nodeDetails.Logs.Single().Message, "node details persisted log message");
+    AssertFalse(nodeDetails.Logs.Single().Message.Contains("projected from in-memory workflow state", StringComparison.Ordinal), "node details log is not synthetic");
+
+    var dispatchDetails = runtimeService.GetWorkflowNodeDetails("package-asset-001", "dispatch-processing")
+        ?? throw new InvalidOperationException("dispatch node details endpoint source returned null.");
+    AssertTrue(dispatchDetails.Timeline.Any(entry => entry.Message.Contains("Dispatched", StringComparison.Ordinal)), "dispatch node persisted timeline");
+
+    var reconcileDetails = runtimeService.GetWorkflowNodeDetails("package-asset-001", "reconcile-package")
+        ?? throw new InvalidOperationException("reconcile node details endpoint source returned null.");
+    AssertTrue(reconcileDetails.Timeline.Any(entry => entry.Message.Contains("done.marker", StringComparison.Ordinal)), "reconcile node persisted timeline");
 
     var missingNodeDetails = runtimeService.GetWorkflowNodeDetails("package-asset-001", "missing-node");
     AssertNull(missingNodeDetails, "missing node details");
@@ -169,6 +180,7 @@ try
     AssertContains("\"nodeId\":\"scan-package\"", nodeDetailsJson, "node details endpoint node id");
     AssertContains("\"timeline\":[", nodeDetailsJson, "node details endpoint timeline");
     AssertContains("\"logs\":[", nodeDetailsJson, "node details endpoint logs");
+    AssertContains("Package scan found 7 files for asset-001.", nodeDetailsJson, "node details endpoint persisted message");
 
     using var missingNodeDetailsResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/nodes/missing-node");
     AssertEqual(System.Net.HttpStatusCode.NotFound, missingNodeDetailsResponse.StatusCode, "missing node details endpoint status");

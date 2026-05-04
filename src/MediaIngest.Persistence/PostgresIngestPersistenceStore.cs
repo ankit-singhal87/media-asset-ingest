@@ -104,6 +104,94 @@ public sealed class PostgresIngestPersistenceStore(
                 cancellationToken);
         }
 
+        foreach (var timelineRecord in batch.TimelineRecords)
+        {
+            await ExecuteNonQueryAsync(
+                connection,
+                transaction,
+                """
+                INSERT INTO business_timeline_records (
+                    event_id,
+                    workflow_instance_id,
+                    node_id,
+                    package_id,
+                    correlation_id,
+                    occurred_at,
+                    status,
+                    message
+                )
+                VALUES (
+                    @event_id,
+                    @workflow_instance_id,
+                    @node_id,
+                    @package_id,
+                    @correlation_id,
+                    @occurred_at,
+                    @status,
+                    @message
+                )
+                ON CONFLICT (event_id) DO NOTHING;
+                """,
+                [
+                    ("@event_id", timelineRecord.EventId),
+                    ("@workflow_instance_id", timelineRecord.WorkflowInstanceId),
+                    ("@node_id", timelineRecord.NodeId),
+                    ("@package_id", timelineRecord.PackageId),
+                    ("@correlation_id", timelineRecord.CorrelationId),
+                    ("@occurred_at", timelineRecord.OccurredAt),
+                    ("@status", timelineRecord.Status),
+                    ("@message", timelineRecord.Message)
+                ],
+                cancellationToken);
+        }
+
+        foreach (var nodeDiagnosticLog in batch.NodeDiagnosticLogs)
+        {
+            await ExecuteNonQueryAsync(
+                connection,
+                transaction,
+                """
+                INSERT INTO node_diagnostic_logs (
+                    log_id,
+                    workflow_instance_id,
+                    node_id,
+                    package_id,
+                    correlation_id,
+                    occurred_at,
+                    level,
+                    message,
+                    trace_id,
+                    span_id
+                )
+                VALUES (
+                    @log_id,
+                    @workflow_instance_id,
+                    @node_id,
+                    @package_id,
+                    @correlation_id,
+                    @occurred_at,
+                    @level,
+                    @message,
+                    @trace_id,
+                    @span_id
+                )
+                ON CONFLICT (log_id) DO NOTHING;
+                """,
+                [
+                    ("@log_id", nodeDiagnosticLog.LogId),
+                    ("@workflow_instance_id", nodeDiagnosticLog.WorkflowInstanceId),
+                    ("@node_id", nodeDiagnosticLog.NodeId),
+                    ("@package_id", nodeDiagnosticLog.PackageId),
+                    ("@correlation_id", nodeDiagnosticLog.CorrelationId),
+                    ("@occurred_at", nodeDiagnosticLog.OccurredAt),
+                    ("@level", nodeDiagnosticLog.Level),
+                    ("@message", nodeDiagnosticLog.Message),
+                    ("@trace_id", nodeDiagnosticLog.TraceId),
+                    ("@span_id", nodeDiagnosticLog.SpanId)
+                ],
+                cancellationToken);
+        }
+
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -227,6 +315,104 @@ public sealed class PostgresIngestPersistenceStore(
         {
             throw new InvalidOperationException($"Outbox message '{messageId}' was not found.");
         }
+    }
+
+    public async Task<IReadOnlyList<BusinessTimelineRecord>> GetWorkflowNodeTimelineAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                event_id,
+                workflow_instance_id,
+                node_id,
+                package_id,
+                correlation_id,
+                occurred_at,
+                status,
+                message
+            FROM business_timeline_records
+            WHERE workflow_instance_id = @workflow_instance_id
+              AND node_id = @node_id
+            ORDER BY occurred_at, event_id;
+            """;
+        AddParameter(command, "@workflow_instance_id", workflowInstanceId);
+        AddParameter(command, "@node_id", nodeId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var records = new List<BusinessTimelineRecord>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            records.Add(new BusinessTimelineRecord(
+                EventId: reader.GetString(0),
+                WorkflowInstanceId: reader.GetString(1),
+                NodeId: reader.GetString(2),
+                PackageId: reader.GetString(3),
+                CorrelationId: reader.GetString(4),
+                OccurredAt: ReadDateTimeOffset(reader, 5),
+                Status: reader.GetString(6),
+                Message: reader.GetString(7)));
+        }
+
+        return records;
+    }
+
+    public async Task<IReadOnlyList<NodeDiagnosticLogRecord>> GetWorkflowNodeLogsAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                log_id,
+                workflow_instance_id,
+                node_id,
+                package_id,
+                correlation_id,
+                occurred_at,
+                level,
+                message,
+                trace_id,
+                span_id
+            FROM node_diagnostic_logs
+            WHERE workflow_instance_id = @workflow_instance_id
+              AND node_id = @node_id
+            ORDER BY occurred_at, log_id;
+            """;
+        AddParameter(command, "@workflow_instance_id", workflowInstanceId);
+        AddParameter(command, "@node_id", nodeId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var records = new List<NodeDiagnosticLogRecord>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            records.Add(new NodeDiagnosticLogRecord(
+                LogId: reader.GetString(0),
+                WorkflowInstanceId: reader.GetString(1),
+                NodeId: reader.GetString(2),
+                PackageId: reader.GetString(3),
+                CorrelationId: reader.GetString(4),
+                OccurredAt: ReadDateTimeOffset(reader, 5),
+                Level: reader.GetString(6),
+                Message: reader.GetString(7),
+                TraceId: reader.IsDBNull(8) ? null : reader.GetString(8),
+                SpanId: reader.IsDBNull(9) ? null : reader.GetString(9)));
+        }
+
+        return records;
     }
 
     private static async Task OpenIfNeededAsync(DbConnection connection, CancellationToken cancellationToken)

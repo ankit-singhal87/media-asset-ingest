@@ -118,6 +118,11 @@
 - TASK-8-3 made the Mermaid diagram the only workflow graph UI, with
   React-managed SVG node activation, compact keyboard-accessible node
   selection, child workflow drilldown, and parent back navigation.
+- USER-STORY-13 now has persisted local business timeline and node diagnostic
+  log backing for workflow node details, so the existing node details endpoint
+  reads stored package start, command dispatch, done-marker reconciliation,
+  success, and failure records instead of synthetic package-state text. This
+  does not complete production log aggregation or OpenTelemetry trace linkage.
 
 ## Next
 
