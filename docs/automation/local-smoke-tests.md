@@ -65,6 +65,31 @@ Optional overrides:
 
 ## Local Compose Config
 
+Use `make up` to start the local API, UI, and PostgreSQL Compose runtime from
+the repository root:
+
+```bash
+make up
+```
+
+The target runs:
+
+```bash
+docker compose -f deploy/docker/compose.yaml up --build
+```
+
+Use `make down` to stop the local Compose runtime:
+
+```bash
+make down
+```
+
+The target runs:
+
+```bash
+docker compose -f deploy/docker/compose.yaml down
+```
+
 Use `scripts/dev/local-compose-check.sh` to validate the local API, UI, and
 PostgreSQL Compose configuration without starting containers:
 

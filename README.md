@@ -57,6 +57,32 @@ helper wrappers, and the .NET solution smoke-test targets. Runtime-specific
 checks such as local Compose validation are exposed as focused Make targets and
 can be run when that slice is in scope.
 
+### 4. Start or stop the local Docker runtime
+
+Use Docker Compose for the current runnable local system:
+
+```bash
+make up
+```
+
+That target builds and starts the local API, UI, and PostgreSQL services with:
+
+```bash
+docker compose -f deploy/docker/compose.yaml up --build
+```
+
+Stop the local Docker runtime with:
+
+```bash
+make down
+```
+
+That target runs:
+
+```bash
+docker compose -f deploy/docker/compose.yaml down
+```
+
 ## Local Manifest Ingest Demo
 
 This local workflow exercises the manifest start path through the API, React
