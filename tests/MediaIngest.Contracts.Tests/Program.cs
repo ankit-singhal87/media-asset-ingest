@@ -36,6 +36,59 @@ var graph = new WorkflowGraphDto(
             TargetNodeId: "proxy")
     ]);
 
+AssertSequenceEqual(
+    [
+        "media.command.create_proxy",
+        "media.command.create_checksum",
+        "media.command.verify_checksum",
+        "media.command.run_security_scan",
+        "media.command.archive_asset"
+    ],
+    [
+        CommandNames.CreateProxy,
+        CommandNames.CreateChecksum,
+        CommandNames.VerifyChecksum,
+        CommandNames.RunSecurityScan,
+        CommandNames.ArchiveAsset
+    ],
+    "stable command names");
+AssertSequenceEqual(
+    [
+        "media.command.create_proxy",
+        "media.command.create_checksum",
+        "media.command.verify_checksum",
+        "media.command.run_security_scan",
+        "media.command.archive_asset"
+    ],
+    CommandBusTopology.CommandTopics,
+    "stable command topology topic names");
+AssertSequenceEqual(
+    ["light", "medium", "heavy"],
+    [
+        CommandBusTopology.LightSubscriptionName,
+        CommandBusTopology.MediumSubscriptionName,
+        CommandBusTopology.HeavySubscriptionName
+    ],
+    "stable command topology subscription names");
+
+AssertExecutionClassValues(
+    [
+        (ExecutionClass.Light, 0, "Light", "light"),
+        (ExecutionClass.Medium, 1, "Medium", "medium"),
+        (ExecutionClass.Heavy, 2, "Heavy", "heavy")
+    ],
+    "execution class values");
+AssertEqual(ExecutionClass.Light, ExecutionClassProperties.FromPropertyValue("LIGHT"), "execution class property parse casing");
+AssertJsonContains(ExecutionClass.Light, """
+    "light"
+    """, "light execution class JSON value");
+AssertJsonContains(ExecutionClass.Medium, """
+    "medium"
+    """, "medium execution class JSON value");
+AssertJsonContains(ExecutionClass.Heavy, """
+    "heavy"
+    """, "heavy execution class JSON value");
+
 AssertEqual("PackageIngestWorkflow", WorkflowContractNames.PackageIngestWorkflow, "root workflow name");
 AssertSequenceEqual(
     [
@@ -55,10 +108,79 @@ AssertSequenceEqual(
         WorkflowContractNames.FinalizationWorkflow
     ],
     "child workflow names");
+AssertSequenceEqual(
+    [
+        "PackageIngestWorkflow",
+        "PackageScanWorkflow",
+        "FileClassificationWorkflow",
+        "EssenceGroupProcessingWorkflow",
+        "ProxyCreationWorkflow",
+        "ReconciliationWorkflow",
+        "FinalizationWorkflow"
+    ],
+    [
+        WorkflowContractNames.PackageIngestWorkflow,
+        WorkflowContractNames.PackageScanWorkflow,
+        WorkflowContractNames.FileClassificationWorkflow,
+        WorkflowContractNames.EssenceGroupProcessingWorkflow,
+        WorkflowContractNames.ProxyCreationWorkflow,
+        WorkflowContractNames.ReconciliationWorkflow,
+        WorkflowContractNames.FinalizationWorkflow
+    ],
+    "stable workflow contract names");
+AssertEnumValues<WorkflowNodeStatus>(
+    [
+        (WorkflowNodeStatus.Pending, 0, "Pending"),
+        (WorkflowNodeStatus.Queued, 1, "Queued"),
+        (WorkflowNodeStatus.Running, 2, "Running"),
+        (WorkflowNodeStatus.Succeeded, 3, "Succeeded"),
+        (WorkflowNodeStatus.Failed, 4, "Failed"),
+        (WorkflowNodeStatus.Waiting, 5, "Waiting"),
+        (WorkflowNodeStatus.Skipped, 6, "Skipped"),
+        (WorkflowNodeStatus.Cancelled, 7, "Cancelled")
+    ],
+    "workflow node status values");
+AssertEnumValues<WorkflowNodeKind>(
+    [
+        (WorkflowNodeKind.WorkflowStep, 0, "WorkflowStep"),
+        (WorkflowNodeKind.Activity, 1, "Activity"),
+        (WorkflowNodeKind.ChildWorkflow, 2, "ChildWorkflow"),
+        (WorkflowNodeKind.WorkItem, 3, "WorkItem")
+    ],
+    "workflow node kind values");
 AssertEqual(WorkflowNodeStatus.Running, graph.Nodes[1].Status, "node status");
 AssertEqual("workflow-proxy-001", graph.Nodes[1].ChildWorkflowInstanceId, "child workflow drilldown link");
 AssertEqual("scan", graph.Edges[0].SourceNodeId, "edge source");
 AssertJsonRoundTrip(graph);
+AssertDtoConstructor(
+    typeof(WorkflowGraphDto),
+    [
+        ("WorkflowInstanceId", typeof(string)),
+        ("WorkflowName", typeof(string)),
+        ("PackageId", typeof(string)),
+        ("ParentWorkflowInstanceId", typeof(string)),
+        ("Nodes", typeof(IReadOnlyList<WorkflowNodeDto>)),
+        ("Edges", typeof(IReadOnlyList<WorkflowEdgeDto>))
+    ]);
+AssertDtoConstructor(
+    typeof(WorkflowNodeDto),
+    [
+        ("NodeId", typeof(string)),
+        ("DisplayName", typeof(string)),
+        ("Kind", typeof(WorkflowNodeKind)),
+        ("Status", typeof(WorkflowNodeStatus)),
+        ("WorkflowInstanceId", typeof(string)),
+        ("PackageId", typeof(string)),
+        ("WorkItemId", typeof(string)),
+        ("ChildWorkflowInstanceId", typeof(string))
+    ]);
+AssertDtoConstructor(
+    typeof(WorkflowEdgeDto),
+    [
+        ("EdgeId", typeof(string)),
+        ("SourceNodeId", typeof(string)),
+        ("TargetNodeId", typeof(string))
+    ]);
 
 var childGraph = graph with
 {
@@ -97,6 +219,32 @@ AssertEqual("proxy", details.NodeId, "node details id");
 AssertEqual("correlation-001", details.Timeline[0].CorrelationId, "timeline correlation");
 AssertEqual("trace-001", details.Logs[0].TraceId, "log trace id");
 AssertJsonRoundTrip(details);
+AssertDtoConstructor(
+    typeof(WorkflowNodeDetailsDto),
+    [
+        ("WorkflowInstanceId", typeof(string)),
+        ("NodeId", typeof(string)),
+        ("Timeline", typeof(IReadOnlyList<WorkflowTimelineEntryDto>)),
+        ("Logs", typeof(IReadOnlyList<WorkflowNodeLogEntryDto>))
+    ]);
+AssertDtoConstructor(
+    typeof(WorkflowTimelineEntryDto),
+    [
+        ("OccurredAt", typeof(DateTimeOffset)),
+        ("Status", typeof(WorkflowNodeStatus)),
+        ("Message", typeof(string)),
+        ("CorrelationId", typeof(string))
+    ]);
+AssertDtoConstructor(
+    typeof(WorkflowNodeLogEntryDto),
+    [
+        ("OccurredAt", typeof(DateTimeOffset)),
+        ("Level", typeof(string)),
+        ("Message", typeof(string)),
+        ("CorrelationId", typeof(string)),
+        ("TraceId", typeof(string)),
+        ("SpanId", typeof(string))
+    ]);
 
 var lightRouting = CommandRoutingPolicy.Route(
     commandName: CommandNames.CreateProxy,
@@ -171,6 +319,19 @@ AssertJsonContains(command, """
     "ExecutionClass":"light"
     """, "command execution class JSON");
 AssertJsonRoundTrip(command);
+AssertDtoConstructor(
+    typeof(MediaCommandEnvelope),
+    [
+        ("CommandId", typeof(string)),
+        ("CommandName", typeof(string)),
+        ("TopicName", typeof(string)),
+        ("ExecutionClass", typeof(ExecutionClass)),
+        ("CommandLine", typeof(string)),
+        ("WorkingDirectory", typeof(string)),
+        ("InputPaths", typeof(IReadOnlyList<string>)),
+        ("OutputPaths", typeof(IReadOnlyList<string>)),
+        ("CorrelationId", typeof(string))
+    ]);
 
 Console.WriteLine("MediaIngest contract smoke tests passed.");
 
@@ -209,5 +370,58 @@ static void AssertSequenceEqual<T>(IReadOnlyList<T> expected, IReadOnlyList<T> a
     {
         throw new InvalidOperationException(
             $"{name}: expected '{string.Join(", ", expected)}', got '{string.Join(", ", actual)}'.");
+    }
+}
+
+static void AssertEnumValues<TEnum>(
+    IReadOnlyList<(TEnum Value, int NumericValue, string Name)> expected,
+    string name)
+    where TEnum : struct, Enum
+{
+    AssertSequenceEqual(expected.Select(item => item.Name).ToArray(), Enum.GetNames<TEnum>(), $"{name} names");
+    AssertSequenceEqual(expected.Select(item => item.Value).ToArray(), Enum.GetValues<TEnum>(), $"{name} order");
+
+    foreach (var item in expected)
+    {
+        AssertEqual(item.NumericValue, Convert.ToInt32(item.Value), $"{name} numeric value for {item.Name}");
+        AssertEqual(item.Name, item.Value.ToString(), $"{name} display name for {item.Name}");
+    }
+}
+
+static void AssertExecutionClassValues(
+    IReadOnlyList<(ExecutionClass Value, int NumericValue, string Name, string PropertyValue)> expected,
+    string name)
+{
+    AssertEnumValues<ExecutionClass>(expected.Select(item => (item.Value, item.NumericValue, item.Name)).ToArray(), name);
+
+    foreach (var item in expected)
+    {
+        AssertEqual(item.PropertyValue, item.Value.ToPropertyValue(), $"{name} property value for {item.Name}");
+        AssertEqual(item.Value, ExecutionClassProperties.FromPropertyValue(item.PropertyValue), $"{name} property parse for {item.Name}");
+    }
+}
+
+static void AssertDtoConstructor(
+    Type dtoType,
+    IReadOnlyList<(string Name, Type Type)> expectedParameters)
+{
+    var constructor = dtoType.GetConstructors().Single();
+    var actualParameters = constructor.GetParameters()
+        .Select(parameter => (Name: parameter.Name ?? string.Empty, Type: parameter.ParameterType))
+        .ToArray();
+
+    if (actualParameters.Length != expectedParameters.Count)
+    {
+        throw new InvalidOperationException(
+            $"{dtoType.Name} constructor: expected {expectedParameters.Count} parameters, got {actualParameters.Length}.");
+    }
+
+    for (var i = 0; i < expectedParameters.Count; i++)
+    {
+        var expected = expectedParameters[i];
+        var actual = actualParameters[i];
+
+        AssertEqual(expected.Name, actual.Name, $"{dtoType.Name} constructor parameter {i + 1} name");
+        AssertEqual(expected.Type, actual.Type, $"{dtoType.Name} constructor parameter {expected.Name} type");
     }
 }
