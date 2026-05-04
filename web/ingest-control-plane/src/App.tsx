@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import mermaid from "mermaid";
 
 import {
@@ -138,26 +138,28 @@ function NodeDetailsPanel({
       {selectedNode && loadState === "error" && (
         <p role="status">Node details unavailable</p>
       )}
+      {selectedNode && (
+        <dl className="node-details-metadata" aria-label="selected node metadata">
+          <div>
+            <dt>Status</dt>
+            <dd>{selectedNode.status}</dd>
+          </div>
+          <div>
+            <dt>Kind</dt>
+            <dd>{formatNodeKind(selectedNode.kind)}</dd>
+          </div>
+          <div>
+            <dt>Reference</dt>
+            <dd>{formatNodeReference(selectedNode)}</dd>
+          </div>
+          <div>
+            <dt>Workflow</dt>
+            <dd>{selectedNode.workflowInstanceId}</dd>
+          </div>
+        </dl>
+      )}
       {selectedNode && loadState === "ready" && details && (
         <>
-          <dl className="node-details-metadata" aria-label="selected node metadata">
-            <div>
-              <dt>Status</dt>
-              <dd>{selectedNode.status}</dd>
-            </div>
-            <div>
-              <dt>Kind</dt>
-              <dd>{formatNodeKind(selectedNode.kind)}</dd>
-            </div>
-            <div>
-              <dt>Reference</dt>
-              <dd>{formatNodeReference(selectedNode)}</dd>
-            </div>
-            <div>
-              <dt>Workflow</dt>
-              <dd>{selectedNode.workflowInstanceId}</dd>
-            </div>
-          </dl>
           <div className="node-details-grid">
             <div>
               <h3>Timeline</h3>
@@ -238,7 +240,7 @@ function MermaidWorkflowDiagram({
     };
   }, [diagramSyntax, graph.workflowInstanceId]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const diagramElement = diagramRef.current;
 
     if (!diagramElement || !diagramSvg) {
@@ -261,11 +263,12 @@ function MermaidWorkflowDiagram({
         };
 
         svgNode.classList.add("workflow-diagram__node");
+        svgNode.dataset.workflowNodeId = node.nodeId;
         svgNode.setAttribute("role", "button");
         svgNode.setAttribute("tabindex", "0");
         svgNode.setAttribute(
           "aria-label",
-          `${node.displayName} ${formatStatus(node.status)} ${formatNodeKind(node.kind)}`
+          `${node.displayName} ${formatStatus(node.status)} ${formatNodeKind(node.kind)} in workflow ${node.workflowInstanceId}`
         );
         svgNode.setAttribute("aria-pressed", String(selectedNodeId === node.nodeId));
         svgNode.addEventListener("click", activateNode);
