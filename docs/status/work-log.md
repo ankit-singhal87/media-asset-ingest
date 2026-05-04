@@ -112,6 +112,10 @@ messages or paste command output unless it explains a decision.
 - Added Mount file discovery for USER-STORY-3 so the watcher enumerates every
   physical file under a ready package directory with stable package-relative
   paths, without wiring discovery into copy, persistence, or workflow behavior.
+- Added the USER-STORY-12 Mermaid workflow graph slice: workflow lifecycle
+  state now projects to graph DTO statuses, `/api/workflows/{id}/graph` serves
+  those DTOs, and the React control plane renders Mermaid diagrams from live
+  graph data with focused API, workflow, and UI tests.
 
 ## Update Rule
 

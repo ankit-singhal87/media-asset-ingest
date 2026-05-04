@@ -20,6 +20,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-7 / USER-STORY-11: add observability correlation field foundation.
 - MILESTONE-8 / USER-STORY-12: scaffold React workflow control plane with
   mocked workflow graph data.
+- MILESTONE-8 / USER-STORY-12: add the first workflow graph API and Mermaid
+  control-plane rendering slice.
 
 ## Ready For Planning
 
@@ -41,7 +43,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-6 / USER-STORY-7: implement light, medium, and heavy command
   runner services.
-- MILESTONE-8 / USER-STORY-12 / USER-STORY-13: implement workflow graph API.
+- MILESTONE-8 / USER-STORY-12 / USER-STORY-13: expand workflow graph data with
+  node detail, timeline, and log-backed status sources.
 - MILESTONE-9 / USER-STORY-17: add Kubernetes and Dapr deployment assets.
 - MILESTONE-9 / USER-STORY-17: add Azure deployment documentation.
 

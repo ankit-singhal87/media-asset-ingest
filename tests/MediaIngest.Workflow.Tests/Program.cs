@@ -1,4 +1,5 @@
 using MediaIngest.Workflow;
+using MediaIngest.Contracts.Workflow;
 
 var request = new PackageIngestRequest(
     PackageId: "package-001",
@@ -38,6 +39,17 @@ AssertEqual(PackageWorkflowLifecycleState.Ready, lifecycle.Events[1].State, "sec
 AssertEqual(PackageWorkflowLifecycleState.Started, lifecycle.Events[2].State, "third lifecycle event");
 AssertEqual(PackageWorkflowLifecycleState.Succeeded, lifecycle.Events[3].State, "fourth lifecycle event");
 
+var succeededGraph = PackageWorkflowGraphProjection.FromLifecycle(lifecycle);
+AssertEqual("package-package-001", succeededGraph.WorkflowInstanceId, "succeeded graph workflow instance id");
+AssertEqual("PackageIngestWorkflow", succeededGraph.WorkflowName, "succeeded graph workflow name");
+AssertEqual("package-001", succeededGraph.PackageId, "succeeded graph package id");
+AssertEqual(4, succeededGraph.Nodes.Count, "succeeded graph node count");
+AssertEqual(3, succeededGraph.Edges.Count, "succeeded graph edge count");
+AssertEqual("package-start", succeededGraph.Nodes[0].NodeId, "succeeded graph start node id");
+AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[0].Status, "succeeded graph start status");
+AssertEqual("scan-package", succeededGraph.Nodes[1].NodeId, "succeeded graph scan node id");
+AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[1].Status, "succeeded graph scan status");
+
 var failingLifecycle = PackageWorkflowLifecycle.Observe(request);
 failingLifecycle.MarkReady(new DateTimeOffset(2026, 5, 3, 12, 4, 0, TimeSpan.Zero));
 failingLifecycle.Start(new DateTimeOffset(2026, 5, 3, 12, 5, 0, TimeSpan.Zero));
@@ -46,6 +58,16 @@ var failed = failingLifecycle.MarkFailed(
     new DateTimeOffset(2026, 5, 3, 12, 6, 0, TimeSpan.Zero));
 AssertEqual(PackageWorkflowLifecycleState.Failed, failed.State, "failed lifecycle state");
 AssertEqual("classification command failed", failed.FailureReason, "failure reason");
+
+var failedGraph = PackageWorkflowGraphProjection.FromLifecycle(failingLifecycle);
+AssertEqual(WorkflowNodeStatus.Failed, failedGraph.Nodes[0].Status, "failed graph start status");
+AssertEqual(WorkflowNodeStatus.Failed, failedGraph.Nodes[1].Status, "failed graph scan status");
+
+var readyGraph = PackageWorkflowGraphProjection.FromLifecycle(PackageWorkflowLifecycle.Observe(request).MarkReady(
+    new DateTimeOffset(2026, 5, 3, 12, 8, 0, TimeSpan.Zero)));
+AssertEqual("pending-package-001", readyGraph.WorkflowInstanceId, "ready graph fallback workflow instance id");
+AssertEqual(WorkflowNodeStatus.Queued, readyGraph.Nodes[0].Status, "ready graph start status");
+AssertEqual(WorkflowNodeStatus.Pending, readyGraph.Nodes[1].Status, "ready graph scan status");
 
 AssertThrows<InvalidOperationException>(
     () => PackageWorkflowLifecycle.Observe(request).Start(new DateTimeOffset(2026, 5, 3, 12, 7, 0, TimeSpan.Zero)),

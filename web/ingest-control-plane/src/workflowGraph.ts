@@ -40,6 +40,23 @@ export type WorkflowGraph = {
   edges: WorkflowEdge[];
 };
 
+type WorkflowStatusStyle = {
+  fill: string;
+  stroke: string;
+  text: string;
+};
+
+export const workflowStatusPalette: Record<WorkflowNodeStatus, WorkflowStatusStyle> = {
+  Pending: { fill: "#e5eaf0", stroke: "#7b8794", text: "#344054" },
+  Queued: { fill: "#e5eaf0", stroke: "#7b8794", text: "#344054" },
+  Running: { fill: "#dbeafe", stroke: "#2563eb", text: "#1e3a8a" },
+  Succeeded: { fill: "#d9f0e4", stroke: "#18865b", text: "#07583d" },
+  Failed: { fill: "#ffedd5", stroke: "#c2410c", text: "#9a3412" },
+  Waiting: { fill: "#ede9fe", stroke: "#8b5cf6", text: "#5b21b6" },
+  Skipped: { fill: "#eef2f5", stroke: "#8a94a3", text: "#4b5563" },
+  Cancelled: { fill: "#eef2f5", stroke: "#8a94a3", text: "#4b5563" }
+};
+
 export const mockedWorkflowGraph: WorkflowGraph = {
   workflowInstanceId: "wf-pkg-2026-05-03-001",
   workflowName: "Package ingest workflow",
@@ -133,4 +150,55 @@ export function summarizeStatuses(nodes: WorkflowNode[]) {
       Cancelled: 0
     }
   );
+}
+
+export function buildMermaidFlowchart(graph: WorkflowGraph) {
+  const nodeIdMap = new Map(
+    graph.nodes.map((node) => [node.nodeId, sanitizeMermaidId(node.nodeId)])
+  );
+  const lines = ["flowchart LR"];
+
+  for (const node of graph.nodes) {
+    const mermaidId = nodeIdMap.get(node.nodeId) ?? sanitizeMermaidId(node.nodeId);
+    lines.push(
+      `  ${mermaidId}["${escapeMermaidLabel(node.displayName)}"]:::${formatStatusClass(node.status)}`
+    );
+  }
+
+  graph.edges.forEach((edge) => {
+    const sourceId = nodeIdMap.get(edge.sourceNodeId) ?? sanitizeMermaidId(edge.sourceNodeId);
+    const targetId = nodeIdMap.get(edge.targetNodeId) ?? sanitizeMermaidId(edge.targetNodeId);
+    lines.push(`  ${sourceId} --> ${targetId}`);
+  });
+
+  for (const [status, style] of Object.entries(workflowStatusPalette)) {
+    lines.push(
+      `  classDef ${formatStatusClass(status as WorkflowNodeStatus)} fill:${style.fill},stroke:${style.stroke},color:${style.text},stroke-width:2px`
+    );
+  }
+
+  graph.edges.forEach((edge, index) => {
+    const target = graph.nodes.find((node) => node.nodeId === edge.targetNodeId);
+    const style = workflowStatusPalette[target?.status ?? "Pending"];
+    lines.push(`  linkStyle ${index} stroke:${style.stroke},stroke-width:2px`);
+  });
+
+  return lines.join("\n");
+}
+
+function sanitizeMermaidId(nodeId: string) {
+  const sanitized = nodeId.replace(/[^A-Za-z0-9_]/g, "_");
+
+  return /^[A-Za-z_]/.test(sanitized) ? sanitized : `node_${sanitized}`;
+}
+
+function escapeMermaidLabel(label: string) {
+  return label
+    .replace(/"/g, "#quot;")
+    .replace(/\[/g, "#91;")
+    .replace(/\]/g, "#93;");
+}
+
+function formatStatusClass(status: WorkflowNodeStatus) {
+  return status.toLowerCase();
 }

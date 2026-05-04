@@ -34,6 +34,22 @@ try
     AssertEqual("asset-001", startedStatus.Packages[0].PackageId, "started package id");
     AssertEqual("Succeeded", startedStatus.Packages[0].Status, "started package status");
 
+    var graph = runtimeService.GetWorkflowGraph("package-asset-001")
+        ?? throw new InvalidOperationException("workflow graph endpoint source returned null.");
+    AssertEqual("package-asset-001", graph.WorkflowInstanceId, "graph workflow instance id");
+    AssertEqual("PackageIngestWorkflow", graph.WorkflowName, "graph workflow name");
+    AssertEqual("asset-001", graph.PackageId, "graph package id");
+    AssertEqual(4, graph.Nodes.Count, "graph node count");
+    AssertEqual(3, graph.Edges.Count, "graph edge count");
+    AssertEqual("package-start", graph.Nodes[0].NodeId, "graph first node id");
+    AssertEqual("scan-package", graph.Nodes[1].NodeId, "graph scan node id");
+    AssertEqual("classify-files", graph.Nodes[2].NodeId, "graph classify node id");
+    AssertEqual("dispatch-processing", graph.Nodes[3].NodeId, "graph dispatch node id");
+    AssertEqual("Succeeded", graph.Nodes[0].Status.ToString(), "graph first node status");
+
+    var missingGraph = runtimeService.GetWorkflowGraph("missing-workflow");
+    AssertNull(missingGraph, "missing graph");
+
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json")), "manifest copied");
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json.checksum")), "checksum copied");
     AssertFalse(File.Exists(Path.Combine(outputPath, "asset-001", "source.mov")), "source file not copied");
@@ -76,6 +92,18 @@ try
     AssertEqual(1, conflictStatus.Packages.Count, "conflict package count");
     AssertEqual("Failed", conflictStatus.Packages[0].Status, "conflict package status");
     AssertEqual("existing output", File.ReadAllText(Path.Combine(conflictOutputPackagePath, "manifest.json")), "conflict output preserved");
+
+    await using var apiHost = await IngestApiApplication.StartAsync(inputPath, outputPath);
+    using var apiStartResponse = await apiHost.HttpClient.PostAsync("/api/ingest/start", content: null);
+    AssertEqual(System.Net.HttpStatusCode.Conflict, apiStartResponse.StatusCode, "api host start status");
+    using var graphResponse = await apiHost.HttpClient.GetAsync("/api/workflows/package-asset-001/graph");
+    AssertEqual(System.Net.HttpStatusCode.OK, graphResponse.StatusCode, "graph endpoint status");
+    var graphJson = await graphResponse.Content.ReadAsStringAsync();
+    AssertContains("\"workflowInstanceId\":\"package-asset-001\"", graphJson, "graph endpoint workflow instance id");
+    AssertContains("\"packageId\":\"asset-001\"", graphJson, "graph endpoint package id");
+
+    using var missingGraphResponse = await apiHost.HttpClient.GetAsync("/api/workflows/missing-workflow/graph");
+    AssertEqual(System.Net.HttpStatusCode.NotFound, missingGraphResponse.StatusCode, "missing graph endpoint status");
 
     var stateCountAfterFailure = conflictRuntime.Store.PackageStates.Count;
     var messageCountAfterFailure = conflictRuntime.Store.OutboxMessages.Count;
@@ -151,6 +179,22 @@ static void AssertFalse(bool condition, string name)
     if (condition)
     {
         throw new InvalidOperationException($"{name}: expected false.");
+    }
+}
+
+static void AssertNull<T>(T? actual, string name)
+{
+    if (actual is not null)
+    {
+        throw new InvalidOperationException($"{name}: expected null.");
+    }
+}
+
+static void AssertContains(string expectedSubstring, string actual, string name)
+{
+    if (!actual.Contains(expectedSubstring, StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException($"{name}: expected '{actual}' to contain '{expectedSubstring}'.");
     }
 }
 
