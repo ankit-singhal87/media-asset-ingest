@@ -9,6 +9,13 @@ task scope, worktree branch name, target files, forbidden files, validation
 command, and stop conditions so a local operator can start independent tracks
 consistently.
 
+Prefer simple numbered one-track launchers such as
+`01-user-story-2-manifest-checksum-gate.sh`. Each launcher should be runnable
+with one command, for example `sh .terminals/01-user-story-2-manifest-checksum-gate.sh`,
+and should contain its own worktree setup plus `codex --cd <worktree>` call.
+Avoid requiring operators to copy prompts manually. Avoid bulk tmux or
+multi-terminal launchers unless the user explicitly asks for them.
+
 Track launch scripts should create or enter the assigned worktree, then pass the
 track prompt directly to `codex --cd <worktree>`. Printing the prompt without
 starting Codex is useful only for manual debugging, not normal parallel work.
