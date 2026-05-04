@@ -17,8 +17,12 @@ public static class PostgresIngestSchema
             payload_json jsonb NOT NULL,
             correlation_id text NOT NULL,
             created_at timestamptz NOT NULL,
-            dispatched_at timestamptz NULL
+            dispatched_at timestamptz NULL,
+            dispatch_claim_expires_at timestamptz NULL
         );
+
+        ALTER TABLE outbox_messages
+            ADD COLUMN IF NOT EXISTS dispatch_claim_expires_at timestamptz NULL;
 
         CREATE INDEX IF NOT EXISTS idx_outbox_messages_pending
             ON outbox_messages (created_at, message_id)

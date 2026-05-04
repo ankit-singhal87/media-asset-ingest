@@ -7,4 +7,5 @@ public sealed record OutboxMessage(
     string PayloadJson,
     string CorrelationId,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? DispatchedAt = null);
+    DateTimeOffset? DispatchedAt = null,
+    DateTimeOffset? DispatchClaimExpiresAt = null);

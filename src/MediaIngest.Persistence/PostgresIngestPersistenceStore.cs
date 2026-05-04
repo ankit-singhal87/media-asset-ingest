@@ -76,7 +76,8 @@ public sealed class PostgresIngestPersistenceStore(
                     payload_json,
                     correlation_id,
                     created_at,
-                    dispatched_at
+                    dispatched_at,
+                    dispatch_claim_expires_at
                 )
                 VALUES (
                     @message_id,
@@ -85,8 +86,10 @@ public sealed class PostgresIngestPersistenceStore(
                     @payload_json,
                     @correlation_id,
                     @created_at,
-                    @dispatched_at
-                );
+                    @dispatched_at,
+                    @dispatch_claim_expires_at
+                )
+                ON CONFLICT (message_id) DO NOTHING;
                 """,
                 [
                     ("@message_id", outboxMessage.MessageId),
@@ -95,7 +98,8 @@ public sealed class PostgresIngestPersistenceStore(
                     ("@payload_json", outboxMessage.PayloadJson),
                     ("@correlation_id", outboxMessage.CorrelationId),
                     ("@created_at", outboxMessage.CreatedAt),
-                    ("@dispatched_at", outboxMessage.DispatchedAt)
+                    ("@dispatched_at", outboxMessage.DispatchedAt),
+                    ("@dispatch_claim_expires_at", outboxMessage.DispatchClaimExpiresAt)
                 ],
                 cancellationToken);
         }
@@ -118,26 +122,73 @@ public sealed class PostgresIngestPersistenceStore(
                 payload_json,
                 correlation_id,
                 created_at,
-                dispatched_at
+                dispatched_at,
+                dispatch_claim_expires_at
             FROM outbox_messages
             WHERE dispatched_at IS NULL
             ORDER BY created_at, message_id;
             """;
 
-        var messages = new List<OutboxMessage>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-        while (await reader.ReadAsync(cancellationToken))
+        return await ReadOutboxMessagesAsync(reader, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<OutboxMessage>> ClaimPendingOutboxMessagesAsync(
+        DateTimeOffset claimedAt,
+        DateTimeOffset claimExpiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (claimExpiresAt <= claimedAt)
         {
-            messages.Add(new OutboxMessage(
-                MessageId: reader.GetString(0),
-                Destination: reader.GetString(1),
-                MessageType: reader.GetString(2),
-                PayloadJson: reader.GetString(3),
-                CorrelationId: reader.GetString(4),
-                CreatedAt: ReadDateTimeOffset(reader, 5),
-                DispatchedAt: reader.IsDBNull(6) ? null : ReadDateTimeOffset(reader, 6)));
+            throw new ArgumentException("Outbox message claim expiry must be after the claim time.", nameof(claimExpiresAt));
         }
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            WITH claimable_messages AS (
+                SELECT message_id
+                FROM outbox_messages
+                WHERE dispatched_at IS NULL
+                  AND (
+                      dispatch_claim_expires_at IS NULL OR
+                      dispatch_claim_expires_at <= @claimed_at
+                  )
+                ORDER BY created_at, message_id
+                FOR UPDATE SKIP LOCKED
+            )
+            UPDATE outbox_messages AS outbox_message
+            SET dispatch_claim_expires_at = @claim_expires_at
+            FROM claimable_messages
+            WHERE outbox_message.message_id = claimable_messages.message_id
+            RETURNING
+                outbox_message.message_id,
+                outbox_message.destination,
+                outbox_message.message_type,
+                outbox_message.payload_json,
+                outbox_message.correlation_id,
+                outbox_message.created_at,
+                outbox_message.dispatched_at,
+                outbox_message.dispatch_claim_expires_at;
+            """;
+
+        AddParameter(command, "@claimed_at", claimedAt);
+        AddParameter(command, "@claim_expires_at", claimExpiresAt);
+
+        IReadOnlyList<OutboxMessage> messages;
+
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            messages = await ReadOutboxMessagesAsync(reader, cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
 
         return messages;
     }
@@ -161,7 +212,9 @@ public sealed class PostgresIngestPersistenceStore(
             transaction: null,
             """
             UPDATE outbox_messages
-            SET dispatched_at = @dispatched_at
+            SET
+                dispatched_at = COALESCE(dispatched_at, @dispatched_at),
+                dispatch_claim_expires_at = NULL
             WHERE message_id = @message_id;
             """,
             [
@@ -204,6 +257,36 @@ public sealed class PostgresIngestPersistenceStore(
         }
 
         return await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static void AddParameter(DbCommand command, string name, object? value)
+    {
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = name;
+        parameter.Value = value ?? DBNull.Value;
+        command.Parameters.Add(parameter);
+    }
+
+    private static async Task<IReadOnlyList<OutboxMessage>> ReadOutboxMessagesAsync(
+        DbDataReader reader,
+        CancellationToken cancellationToken)
+    {
+        var messages = new List<OutboxMessage>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            messages.Add(new OutboxMessage(
+                MessageId: reader.GetString(0),
+                Destination: reader.GetString(1),
+                MessageType: reader.GetString(2),
+                PayloadJson: reader.GetString(3),
+                CorrelationId: reader.GetString(4),
+                CreatedAt: ReadDateTimeOffset(reader, 5),
+                DispatchedAt: reader.IsDBNull(6) ? null : ReadDateTimeOffset(reader, 6),
+                DispatchClaimExpiresAt: reader.IsDBNull(7) ? null : ReadDateTimeOffset(reader, 7)));
+        }
+
+        return messages;
     }
 
     private static DateTimeOffset ReadDateTimeOffset(DbDataReader reader, int ordinal)
