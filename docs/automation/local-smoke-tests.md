@@ -62,3 +62,24 @@ Optional overrides:
 - `SMOKE_PACKAGE_ID` changes the package folder name.
 - `SMOKE_TIMEOUT_SECONDS` changes the output polling timeout.
 - `SMOKE_INTERVAL_SECONDS` changes the output polling interval.
+
+## Local Compose Config
+
+Use `scripts/dev/local-compose-check.sh` to validate the local API, UI, and
+PostgreSQL Compose configuration without starting containers:
+
+```bash
+sh scripts/dev/local-compose-check.sh
+```
+
+The script runs:
+
+```bash
+docker compose -f deploy/docker/compose.yaml config
+```
+
+For a no-Docker plan that does not change files or start containers:
+
+```bash
+sh scripts/dev/local-compose-check.sh --dry-run
+```
