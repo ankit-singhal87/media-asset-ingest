@@ -48,13 +48,20 @@ sh scripts/dev/local-e2e-smoke.sh
 
 The script resets only its selected `input/<asset>/` and `output/<asset>/`
 directories, posts `POST /api/ingest/start`, creates `manifest.json` and
-`manifest.json.checksum`, and waits for matching files under `output/<asset>/`.
+`manifest.json.checksum`, and adds sample media, sidecar, and metadata files
+under `input/<asset>/`. It waits for matching files under `output/<asset>/`,
+then verifies the ingest status includes the package workflow and that the
+workflow graph includes command-node evidence.
 
 For dry-run validation without starting the API or changing files:
 
 ```bash
 sh scripts/dev/local-e2e-smoke.sh --dry-run
 ```
+
+Dry-run mode prints the fixed local API endpoints, the selected package paths,
+the file reset and creation plan, and the exact output assertions. It does not
+start services, send HTTP requests, or change files.
 
 Optional overrides:
 

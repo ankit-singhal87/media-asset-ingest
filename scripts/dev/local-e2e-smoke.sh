@@ -48,38 +48,71 @@ checksum_output="$package_output/manifest.json.checksum"
 status_json="$repo_root/.tmp-local-e2e-status.json"
 graph_json="$repo_root/.tmp-local-e2e-graph.json"
 
+validate_settings() {
+  case "$api_url" in
+    '')
+      printf '%s\n' "MEDIA_INGEST_API_URL must not be empty." >&2
+      exit 2
+      ;;
+  esac
+
+  case "$package_id" in
+    ''|*/*)
+      printf 'SMOKE_PACKAGE_ID must be a non-empty package folder name without slashes: %s\n' "$package_id" >&2
+      exit 2
+      ;;
+  esac
+
+  case "$timeout_seconds" in
+    ''|*[!0-9]*)
+      printf 'SMOKE_TIMEOUT_SECONDS must be a non-negative integer: %s\n' "$timeout_seconds" >&2
+      exit 2
+      ;;
+  esac
+
+  case "$interval_seconds" in
+    ''|*[!0-9]*)
+      printf 'SMOKE_INTERVAL_SECONDS must be a positive integer: %s\n' "$interval_seconds" >&2
+      exit 2
+      ;;
+    0)
+      printf '%s\n' "SMOKE_INTERVAL_SECONDS must be greater than 0." >&2
+      exit 2
+      ;;
+  esac
+}
+
 print_plan() {
   printf '%s\n' "Local ingest smoke plan:"
   printf '  %-18s %s\n' "api_url" "$api_url"
+  printf '  %-18s %s\n' "start_endpoint" "$api_url/api/ingest/start"
+  printf '  %-18s %s\n' "status_endpoint" "$api_url/api/ingest/status"
   printf '  %-18s %s\n' "package_id" "$package_id"
   printf '  %-18s %s\n' "input_package" "$package_input"
   printf '  %-18s %s\n' "output_package" "$package_output"
   printf '  %-18s %s seconds\n' "timeout" "$timeout_seconds"
+  printf '  %-18s %s seconds\n' "interval" "$interval_seconds"
+  printf '%s\n' "Smoke steps:"
+  printf '  %s\n' "1. Reset only the selected input/output package folders."
+  printf '  %s\n' "2. POST ingest start to the already-running local API."
+  printf '  %s\n' "3. Create the package under input/ with manifest, checksum, media, sidecar, and metadata files."
+  printf '  %s\n' "4. Poll output/ for matching files, ingest status, workflow graph, and command-node evidence."
+  printf '%s\n' "Expected output assertions:"
+  printf '  %s\n' "$manifest_output"
+  printf '  %s\n' "$checksum_output"
+  printf '  %s\n' "$package_output/media/source.mov"
+  printf '  %s\n' "$package_output/media/mix.wav"
+  printf '  %s\n' "$package_output/sidecars/caption.srt"
+  printf '  %s\n' "$package_output/notes.bin"
 }
+
+validate_settings
 
 if [ "$dry_run" -eq 1 ]; then
   print_plan
-  printf '%s\n' "Dry run only. No files were changed and no HTTP request was sent."
+  printf '%s\n' "Dry run only. No files were changed, no HTTP request was sent, and no services were started."
   exit 0
 fi
-
-case "$timeout_seconds" in
-  ''|*[!0-9]*)
-    printf 'SMOKE_TIMEOUT_SECONDS must be a non-negative integer: %s\n' "$timeout_seconds" >&2
-    exit 2
-    ;;
-esac
-
-case "$interval_seconds" in
-  ''|*[!0-9]*)
-    printf 'SMOKE_INTERVAL_SECONDS must be a positive integer: %s\n' "$interval_seconds" >&2
-    exit 2
-    ;;
-  0)
-    printf '%s\n' "SMOKE_INTERVAL_SECONDS must be greater than 0." >&2
-    exit 2
-    ;;
-esac
 
 if ! command -v curl >/dev/null 2>&1; then
   printf '%s\n' "curl is required for the local ingest smoke script." >&2
@@ -108,9 +141,41 @@ printf '%s\n' "not-real-audio" > "$package_input/media/mix.wav"
 printf '%s\n' "not-real-caption" > "$package_input/sidecars/caption.srt"
 printf '%s\n' "opaque metadata" > "$package_input/notes.bin"
 
+assert_matching_file() {
+  input_file="$1"
+  output_file="$2"
+
+  if [ ! -f "$output_file" ]; then
+    printf 'Missing output file: %s\n' "$output_file" >&2
+    return 1
+  fi
+
+  if ! cmp -s "$input_file" "$output_file"; then
+    printf 'Output file does not match input file: %s\n' "$output_file" >&2
+    return 1
+  fi
+}
+
+all_expected_outputs_exist() {
+  [ -f "$manifest_output" ] &&
+    [ -f "$checksum_output" ] &&
+    [ -f "$package_output/media/source.mov" ] &&
+    [ -f "$package_output/media/mix.wav" ] &&
+    [ -f "$package_output/sidecars/caption.srt" ] &&
+    [ -f "$package_output/notes.bin" ]
+}
+
+print_missing_output() {
+  output_file="$1"
+
+  if [ ! -f "$output_file" ]; then
+    printf 'Missing or late: %s\n' "$output_file" >&2
+  fi
+}
+
 elapsed=0
 while [ "$elapsed" -le "$timeout_seconds" ]; do
-  if [ -f "$manifest_output" ] && [ -f "$checksum_output" ]; then
+  if all_expected_outputs_exist; then
     curl -fsS "$api_url/api/ingest/status" > "$status_json"
     workflow_id=$(jq -r --arg package_id "$package_id" '.packages[] | select(.packageId == $package_id) | .workflowInstanceId' "$status_json")
 
@@ -119,10 +184,21 @@ while [ "$elapsed" -le "$timeout_seconds" ]; do
       command_node_count=$(jq '[.nodes[] | select(.nodeId | startswith("command-"))] | length' "$graph_json")
 
       if [ "$command_node_count" -ge 4 ]; then
+        assert_matching_file "$manifest_input" "$manifest_output"
+        assert_matching_file "$checksum_input" "$checksum_output"
+        assert_matching_file "$package_input/media/source.mov" "$package_output/media/source.mov"
+        assert_matching_file "$package_input/media/mix.wav" "$package_output/media/mix.wav"
+        assert_matching_file "$package_input/sidecars/caption.srt" "$package_output/sidecars/caption.srt"
+        assert_matching_file "$package_input/notes.bin" "$package_output/notes.bin"
+
         printf '%s\n' "Local ingest smoke passed."
         printf '%s\n' "Observed output files:"
         printf '  %s\n' "$manifest_output"
         printf '  %s\n' "$checksum_output"
+        printf '  %s\n' "$package_output/media/source.mov"
+        printf '  %s\n' "$package_output/media/mix.wav"
+        printf '  %s\n' "$package_output/sidecars/caption.srt"
+        printf '  %s\n' "$package_output/notes.bin"
         printf '  workflow: %s\n' "$workflow_id"
         printf '  command_nodes: %s\n' "$command_node_count"
         rm -f -- "$status_json" "$graph_json"
@@ -140,7 +216,11 @@ while [ "$elapsed" -le "$timeout_seconds" ]; do
 done
 
 printf '%s\n' "Local ingest smoke failed: expected output files were not created before timeout." >&2
-printf 'Missing or late: %s\n' "$manifest_output" >&2
-printf 'Missing or late: %s\n' "$checksum_output" >&2
+print_missing_output "$manifest_output"
+print_missing_output "$checksum_output"
+print_missing_output "$package_output/media/source.mov"
+print_missing_output "$package_output/media/mix.wav"
+print_missing_output "$package_output/sidecars/caption.srt"
+print_missing_output "$package_output/notes.bin"
 printf '%s\n' "Expected ingest status plus a workflow graph with at least four command nodes." >&2
 exit 1
