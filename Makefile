@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -8,6 +8,7 @@ help:
 	@printf '%s\n' "  make install-optional-tools Install optional local runtime/cloud CLIs"
 	@printf '%s\n' "  make print-install-tools Print manual installation commands"
 	@printf '%s\n' "  make print-install-optional-tools Print optional tool install commands"
+	@printf '%s\n' "  make local-compose-check Validate local Docker Compose configuration"
 	@printf '%s\n' "  make validate            Run cheap repository validation"
 	@printf '%s\n' "  make validate-docs       Run docs validation only"
 	@printf '%s\n' "  make validate-automation Run automation script validation only"
@@ -41,6 +42,9 @@ print-install-tools:
 
 print-install-optional-tools:
 	@sh scripts/dev/install-optional-tools.sh --print-only
+
+local-compose-check:
+	@sh scripts/dev/local-compose-check.sh
 
 validate: docs-check scripts-check github-projects-script-test test-dotnet
 
@@ -90,6 +94,7 @@ scripts-check:
 	@sh -n scripts/dev/github-projects.sh
 	@sh -n scripts/dev/test-github-projects.sh
 	@sh -n scripts/dev/local-e2e-smoke.sh
+	@sh -n scripts/dev/local-compose-check.sh
 
 github-projects-script-test:
 	@sh scripts/dev/test-github-projects.sh

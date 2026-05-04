@@ -19,3 +19,14 @@ projects gain executable hosts.
 
 Docker assets are local/runtime scaffolding. They do not create Azure resources,
 publish images, store credentials, or validate a production deployment.
+
+Use the static local check from the repository root to validate Compose syntax
+and service resolution without starting containers:
+
+```bash
+sh scripts/dev/local-compose-check.sh
+```
+
+The check runs `docker compose -f deploy/docker/compose.yaml config` and reports
+the resolved API, UI, and PostgreSQL services. Use `--dry-run` to print the
+planned validation boundary without requiring Docker.
