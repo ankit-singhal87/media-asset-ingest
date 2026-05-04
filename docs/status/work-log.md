@@ -133,6 +133,18 @@ messages or paste command output unless it explains a decision.
   ClusterIP-only API/UI/PostgreSQL manifests, Dapr workflow state and Azure
   Service Bus component templates, placeholder-only secret examples, and
   architecture/automation docs that keep cloud validation approval-gated.
+- Resumed the interrupted local integration coordinator after Codex remote
+  compaction timed out, then merged and validated TASK-3-3, TASK-4-2, and
+  TASK-8-2 on `main`.
+- Added TASK-3-3 done-marker reconciliation: packages can begin after manifest
+  readiness, stay non-terminal until a zero-byte `done.marker`, and enqueue
+  late files after the marker rescan without duplicating command messages.
+- Added TASK-4-2 local command dispatch boundary metadata so command outbox
+  publishes expose `executionClass` application properties while non-command
+  publishes do not receive command metadata.
+- Added TASK-8-2 UI package workflow selection so operators can choose among
+  multiple package workflow graphs, keep node details on same-workflow refresh,
+  and clear node details when switching workflows.
 
 ## Update Rule
 

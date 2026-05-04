@@ -6,8 +6,10 @@
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
   across watcher, persistence/outbox, workflow, command routing, observability,
-  and the React control plane. USER-STORY-16 local ingest docs now describe the
-  merged API, UI, runtime folder, and smoke-script flow.
+  and the React control plane. The local ingest demo now waits for a zero-byte
+  `done.marker` before terminal success, routes command publish metadata for
+  local outbox dispatch, and lets the UI select among multiple package workflow
+  graphs.
 
 ## Completed
 
@@ -93,19 +95,21 @@
   projection, and the local smoke script. Ready packages now create routed
   command envelopes for every non-metadata file and expose those command nodes
   through the workflow graph API.
-
-## Ready For Review
-
-- USER-STORY-16 local ingest documentation is ready for coordinator review
-  after docs validation.
-- USER-STORY-17 runtime readiness branch is preparing PR validation.
+- TASK-3-3 added done-marker reconciliation so manifest-ready packages can begin
+  work before `done.marker`, remain non-terminal while waiting, rescan on a
+  zero-byte marker, and enqueue late discovered files idempotently.
+- TASK-4-2 added local command dispatch boundary metadata so
+  `MediaCommandEnvelope` outbox publishes expose broker-ready `executionClass`
+  application properties while non-command messages keep existing behavior.
+- TASK-8-2 added multi-package workflow selection in the React control plane,
+  preserving node detail during same-workflow refreshes and clearing detail when
+  the operator switches workflows.
 
 ## Next
 
-- Review TASK-3-2 local integration behavior and decide whether to authorize PR
-  creation.
-- Review USER-STORY-17 static runtime readiness assets before any approved
-  cluster or Azure validation.
+- Push or open a PR for the local `main` integration when authorized.
+- Plan the next runtime slice: nested workflow drilldown, node log/timeline
+  detail, or local container runtime validation.
 
 ## Update Rule
 

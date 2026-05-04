@@ -24,6 +24,15 @@ epic/story granularity; detailed implementation tasks belong in plans.
   control-plane rendering slice.
 - MILESTONE-3/4/5/8: integrate the local ingest demo so discovered files create
   routed command outbox messages and real workflow command nodes.
+- MILESTONE-3 / USER-STORY-4: reconcile on `done.marker` so packages remain
+  non-terminal until a zero-byte marker appears and late files are included in
+  command outbox work.
+- MILESTONE-4 / USER-STORY-6 / USER-STORY-8: expose broker-ready command
+  publish metadata at the local outbox boundary without changing non-command
+  dispatch behavior.
+- MILESTONE-8 / USER-STORY-12 / USER-STORY-13: add package workflow selection
+  to the control plane and preserve or clear node detail state according to the
+  selected workflow.
 
 ## Ready For Planning
 
@@ -32,9 +41,6 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-2 / USER-STORY-16: merge the local ingest docs after the backend and
   UI draft PRs provide the documented API host, UI start action, and runtime
   ignore setup.
-- MILESTONE-3 / USER-STORY-4: deepen done-marker reconciliation beyond local
-  graph projection into package finalization behavior.
-- MILESTONE-3 / USER-STORY-5: implement essence classification.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.
 - MILESTONE-5 / USER-STORY-10: expand nested workflow contracts and behavior.
