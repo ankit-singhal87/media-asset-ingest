@@ -154,6 +154,67 @@ describe("workflow graph control plane", () => {
     expect(await screen.findByRole("img", { name: /workflow diagram/i })).toBeInTheDocument();
   });
 
+  it("loads the selected package workflow graph when the operator chooses the second package", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              },
+              {
+                packageId: "PKG-LOCAL-002",
+                workflowInstanceId: "workflow-local-002",
+                status: "Failed",
+                updatedAt: "2026-05-03T18:45:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(secondWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /select package PKG-LOCAL-002 workflow workflow-local-002/i
+      })
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-002/graph");
+    });
+
+    expect(await screen.findByText(/Package PKG-2026-05-03-002/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /transcode proxy queued/i })
+    ).toBeInTheDocument();
+  });
+
   it("loads node details when the operator selects a workflow graph node", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(
@@ -289,6 +350,79 @@ describe("workflow graph control plane", () => {
 
     expect(within(details).getByRole("heading", { name: /classify package/i })).toBeInTheDocument();
     expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
+  });
+
+  it("clears selected node details when the operator switches workflows", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            packages: [
+              {
+                packageId: "PKG-LOCAL-001",
+                workflowInstanceId: "workflow-local-001",
+                status: "Running",
+                updatedAt: "2026-05-03T18:42:00Z"
+              },
+              {
+                packageId: "PKG-LOCAL-002",
+                workflowInstanceId: "workflow-local-002",
+                status: "Failed",
+                updatedAt: "2026-05-03T18:45:00Z"
+              }
+            ]
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(liveWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(classifyNodeDetailsResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(secondWorkflowGraphResponse), {
+          headers: { "Content-Type": "application/json" },
+          status: 200
+        })
+      );
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-001/graph");
+    });
+    fireEvent.click(await screen.findByRole("button", { name: /classify package running/i }));
+
+    const details = await screen.findByRole("region", {
+      name: /selected workflow node details/i
+    });
+
+    expect(within(details).getByText(/Classification started/i)).toBeInTheDocument();
+
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /select package PKG-LOCAL-002 workflow workflow-local-002/i
+      })
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/workflows/workflow-local-002/graph");
+    });
+
+    expect(within(details).getByRole("heading", { name: /node details/i })).toBeInTheDocument();
+    expect(within(details).getByText(/select a workflow node to inspect details/i)).toBeInTheDocument();
+    expect(within(details).queryByText(/Classification started/i)).not.toBeInTheDocument();
   });
 
   it("refreshes real package status while the operator watches ingest progress", async () => {
@@ -473,6 +607,42 @@ const classifyNodeDetailsResponse = {
       correlationId: "node-classify",
       traceId: "trace-classify-001",
       spanId: "span-classify-001"
+    }
+  ]
+};
+
+const secondWorkflowGraphResponse = {
+  workflowInstanceId: "workflow-local-002",
+  workflowName: "Package ingest workflow",
+  packageId: "PKG-2026-05-03-002",
+  parentWorkflowInstanceId: null,
+  nodes: [
+    {
+      nodeId: "manifest",
+      displayName: "Manifest detected",
+      kind: "WorkflowStep",
+      status: "Succeeded",
+      workflowInstanceId: "workflow-local-002",
+      packageId: "PKG-2026-05-03-002",
+      workItemId: null,
+      childWorkflowInstanceId: null
+    },
+    {
+      nodeId: "proxy-command",
+      displayName: "Transcode proxy",
+      kind: "WorkItem",
+      status: "Queued",
+      workflowInstanceId: "workflow-local-002",
+      packageId: "PKG-2026-05-03-002",
+      workItemId: "command-proxy-002",
+      childWorkflowInstanceId: null
+    }
+  ],
+  edges: [
+    {
+      edgeId: "manifest-proxy-command",
+      sourceNodeId: "manifest",
+      targetNodeId: "proxy-command"
     }
   ]
 };
