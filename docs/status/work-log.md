@@ -169,6 +169,10 @@ messages or paste command output unless it explains a decision.
   batches now carry business timeline and node diagnostic log records, and the
   existing workflow node details API reads stored local ingest messages instead
   of synthetic package-state details.
+- Added TASK-5-2 nested workflow behavior contracts: prepared child workflow
+  work now carries stable child workflow instance IDs plus parent workflow
+  references, and workflow graph projection can render queued child workflow
+  nodes from package workflow start state.
 
 ## Update Rule
 

@@ -128,6 +128,10 @@
   the existing local ingest smoke against the containerized API with
   manifest-output assertions plus workflow command-node evidence, and stops
   the stack without cloud resources or secrets.
+- TASK-5-2 expanded nested workflow behavior contracts so prepared child work
+  now carries stable child workflow instance IDs and parent workflow references,
+  and workflow graph projection can render queued child workflow nodes directly
+  from a package workflow start.
 
 ## Next
 
