@@ -271,6 +271,7 @@ Ownership lanes:
 Components involved:
 
 - `src/MediaIngest.Contracts`
+- `src/MediaIngest.Worker.CommandRunner`
 
 Acceptance themes:
 
@@ -278,6 +279,11 @@ Acceptance themes:
 - Runner failures are recorded in business state.
 - Runners execute provided commands such as ffmpeg command lines.
 - Runners can emit downstream work when allowed by workflow design.
+- Current foundation is local only: runners accept command envelopes by
+  configured execution class, record in-memory progress with canonical
+  correlation fields, and keep execution behind a stub abstraction.
+- Azure Service Bus consumption, Kubernetes scaling, downstream command
+  emission, and real media command execution are deferred.
 
 Dependencies:
 

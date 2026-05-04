@@ -156,6 +156,10 @@ messages or paste command output unless it explains a decision.
 - Added TASK-4-3 static command-bus topology readiness in the Courier contract
   lane, covering semantic command topics, light/medium/heavy subscription
   filters, and documentation that keeps Azure resource creation out of scope.
+- Added the USER-STORY-7 local generic command runner foundation for light,
+  medium, and heavy execution classes, including execution-class rejection,
+  idempotent duplicate `CommandId` handling, failure recording, in-memory
+  progress records, and a focused `make test-dotnet-command-runner` target.
 
 ## Update Rule
 
