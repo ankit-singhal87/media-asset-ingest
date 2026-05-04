@@ -42,6 +42,14 @@ the semantic topics and the `light`, `medium`, and `heavy` subscription filters
 that Azure Service Bus resources must eventually use, but these Dapr assets do
 not create topics or subscriptions and do not require paid Azure validation.
 
+USER-STORY-6 adds the local outbox publisher boundary through the Dapr sidecar
+HTTP API. The outbox worker publishes each pending message to
+`/v1.0/publish/commandbus/{topic}`, where `{topic}` is the outbox message
+destination. Existing outbox application properties, including
+`executionClass`, are forwarded as Dapr publish metadata query parameters such
+as `metadata.executionClass=heavy`. This keeps the local publisher independent
+of Azure SDKs and Azure resource provisioning.
+
 All credentials are Kubernetes Secret references. Real secret values,
 kubeconfigs, Azure subscription details, and Terraform state are intentionally
 absent from this repository.

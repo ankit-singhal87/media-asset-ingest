@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using MediaIngest.Contracts.Commands;
 using MediaIngest.Persistence;
@@ -11,6 +12,9 @@ await DispatchPendingMessagesDoesNothingWhenNoMessagesArePending();
 await DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails();
 await OverlappingDispatcherRunsDoNotPublishTheSameMessageTwice();
 await ClaimedMessagesCanBeRetriedAfterTheClaimExpires();
+await DaprPublisherPublishesPayloadToTheDestinationTopic();
+await DaprPublisherMapsApplicationPropertiesToDaprMetadata();
+await DaprPublisherSurfacesNonSuccessResponses();
 
 Console.WriteLine("MediaIngest outbox dispatcher smoke tests passed.");
 
@@ -231,6 +235,98 @@ static async Task ClaimedMessagesCanBeRetriedAfterTheClaimExpires()
     AssertEqual(timeProvider.UtcNow, store.OutboxMessages[0].DispatchedAt, "expired claim retry dispatched timestamp");
 }
 
+static async Task DaprPublisherPublishesPayloadToTheDestinationTopic()
+{
+    var handler = new RecordingHttpMessageHandler(HttpStatusCode.NoContent, "");
+    using var httpClient = new HttpClient(handler)
+    {
+        BaseAddress = new Uri("http://127.0.0.1:3500")
+    };
+    var publisher = new DaprOutboxMessagePublisher(httpClient, "commandbus");
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-dapr-001",
+            destination: "media.command.create_proxy",
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 3, 12, 40, 0, TimeSpan.Zero),
+            payloadJson: """{"commandId":"command-001","executionClass":"light"}"""),
+        new Dictionary<string, string>(StringComparer.Ordinal));
+
+    await publisher.PublishAsync(request);
+
+    AssertEqual(HttpMethod.Post, handler.Requests[0].Method, "dapr publish method");
+    AssertEqual(
+        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.create_proxy",
+        handler.Requests[0].RequestUri?.ToString(),
+        "dapr publish topic URL");
+    AssertEqual(
+        """{"commandId":"command-001","executionClass":"light"}""",
+        handler.RequestBodies[0],
+        "dapr publish payload body");
+    AssertEqual("application/json; charset=utf-8", handler.Requests[0].Content?.Headers.ContentType?.ToString(), "dapr content type");
+}
+
+static async Task DaprPublisherMapsApplicationPropertiesToDaprMetadata()
+{
+    var handler = new RecordingHttpMessageHandler(HttpStatusCode.NoContent, "");
+    using var httpClient = new HttpClient(handler)
+    {
+        BaseAddress = new Uri("http://127.0.0.1:3500")
+    };
+    var publisher = new DaprOutboxMessagePublisher(httpClient, "commandbus");
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-dapr-002",
+            destination: "media.command.archive_asset",
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 3, 12, 45, 0, TimeSpan.Zero),
+            payloadJson: """{"commandId":"command-heavy","executionClass":"heavy"}"""),
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [CommandRoute.ExecutionClassPropertyName] = "heavy"
+        });
+
+    await publisher.PublishAsync(request);
+
+    AssertEqual(
+        "http://127.0.0.1:3500/v1.0/publish/commandbus/media.command.archive_asset?metadata.executionClass=heavy",
+        handler.Requests[0].RequestUri?.ToString(),
+        "dapr publish metadata URL");
+}
+
+static async Task DaprPublisherSurfacesNonSuccessResponses()
+{
+    var handler = new RecordingHttpMessageHandler(HttpStatusCode.ServiceUnavailable, "sidecar unavailable");
+    using var httpClient = new HttpClient(handler)
+    {
+        BaseAddress = new Uri("http://127.0.0.1:3500")
+    };
+    var publisher = new DaprOutboxMessagePublisher(httpClient, "commandbus");
+    var request = new OutboxPublishRequest(
+        CreateMessage(
+            messageId: "message-dapr-003",
+            destination: "media.command.verify_checksum",
+            messageType: "MediaCommandEnvelope",
+            createdAt: new DateTimeOffset(2026, 5, 3, 12, 50, 0, TimeSpan.Zero)),
+        new Dictionary<string, string>(StringComparer.Ordinal));
+    var failed = false;
+
+    try
+    {
+        await publisher.PublishAsync(request);
+    }
+    catch (InvalidOperationException ex) when (
+        ex.Message.Contains("Dapr publish failed", StringComparison.Ordinal)
+        && ex.Message.Contains("503", StringComparison.Ordinal)
+        && ex.Message.Contains("message-dapr-003", StringComparison.Ordinal)
+        && ex.Message.Contains("sidecar unavailable", StringComparison.Ordinal))
+    {
+        failed = true;
+    }
+
+    AssertTrue(failed, "dapr non-success response is surfaced");
+}
+
 static OutboxMessage CreateMessage(
     string messageId,
     string destination,
@@ -320,6 +416,27 @@ internal sealed class BlockingOutboxPublisher : IOutboxMessagePublisher
     public Task WaitForFirstPublishAttemptAsync() => firstPublishAttempted.Task;
 
     public void AllowPublishes() => allowPublishes.TrySetResult();
+}
+
+internal sealed class RecordingHttpMessageHandler(HttpStatusCode statusCode, string responseBody) : HttpMessageHandler
+{
+    public List<HttpRequestMessage> Requests { get; } = [];
+    public List<string> RequestBodies { get; } = [];
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        Requests.Add(request);
+        RequestBodies.Add(request.Content is null
+            ? ""
+            : await request.Content.ReadAsStringAsync(cancellationToken));
+
+        return new HttpResponseMessage(statusCode)
+        {
+            Content = new StringContent(responseBody)
+        };
+    }
 }
 
 internal sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
