@@ -5,6 +5,7 @@ api_url="${MEDIA_INGEST_API_URL:-http://127.0.0.1:5000}"
 package_id="${SMOKE_PACKAGE_ID:-asset-smoke-001}"
 timeout_seconds="${SMOKE_TIMEOUT_SECONDS:-20}"
 interval_seconds="${SMOKE_INTERVAL_SECONDS:-1}"
+expected_copied_files="${SMOKE_EXPECT_COPIED_FILES:-all}"
 dry_run=0
 
 usage() {
@@ -15,6 +16,7 @@ usage() {
   printf '%s\n' "  SMOKE_PACKAGE_ID           Package ID to create. Default: asset-smoke-001"
   printf '%s\n' "  SMOKE_TIMEOUT_SECONDS      Output polling timeout. Default: 20"
   printf '%s\n' "  SMOKE_INTERVAL_SECONDS     Output polling interval. Default: 1"
+  printf '%s\n' "  SMOKE_EXPECT_COPIED_FILES  Copied output assertion mode: all or manifest. Default: all"
 }
 
 while [ "$#" -gt 0 ]; do
@@ -80,6 +82,15 @@ validate_settings() {
       exit 2
       ;;
   esac
+
+  case "$expected_copied_files" in
+    all|manifest)
+      ;;
+    *)
+      printf 'SMOKE_EXPECT_COPIED_FILES must be all or manifest: %s\n' "$expected_copied_files" >&2
+      exit 2
+      ;;
+  esac
 }
 
 print_plan() {
@@ -92,6 +103,7 @@ print_plan() {
   printf '  %-18s %s\n' "output_package" "$package_output"
   printf '  %-18s %s seconds\n' "timeout" "$timeout_seconds"
   printf '  %-18s %s seconds\n' "interval" "$interval_seconds"
+  printf '  %-18s %s\n' "copied_outputs" "$expected_copied_files"
   printf '%s\n' "Smoke steps:"
   printf '  %s\n' "1. Reset only the selected input/output package folders."
   printf '  %s\n' "2. POST ingest start to the already-running local API."
@@ -100,10 +112,14 @@ print_plan() {
   printf '%s\n' "Expected output assertions:"
   printf '  %s\n' "$manifest_output"
   printf '  %s\n' "$checksum_output"
-  printf '  %s\n' "$package_output/media/source.mov"
-  printf '  %s\n' "$package_output/media/mix.wav"
-  printf '  %s\n' "$package_output/sidecars/caption.srt"
-  printf '  %s\n' "$package_output/notes.bin"
+  if [ "$expected_copied_files" = "all" ]; then
+    printf '  %s\n' "$package_output/media/source.mov"
+    printf '  %s\n' "$package_output/media/mix.wav"
+    printf '  %s\n' "$package_output/sidecars/caption.srt"
+    printf '  %s\n' "$package_output/notes.bin"
+  fi
+  printf '%s\n' "Expected workflow assertions:"
+  printf '  %s\n' "workflow graph exposes at least four command nodes"
 }
 
 validate_settings
@@ -157,6 +173,12 @@ assert_matching_file() {
 }
 
 all_expected_outputs_exist() {
+  [ -f "$manifest_output" ] && [ -f "$checksum_output" ] || return 1
+
+  if [ "$expected_copied_files" = "manifest" ]; then
+    return 0
+  fi
+
   [ -f "$manifest_output" ] &&
     [ -f "$checksum_output" ] &&
     [ -f "$package_output/media/source.mov" ] &&
@@ -186,19 +208,23 @@ while [ "$elapsed" -le "$timeout_seconds" ]; do
       if [ "$command_node_count" -ge 4 ]; then
         assert_matching_file "$manifest_input" "$manifest_output"
         assert_matching_file "$checksum_input" "$checksum_output"
-        assert_matching_file "$package_input/media/source.mov" "$package_output/media/source.mov"
-        assert_matching_file "$package_input/media/mix.wav" "$package_output/media/mix.wav"
-        assert_matching_file "$package_input/sidecars/caption.srt" "$package_output/sidecars/caption.srt"
-        assert_matching_file "$package_input/notes.bin" "$package_output/notes.bin"
+        if [ "$expected_copied_files" = "all" ]; then
+          assert_matching_file "$package_input/media/source.mov" "$package_output/media/source.mov"
+          assert_matching_file "$package_input/media/mix.wav" "$package_output/media/mix.wav"
+          assert_matching_file "$package_input/sidecars/caption.srt" "$package_output/sidecars/caption.srt"
+          assert_matching_file "$package_input/notes.bin" "$package_output/notes.bin"
+        fi
 
         printf '%s\n' "Local ingest smoke passed."
         printf '%s\n' "Observed output files:"
         printf '  %s\n' "$manifest_output"
         printf '  %s\n' "$checksum_output"
-        printf '  %s\n' "$package_output/media/source.mov"
-        printf '  %s\n' "$package_output/media/mix.wav"
-        printf '  %s\n' "$package_output/sidecars/caption.srt"
-        printf '  %s\n' "$package_output/notes.bin"
+        if [ "$expected_copied_files" = "all" ]; then
+          printf '  %s\n' "$package_output/media/source.mov"
+          printf '  %s\n' "$package_output/media/mix.wav"
+          printf '  %s\n' "$package_output/sidecars/caption.srt"
+          printf '  %s\n' "$package_output/notes.bin"
+        fi
         printf '  workflow: %s\n' "$workflow_id"
         printf '  command_nodes: %s\n' "$command_node_count"
         rm -f -- "$status_json" "$graph_json"
@@ -218,9 +244,11 @@ done
 printf '%s\n' "Local ingest smoke failed: expected output files were not created before timeout." >&2
 print_missing_output "$manifest_output"
 print_missing_output "$checksum_output"
-print_missing_output "$package_output/media/source.mov"
-print_missing_output "$package_output/media/mix.wav"
-print_missing_output "$package_output/sidecars/caption.srt"
-print_missing_output "$package_output/notes.bin"
+if [ "$expected_copied_files" = "all" ]; then
+  print_missing_output "$package_output/media/source.mov"
+  print_missing_output "$package_output/media/mix.wav"
+  print_missing_output "$package_output/sidecars/caption.srt"
+  print_missing_output "$package_output/notes.bin"
+fi
 printf '%s\n' "Expected ingest status plus a workflow graph with at least four command nodes." >&2
 exit 1

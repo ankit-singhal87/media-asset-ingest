@@ -123,6 +123,11 @@
   reads stored package start, command dispatch, done-marker reconciliation,
   success, and failure records instead of synthetic package-state text. This
   does not complete production log aggregation or OpenTelemetry trace linkage.
+- TASK-2-3 added a Docker-first local runtime smoke target that starts the
+  Compose API, UI, and PostgreSQL stack, waits for API/UI HTTP responses, runs
+  the existing local ingest smoke against the containerized API with
+  manifest-output assertions plus workflow command-node evidence, and stops
+  the stack without cloud resources or secrets.
 - TASK-5-2 expanded nested workflow behavior contracts so prepared child work
   now carries stable child workflow instance IDs and parent workflow references,
   and workflow graph projection can render queued child workflow nodes directly
@@ -131,7 +136,7 @@
 ## Next
 
 - Plan the next runtime slice: Azure Service Bus runner consumption, richer
-  node log/timeline data sources, or local container runtime validation.
+  node log/timeline data sources, or deeper local container runtime validation.
 
 ## Update Rule
 

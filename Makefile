@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -11,6 +11,7 @@ help:
 	@printf '%s\n' "  make up                  Start local Docker Compose runtime"
 	@printf '%s\n' "  make down                Stop local Docker Compose runtime"
 	@printf '%s\n' "  make local-compose-check Validate local Docker Compose configuration"
+	@printf '%s\n' "  make local-runtime-smoke Start Compose and run local ingest smoke"
 	@printf '%s\n' "  make validate            Run cheap repository validation"
 	@printf '%s\n' "  make validate-docs       Run docs validation only"
 	@printf '%s\n' "  make validate-automation Run automation script validation only"
@@ -53,6 +54,9 @@ down:
 
 local-compose-check:
 	@sh scripts/dev/local-compose-check.sh
+
+local-runtime-smoke:
+	@sh scripts/dev/local-compose-check.sh --runtime-smoke
 
 validate: docs-check scripts-check github-projects-script-test test-dotnet
 
