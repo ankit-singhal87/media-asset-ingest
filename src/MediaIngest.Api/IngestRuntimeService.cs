@@ -18,6 +18,7 @@ public sealed class IngestRuntimeService(
     OutboxDispatcher outboxDispatcher) : IAsyncDisposable
 {
     private static readonly TimeSpan WatchInterval = TimeSpan.FromMilliseconds(100);
+    private readonly DoneMarkerReadinessGate doneMarkerGate = new();
 
     private readonly object watcherLock = new();
     private readonly HashSet<string> terminalPackageIds = new(StringComparer.Ordinal);
@@ -80,52 +81,36 @@ public sealed class IngestRuntimeService(
             foreach (var candidate in candidates.Where(readinessGate.IsReady))
             {
                 var packageId = Path.GetFileName(candidate.PackagePath);
+                var latestState = GetLatestPackageState(packageId);
 
-                if (terminalPackageIds.Contains(packageId))
+                if (terminalPackageIds.Contains(packageId) || IsTerminal(latestState?.Status))
                 {
+                    terminalPackageIds.Add(packageId);
                     continue;
                 }
 
-                var acceptedAt = DateTimeOffset.UtcNow;
-                var workflowStart = workflowStarter.Start(new PackageIngestRequest(
-                    PackageId: packageId,
-                    PackagePath: candidate.PackagePath,
-                    CorrelationId: $"correlation-{packageId}",
-                    AcceptedAt: acceptedAt));
+                var workflowStart = CreateWorkflowStart(packageId, candidate.PackagePath);
 
-                var message = CreateLocalTransferMessage(workflowStart, paths.OutputPath);
-                var mediaCommandMessages = CreateMediaCommandMessages(
+                if (latestState is null)
+                {
+                    var message = CreateLocalTransferMessage(workflowStart, paths.OutputPath);
+                    var mediaCommandMessages = CreateMediaCommandMessages(
+                        workflowStart,
+                        scanner.FindPackageFiles(candidate));
+
+                    await store.SaveAsync(new PersistenceBatch(
+                        [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", workflowStart.AcceptedAt)],
+                        [message, .. mediaCommandMessages]), cancellationToken);
+
+                    startedPackages.Add(new StartedIngestPackageResponse(
+                        packageId,
+                        workflowStart.WorkflowInstanceId));
+                }
+
+                hadTransferConflict |= await DispatchAndMaybeCompleteAsync(
+                    candidate,
                     workflowStart,
-                    scanner.FindPackageFiles(candidate));
-
-                await store.SaveAsync(new PersistenceBatch(
-                    [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", acceptedAt)],
-                    [message, .. mediaCommandMessages]), cancellationToken);
-
-                startedPackages.Add(new StartedIngestPackageResponse(
-                    packageId,
-                    workflowStart.WorkflowInstanceId));
-
-                try
-                {
-                    await outboxDispatcher.DispatchPendingAsync(cancellationToken);
-                    await store.SaveAsync(new PersistenceBatch(
-                        [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
-                        []), cancellationToken);
-                    terminalPackageIds.Add(packageId);
-                }
-                catch (LocalManifestTransferConflictException)
-                {
-                    hadTransferConflict = true;
-                    await store.MarkOutboxMessageDispatchedAsync(
-                        message.MessageId,
-                        DateTimeOffset.UtcNow,
-                        cancellationToken);
-                    await store.SaveAsync(new PersistenceBatch(
-                        [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
-                        []), cancellationToken);
-                    terminalPackageIds.Add(packageId);
-                }
+                    cancellationToken);
             }
 
             return new IngestStartResult(
@@ -136,6 +121,94 @@ public sealed class IngestRuntimeService(
         {
             scanLock.Release();
         }
+    }
+
+    private PackageWorkflowStart CreateWorkflowStart(string packageId, string packagePath)
+    {
+        return workflowStarter.Start(new PackageIngestRequest(
+            PackageId: packageId,
+            PackagePath: packagePath,
+            CorrelationId: $"correlation-{packageId}",
+            AcceptedAt: DateTimeOffset.UtcNow));
+    }
+
+    private async Task<bool> DispatchAndMaybeCompleteAsync(
+        IngestPackageCandidate candidate,
+        PackageWorkflowStart workflowStart,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await outboxDispatcher.DispatchPendingAsync(cancellationToken);
+
+            if (!doneMarkerGate.IsDone(candidate))
+            {
+                return false;
+            }
+
+            var mediaCommandMessages = CreateMediaCommandMessages(
+                workflowStart,
+                scanner.FindPackageFiles(candidate));
+
+            await store.SaveAsync(new PersistenceBatch(
+                [],
+                mediaCommandMessages), cancellationToken);
+            await outboxDispatcher.DispatchPendingAsync(cancellationToken);
+
+            await store.SaveAsync(new PersistenceBatch(
+                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Succeeded", DateTimeOffset.UtcNow)],
+                []), cancellationToken);
+            terminalPackageIds.Add(workflowStart.PackageId);
+
+            return false;
+        }
+        catch (LocalManifestTransferConflictException)
+        {
+            var messageId = GetPendingLocalTransferMessageId(workflowStart.PackageId);
+
+            if (messageId is null)
+            {
+                throw;
+            }
+
+            await store.MarkOutboxMessageDispatchedAsync(
+                messageId,
+                DateTimeOffset.UtcNow,
+                cancellationToken);
+            await store.SaveAsync(new PersistenceBatch(
+                [new IngestPackageState(workflowStart.PackageId, workflowStart.WorkflowInstanceId, "Failed", DateTimeOffset.UtcNow)],
+                []), cancellationToken);
+            terminalPackageIds.Add(workflowStart.PackageId);
+
+            return true;
+        }
+    }
+
+    private string? GetPendingLocalTransferMessageId(string packageId)
+    {
+        return store.OutboxMessages
+            .Where(message =>
+                message.MessageType == nameof(LocalManifestTransferRequest)
+                && string.Equals(message.CorrelationId, $"correlation-{packageId}", StringComparison.Ordinal)
+                && string.Equals(message.Destination, "local.manifest.transfer", StringComparison.Ordinal)
+                && message.DispatchedAt is null)
+            .OrderBy(message => message.CreatedAt)
+            .Select(message => message.MessageId)
+            .FirstOrDefault();
+    }
+
+    private IngestPackageState? GetLatestPackageState(string packageId)
+    {
+        return store.PackageStates
+            .Where(packageState => string.Equals(packageState.PackageId, packageId, StringComparison.Ordinal))
+            .OrderBy(packageState => packageState.UpdatedAt)
+            .LastOrDefault();
+    }
+
+    private static bool IsTerminal(string? status)
+    {
+        return string.Equals(status, "Succeeded", StringComparison.Ordinal)
+            || string.Equals(status, "Failed", StringComparison.Ordinal);
     }
 
     public IngestStatusResponse GetStatus()
