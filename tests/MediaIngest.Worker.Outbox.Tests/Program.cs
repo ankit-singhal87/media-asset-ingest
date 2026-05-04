@@ -1,8 +1,11 @@
+using System.Text.Json;
+using MediaIngest.Contracts.Commands;
 using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 
 await DispatchPendingMessagesPublishesAndMarksThemWithTheDispatchTime();
 await DispatchPendingCommandMessagesPublishesExecutionClassMetadata();
+await NonCommandMessagesDoNotPublishCommandApplicationProperties();
 await OutboxPublishersCannotDropApplicationProperties();
 await DispatchPendingMessagesDoesNothingWhenNoMessagesArePending();
 await DispatchPendingMessagesLeavesTheMessagePendingWhenPublishFails();
@@ -46,7 +49,16 @@ static async Task DispatchPendingCommandMessagesPublishesExecutionClassMetadata(
         destination: "media.command.archive_asset",
         messageType: "MediaCommandEnvelope",
         createdAt: new DateTimeOffset(2026, 5, 3, 12, 6, 0, TimeSpan.Zero),
-        executionClass: "heavy");
+        payloadJson: JsonSerializer.Serialize(new MediaCommandEnvelope(
+            CommandId: "command-heavy",
+            CommandName: CommandNames.ArchiveAsset,
+            TopicName: CommandNames.ArchiveAsset,
+            ExecutionClass: ExecutionClass.Heavy,
+            CommandLine: "archive package-001",
+            WorkingDirectory: "/mnt/work/package-001",
+            InputPaths: ["/mnt/ingest/package-001/source.mov"],
+            OutputPaths: ["/mnt/archive/package-001/source.mov"],
+            CorrelationId: "correlation-001")));
 
     await store.SaveAsync(new PersistenceBatch([], [message]));
 
@@ -61,7 +73,35 @@ static async Task DispatchPendingCommandMessagesPublishesExecutionClassMetadata(
     AssertEqual(1, dispatchedCount, "command dispatch count");
     AssertEqual(1, publisher.Published.Count, "command publish request count");
     AssertEqual("media.command.archive_asset", publisher.Published[0].Message.Destination, "command publish destination");
-    AssertEqual("heavy", publisher.Published[0].ApplicationProperties["executionClass"], "command execution class property");
+    AssertEqual(
+        "heavy",
+        publisher.Published[0].ApplicationProperties[CommandRoute.ExecutionClassPropertyName],
+        "command execution class property");
+}
+
+static async Task NonCommandMessagesDoNotPublishCommandApplicationProperties()
+{
+    var store = new InMemoryIngestPersistenceStore();
+    var message = CreateMessage(
+        messageId: "message-event-with-execution-class",
+        destination: "media.event.package_scanned",
+        messageType: "PackageScannedEvent",
+        createdAt: new DateTimeOffset(2026, 5, 3, 12, 8, 0, TimeSpan.Zero),
+        executionClass: "heavy");
+
+    await store.SaveAsync(new PersistenceBatch([], [message]));
+
+    var publisher = new RecordingOutboxPublisher();
+    var dispatcher = new OutboxDispatcher(
+        store,
+        publisher,
+        new FixedTimeProvider(new DateTimeOffset(2026, 5, 3, 12, 9, 0, TimeSpan.Zero)));
+
+    var dispatchedCount = await dispatcher.DispatchPendingAsync();
+
+    AssertEqual(1, dispatchedCount, "non-command dispatch count");
+    AssertEqual(1, publisher.Published.Count, "non-command publish request count");
+    AssertEqual(0, publisher.Published[0].ApplicationProperties.Count, "non-command application property count");
 }
 
 static Task OutboxPublishersCannotDropApplicationProperties()
@@ -196,13 +236,14 @@ static OutboxMessage CreateMessage(
     string destination,
     string messageType,
     DateTimeOffset createdAt,
-    string executionClass = "light")
+    string executionClass = "light",
+    string? payloadJson = null)
 {
     return new OutboxMessage(
         MessageId: messageId,
         Destination: destination,
         MessageType: messageType,
-        PayloadJson: $$"""{"packageId":"package-001","executionClass":"{{executionClass}}"}""",
+        PayloadJson: payloadJson ?? $$"""{"packageId":"package-001","executionClass":"{{executionClass}}"}""",
         CorrelationId: "correlation-001",
         CreatedAt: createdAt);
 }

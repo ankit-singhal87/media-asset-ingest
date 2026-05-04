@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MediaIngest.Contracts.Commands;
 using MediaIngest.Persistence;
 
 namespace MediaIngest.Worker.Outbox;
@@ -7,53 +8,39 @@ public sealed record OutboxPublishRequest(
     OutboxMessage Message,
     IReadOnlyDictionary<string, string> ApplicationProperties)
 {
-    public const string ExecutionClassPropertyName = "executionClass";
-
-    private static readonly HashSet<string> ExecutionClassValues = new(StringComparer.Ordinal)
-    {
-        "light",
-        "medium",
-        "heavy"
-    };
-
     public static OutboxPublishRequest From(OutboxMessage message)
     {
         var applicationProperties = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        if (TryReadExecutionClass(message.PayloadJson, out var executionClass))
+        if (IsMediaCommandEnvelope(message))
         {
-            applicationProperties[ExecutionClassPropertyName] = executionClass;
-        }
-        else if (IsSemanticCommandTopic(message.Destination))
-        {
-            throw new InvalidOperationException(
-                $"Command outbox message '{message.MessageId}' must include an executionClass value.");
+            applicationProperties[CommandRoute.ExecutionClassPropertyName] = ReadExecutionClass(message);
         }
 
         return new OutboxPublishRequest(message, applicationProperties);
     }
 
-    private static bool IsSemanticCommandTopic(string destination)
+    private static bool IsMediaCommandEnvelope(OutboxMessage message)
     {
-        return destination.StartsWith("media.command.", StringComparison.Ordinal);
+        return string.Equals(message.MessageType, nameof(MediaCommandEnvelope), StringComparison.Ordinal);
     }
 
-    private static bool TryReadExecutionClass(string payloadJson, out string executionClass)
+    private static string ReadExecutionClass(OutboxMessage message)
     {
-        executionClass = string.Empty;
-
-        using var document = JsonDocument.Parse(payloadJson);
+        using var document = JsonDocument.Parse(message.PayloadJson);
         var root = document.RootElement;
 
         if (root.ValueKind != JsonValueKind.Object)
         {
-            return false;
+            throw new InvalidOperationException(
+                $"Command outbox message '{message.MessageId}' must contain a JSON object payload.");
         }
 
         if (!TryGetProperty(root, "executionClass", out var executionClassProperty)
             && !TryGetProperty(root, "ExecutionClass", out executionClassProperty))
         {
-            return false;
+            throw new InvalidOperationException(
+                $"Command outbox message '{message.MessageId}' must include an executionClass value.");
         }
 
         if (executionClassProperty.ValueKind != JsonValueKind.String)
@@ -68,15 +55,14 @@ public sealed record OutboxPublishRequest(
             throw new InvalidOperationException("Command executionClass is required.");
         }
 
-        var normalizedValue = value.ToLowerInvariant();
-
-        if (!ExecutionClassValues.Contains(normalizedValue))
+        try
         {
-            throw new InvalidOperationException("Command executionClass must be light, medium, or heavy.");
+            return ExecutionClassProperties.FromPropertyValue(value).ToPropertyValue();
         }
-
-        executionClass = normalizedValue;
-        return true;
+        catch (ArgumentOutOfRangeException ex)
+        {
+            throw new InvalidOperationException("Command executionClass must be light, medium, or heavy.", ex);
+        }
     }
 
     private static bool TryGetProperty(JsonElement element, string propertyName, out JsonElement property)
