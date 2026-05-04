@@ -22,6 +22,15 @@ Kubernetes component templates:
 - `k8s/kustomization.yaml` lets agents render the Dapr assets without contacting
   a Kubernetes API server.
 
+Static validation:
+
+```bash
+kubectl kustomize deploy/dapr/k8s
+```
+
+This render command does not apply resources, read kubeconfig, create Azure
+Service Bus resources, or require paid cloud execution.
+
 Command routing boundary:
 
 | Command intent | Topic name | Execution property |

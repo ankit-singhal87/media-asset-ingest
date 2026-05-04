@@ -3,6 +3,10 @@ kind: Component
 metadata:
   name: workflowstatestore
   namespace: media-ingest
+  labels:
+    app.kubernetes.io/name: workflowstatestore
+    app.kubernetes.io/component: dapr-state-store
+    app.kubernetes.io/part-of: media-asset-ingest
 spec:
   type: state.postgresql
   version: v1

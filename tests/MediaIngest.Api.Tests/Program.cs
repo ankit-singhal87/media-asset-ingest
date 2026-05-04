@@ -193,6 +193,15 @@ try
     AssertEqual("package-asset-http-001", statusPackage.GetProperty("workflowInstanceId").GetString(), "started api status workflow id");
     AssertEqual("Started", statusPackage.GetProperty("status").GetString(), "started api status value");
 
+    using var workflowListResponse = await freshApiHost.HttpClient.GetAsync("/api/workflows");
+    AssertEqual(System.Net.HttpStatusCode.OK, workflowListResponse.StatusCode, "workflow list endpoint status");
+    using var workflowListJson = JsonDocument.Parse(await workflowListResponse.Content.ReadAsStringAsync());
+    var listedWorkflow = workflowListJson.RootElement.GetProperty("workflows").EnumerateArray().Single();
+    AssertEqual("package-asset-http-001", listedWorkflow.GetProperty("workflowInstanceId").GetString(), "workflow list workflow id");
+    AssertEqual("asset-http-001", listedWorkflow.GetProperty("packageId").GetString(), "workflow list package id");
+    AssertEqual("Started", listedWorkflow.GetProperty("status").GetString(), "workflow list status");
+    AssertTrue(listedWorkflow.TryGetProperty("updatedAt", out _), "workflow list updated at");
+
     await using var apiHost = await IngestApiApplication.StartAsync(inputPath, outputPath);
     using var apiStartResponse = await apiHost.HttpClient.PostAsync("/api/ingest/start", content: null);
     AssertEqual(System.Net.HttpStatusCode.Conflict, apiStartResponse.StatusCode, "api host start status");

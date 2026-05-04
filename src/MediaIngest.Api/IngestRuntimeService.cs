@@ -355,6 +355,22 @@ public sealed class IngestRuntimeService(
         return new IngestStatusResponse(packages);
     }
 
+    public WorkflowListResponse ListWorkflows()
+    {
+        var workflows = store.PackageStates
+            .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
+            .Select(group => group.Last())
+            .OrderBy(packageState => packageState.PackageId, StringComparer.Ordinal)
+            .Select(packageState => new WorkflowListItemResponse(
+                packageState.WorkflowInstanceId,
+                packageState.PackageId,
+                packageState.Status,
+                packageState.UpdatedAt))
+            .ToArray();
+
+        return new WorkflowListResponse(workflows);
+    }
+
     public WorkflowGraphDto? GetWorkflowGraph(string workflowInstanceId)
     {
         if (string.IsNullOrWhiteSpace(workflowInstanceId))
