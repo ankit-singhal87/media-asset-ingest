@@ -7,13 +7,15 @@ that can run in separate worktrees. The current demo contract stays unchanged:
 ## Coordination Rules
 
 - Use `.terminals/` only for local, gitignored helper scripts.
-- Keep durable state in GitHub issues and PRs, `docs/plans`, and
-  `docs/plans/active-worktrees.md`.
+- Keep durable state in GitHub issues and PRs, plus `docs/plans` only when
+  product or implementation context should be committed.
+- Keep live worktree coordination in ignored `.worktrees/state/<worktree-slug>.md`
+  files.
 - Each track owns only its listed target files.
 - Stop when a task needs a shared file, schema or contract decision, dependency
   change, secret, cloud action, paid resource, or destructive Git operation.
 - The coordinator serializes shared edits to `Makefile`, `package.json`,
-  `MediaIngest.sln`, shared docs, and `docs/plans/active-worktrees.md`.
+  `MediaIngest.sln`, and shared docs.
 - Do not change the existing local ingest contract until a later integration
   task explicitly does so.
 
@@ -30,7 +32,7 @@ that can run in separate worktrees. The current demo contract stays unchanged:
 | 07 Pulse Workflow Boundary | Pulse | Add minimal in-process lifecycle boundary for observed, ready, started, succeeded, and failed; no Dapr runtime wiring. | `src/MediaIngest.Workflow`, `tests/MediaIngest.Workflow.Tests` | Dapr runtime config, watcher, persistence schema | `make test-dotnet-workflow` |
 | 08 Beacon Runtime Diagnostics | Beacon | Add structured diagnostic event names for scan, readiness, copy, outbox dispatch, success, and failure. | `src/MediaIngest.Observability`, `tests/MediaIngest.Observability.Tests` | Functional workflow, watcher, outbox behavior | `make test-dotnet-observability` |
 | 09 Gauge E2E Smoke | Gauge | Add a local smoke script that starts clean, posts start, creates package files, and asserts output files. | `scripts/dev`, smoke-test docs | Runtime compose files, app behavior, solution files | Local smoke dry-run or shell syntax plus documented manual command |
-| 10 Coordinator Integration | Forge | Serially update shared files and integrate only validated branches. | `Makefile`, `package.json`, `MediaIngest.sln`, shared docs, `docs/plans/active-worktrees.md` | Lane-owned implementation files unless integrating validated branches | `make validate` |
+| 10 Coordinator Integration | Forge | Serially update shared files and integrate only validated branches. | `Makefile`, `package.json`, `MediaIngest.sln`, shared docs | Lane-owned implementation files unless integrating validated branches | `make validate` |
 
 ## Handoff Requirements
 
@@ -41,7 +43,7 @@ Each track must report:
 - ownership lane
 - files changed
 - validation command and outcome
-- active worktree row updates
+- local `.worktrees/state/` updates
 - blockers and any contract conflicts
 - PR state when PR creation is authorized
 

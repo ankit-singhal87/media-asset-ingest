@@ -5,6 +5,9 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-04
 
+- Replaced the tracked active worktree ledger with ignored local
+  `.worktrees/state/<worktree-slug>.md` records and updated planning and
+  automation docs to keep worktree state out of commits.
 - Added the parallel track 07 Pulse workflow boundary with in-process package
   lifecycle states for observed, ready, started, succeeded, and failed.
 - Added the Track 08 Beacon runtime diagnostic event-name catalog for scan,
@@ -37,10 +40,10 @@ messages or paste command output unless it explains a decision.
   issue bodies, and populated Project fields for type, lane, and status.
 - Removed duplicated relationship metadata from GitHub issue bodies and added
   read-only Make/npm helpers for GitHub tracker verification.
-- Cleaned local plan, bug, worktree, checklist, and definition-of-done docs so
-  GitHub Projects is the tracker source of truth and repo docs are durable
-  context/mirrors.
-- Tightened PR checklist and active worktree mirror after GitHub Projects
+- Cleaned local plan, bug, checklist, and definition-of-done docs so GitHub
+  issues and PRs carry durable tracker history while repo docs keep durable
+  context.
+- Tightened PR checklist and active worktree coordination after GitHub Projects
   cleanup.
 - Created the first parallel execution task issues and local task files for
   .NET foundation, shared contracts, Dapr workflow, React UI, watcher,
@@ -48,7 +51,8 @@ messages or paste command output unless it explains a decision.
 - Added tested GitHub tracker helper commands for Project field updates,
   native sub-issue links, and native blocked-by dependency links.
 - Added tested GitHub tracker helpers for required field audits, issue-body
-  relationship linting, and PR creation with Project/worktree state updates.
+  relationship linting, and PR creation with Project plus local worktree-state
+  updates.
 - Documented serialized GitHub Project operations so parallel agents do not
   exhaust the shared GraphQL rate-limit budget.
 - Added the TASK-2-1 .NET solution skeleton with a dependency-free foundation

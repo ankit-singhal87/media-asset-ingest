@@ -12,7 +12,7 @@ Use this checklist before an agent starts and before it reports completion.
 - [ ] Check the linked GitHub issue when remote context is needed.
 - [ ] Identify target files.
 - [ ] Identify validation command.
-- [ ] Check `docs/plans/active-worktrees.md` for overlapping work.
+- [ ] Check `.worktrees/state/*.md` and `git worktree list` for overlapping work.
 - [ ] Confirm no other parallel task owns the same target files.
 
 ## During Work

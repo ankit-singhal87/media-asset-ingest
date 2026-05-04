@@ -32,7 +32,6 @@ Before a task is complete, update the relevant files:
 - `docs/product/user-stories.md` when acceptance meaning changes.
 - `docs/plans` when milestone plans or task plans are added, split, renamed, or deleted.
 - `docs/plans/task-index.md` when local task files are added, renamed, or deleted.
-- `docs/plans/active-worktrees.md` only when coordinating active parallel worktrees.
 - GitHub issues or simple Project status when remote tracker state changes.
 - `docs/bugs` when durable defect documentation is added, renamed, or deleted.
 - `docs/bugs/index.md` when local bug files are added, renamed, or deleted.
@@ -43,6 +42,12 @@ Before a task is complete, update the relevant files:
 - `scripts/dev/install-tools.sh` when a required tool should be installable.
 - `docs/automation/commands.md` when a canonical command is added or changed.
 - `docs/automation/validation.md` when validation expectations change.
+
+## Parallel Local State
+
+When coordinating active parallel worktrees, update ignored local
+`.worktrees/state/<worktree-slug>.md` records. These files are live local state,
+not required documentation updates, and must not be committed.
 
 ## Bug Fixes
 

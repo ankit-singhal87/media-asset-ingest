@@ -30,13 +30,16 @@ direction.
 - Use [docs/automation/agent-handoff.md](docs/automation/agent-handoff.md) for task handoff results.
 - Use [docs/automation/conflict-protocol.md](docs/automation/conflict-protocol.md) when scope, architecture, validation, or parallel work conflicts arise.
 - Use [docs/automation/github-projects.md](docs/automation/github-projects.md) when changing GitHub issues, milestones, projects, bugs, or PR tracking state.
+- Prefer the GitHub plugin for structured GitHub operations; use `gh` only for
+  gaps such as Project board commands, CLI auth checks, or wrapper validation.
 - Use [docs/automation/git-conventions.md](docs/automation/git-conventions.md) before creating branches, commits, or PRs.
 - Follow [docs/standards/bdd-tdd.md](docs/standards/bdd-tdd.md) for behavior changes.
 - Follow [docs/standards/domain-driven-design.md](docs/standards/domain-driven-design.md) for domain boundaries.
 - Follow [docs/standards/tooling.md](docs/standards/tooling.md) when tools or commands change.
 - Stop and ask before dependency changes, destructive Git operations, paid cloud
   actions, secret handling, or changes outside the assigned scope.
-- Update [docs/plans/active-worktrees.md](docs/plans/active-worktrees.md) when creating, using, PR-opening, merging, or cleaning up worktrees.
+- Update ignored local `.worktrees/state/<worktree-slug>.md` records when
+  creating, using, PR-opening, merging, or cleaning up worktrees.
 - Keep GitHub Projects lightweight: issues and PRs are durable, and the Project
   is only a simple status board when remote tracker access is available.
 - Start branch names, commit subjects, and PR titles with the lowest-level

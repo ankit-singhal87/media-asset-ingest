@@ -113,9 +113,11 @@ Enabled agent tools:
   repo-required planning, TDD, worktree, verification, and branch-finishing
   workflows.
 - [GitHub plugin](https://github.com/openai/plugins): prefer it for structured
-  issue, PR, review, diff, commit, and CI operations.
-- `gh` and Make helpers: use these for GitHub Projects v2 fields, native
-  sub-issue/dependency wiring, and tracker validation commands such as
+  repository, issue, PR, review, diff, commit, CI, comment, label, and merge
+  operations.
+- `gh` and Make helpers: use these only when the plugin cannot cover the
+  action, especially GitHub Projects v2 fields, CLI auth checks, and tracker
+  validation commands such as
   `make github-project-active`.
 
 ## Development Model
@@ -126,5 +128,6 @@ Enabled agent tools:
   UI infrastructure details.
 - Update quickstart, automation, status, product, milestone, and tooling docs
   when a task changes developer workflow or project behavior.
-- Keep GitHub Projects updated for roadmap, issue, milestone, task, bug, and PR
-  state; repo docs keep durable standards and context.
+- Keep GitHub issues and PRs as durable remote tracking. Use the GitHub Project
+  only as a lightweight status board; repo docs keep durable standards and
+  context.

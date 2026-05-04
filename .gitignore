@@ -1,3 +1,4 @@
+# Local worktrees and ignored per-worktree state records.
 .worktrees/
 .cache/
 .terminals/

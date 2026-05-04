@@ -22,7 +22,9 @@ Durable task state does not live in `.terminals/`. Keep durable coordination in:
 
 - `docs/plans`
 - GitHub issues and pull requests
-- `docs/plans/active-worktrees.md` while local worktrees are active
+
+Keep live local worktree coordination in ignored
+`.worktrees/state/<worktree-slug>.md` files while local worktrees are active.
 
 Regenerate or delete `.terminals/` scripts when the parallel plan changes. Do
 not treat them as project source, architecture, or long-term automation.

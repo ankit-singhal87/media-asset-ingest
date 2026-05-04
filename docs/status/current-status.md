@@ -26,14 +26,14 @@
 - Planning and bug folder structure created.
 - Agent execution templates, indexes, checklists, handoff, parallelization, and
   conflict guidance created.
-- Active worktree tracking and PR authorization rules created.
+- Active worktree coordination and PR authorization rules created.
 - GitHub Projects roadmap created with milestone epics and numbered user-story
   issues.
 - Initial GitHub issue hierarchy, dependencies, issue bodies, and Project fields
   refined; later simplified to lightweight board tracking.
 - Read-only GitHub tracker helper commands added for agent verification.
-- Local task, bug, worktree, checklist, and definition-of-done docs aligned with
-  the GitHub Projects tracker model.
+- Local task, bug, checklist, and definition-of-done docs aligned with the
+  lightweight GitHub tracker model.
 - Markdown link validation, safe docs fix commands, and Git branch/commit/PR
   naming conventions were merged in PR #29.
 - Task issues #30 through #37 were created for the first parallel execution
@@ -41,8 +41,8 @@
 - GitHub tracker helper commands were added for Project field updates, native
   sub-issue links, and native blocked-by dependency links.
 - GitHub tracker helper commands now also cover required Project field audits,
-  issue-body relationship linting, and PR creation with Project/worktree state
-  updates.
+  issue-body relationship linting, and PR creation with Project plus local
+  worktree-state updates.
 - TASK-2-1 added the initial buildable .NET solution skeleton and canonical
   `make test-dotnet` validation entrypoint.
 - TASK-2-2 defined initial shared workflow graph, node detail, status, and
@@ -56,8 +56,10 @@
 - TASK-7-1 added the observability correlation field foundation.
 - TASK-8-1 scaffolded the React workflow control plane with mocked workflow
   graph data and focused UI tests.
-- Merged task worktrees for TASK-3-1 through TASK-8-1 were removed and marked
-  `Cleaned Up` in the local worktree mirror.
+- Merged task worktrees for TASK-3-1 through TASK-8-1 were removed; active
+  worktree coordination now stays in ignored local `.worktrees/state/` records.
+- The tracked active worktree ledger was removed from planning docs to avoid
+  conflicts across parallel PRs.
 - GitHub tracker state for task issues #31 and #33 through #37 was reconciled
   to closed, `status:complete`, and Project `Done`; future tracking is
   lightweight status only.

@@ -35,7 +35,6 @@ Agents may edit only these files unless they escalate:
 - `tests/MediaIngest.Worker.Watcher.Tests`
 - `src/MediaIngest.Contracts`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`
 
 ## BDD Scenario

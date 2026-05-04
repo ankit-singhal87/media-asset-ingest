@@ -4,8 +4,13 @@ Parallel agents are allowed only when file ownership is disjoint and task
 dependencies do not require sequential execution.
 
 Use GitHub issues and PRs for durable work tracking. Use the GitHub Project as
-a lightweight status board only. Use `docs/plans/active-worktrees.md` as the
-local coordination mirror for active parallel Codex processes.
+a lightweight status board only. Use ignored local
+`.worktrees/state/<worktree-slug>.md` records for active parallel Codex
+processes.
+
+`.worktrees/` is gitignored. Live state under `.worktrees/state/` must not be
+committed. Git history, GitHub issues, and PR links are the durable record after
+work completes.
 
 ## Safe Parallel Patterns
 
@@ -34,9 +39,30 @@ Each parallel agent must receive:
 - files it must not edit
 - validation command
 - expected handoff format
-- requirement to update `docs/plans/active-worktrees.md` while the worktree is active
+- requirement to update `.worktrees/state/<worktree-slug>.md` while the worktree is active
 - requirement to clean up its own local worktree after the PR merges
 - requirement to update simple GitHub status when tracker state changes
+
+## Local State Record
+
+Create one ignored local state file per active worktree:
+`.worktrees/state/<worktree-slug>.md`.
+
+Required fields:
+
+- worktree path
+- branch
+- linked issue or PR
+- story/task
+- ownership lane
+- target files
+- forbidden files
+- status
+- validation command
+- cleanup notes
+
+Before starting another parallel task, inspect `.worktrees/state/*.md` and
+`git worktree list` to confirm no active worktree owns the same files.
 
 ## Conflict Protocol
 
@@ -52,15 +78,14 @@ Do not merge competing edits manually without a new plan.
 ## Worktree Lifecycle
 
 1. Create worktree from current `main`.
-2. Add or update the worktree entry in `docs/plans/active-worktrees.md` if
-   multiple local worktrees are active.
+2. Create or update `.worktrees/state/<worktree-slug>.md`.
 3. Execute only the assigned task scope.
 4. Update only simple GitHub Project status when visibility needs it.
-5. Mark the local row `Ready For PR` after validation passes.
+5. Mark the local state `Ready For PR` after validation passes.
 6. Create PR when authorized.
-7. Mark simple GitHub Project status and local row `PR Open` when tracking it.
-8. After merge, the owning agent must remove its local worktree, then update
-   `docs/plans/active-worktrees.md` to `Cleaned Up` when an active row exists.
+7. Mark simple GitHub Project status and local state `PR Open` when tracking it.
+8. After merge, the owning agent must remove its local worktree, then delete
+   the matching `.worktrees/state/<worktree-slug>.md` file.
 
 Parallel agents normally run in separate terminals with separate worktrees. Each
 agent owns cleanup for the worktree it created; do not leave merged worktrees
@@ -82,7 +107,7 @@ Recommended pattern:
    command is running.
 5. The coordinator runs one lightweight tracker check after tracker writes complete.
 
-Use the GitHub plugin for ordinary issue, PR, review, diff, commit, and CI
-inspection. Reserve `gh project`, `make github-project-*`, and
-`scripts/dev/github-projects.sh` for checkpoint updates because those commands
-consume the shared GitHub GraphQL budget.
+Prefer the GitHub plugin for structured repository, issue, PR, review, diff,
+commit, CI, comment, label, and merge operations. Reserve `gh project`,
+`make github-project-*`, and `scripts/dev/github-projects.sh` for checkpoint
+updates because those commands consume the shared GitHub GraphQL budget.

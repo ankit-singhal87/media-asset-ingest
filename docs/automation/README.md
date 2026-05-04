@@ -14,7 +14,7 @@ Low-token operating entrypoint for AI coding agents and local automation.
 8. [execution-checklist.md](execution-checklist.md)
 9. [parallelization.md](parallelization.md) when dispatching parallel agents
 10. [agent-handoff.md](agent-handoff.md) before reporting task results
-11. [github-projects.md](github-projects.md) when work changes issues, milestones, or project state
+11. [github-projects.md](github-projects.md) when work changes issues, PRs, milestones, or project state
 12. [git-conventions.md](git-conventions.md) before creating branches, commits, or PRs
 13. [terminal-scripts.md](terminal-scripts.md) when using local `.terminals/`
     helpers for parallel worktree launches
@@ -33,7 +33,7 @@ Low-token operating entrypoint for AI coding agents and local automation.
 - [definition-of-done.md](definition-of-done.md) - completion criteria by work type.
 - [conflict-protocol.md](conflict-protocol.md) - escalation rules for scope, architecture, parallel, and validation conflicts.
 - [pr-checklist.md](pr-checklist.md) - pull request creation and merge checklist.
-- [github-projects.md](github-projects.md) - GitHub Projects tracker model and CLI commands.
+- [github-projects.md](github-projects.md) - GitHub tracking model, plugin preference, and CLI fallback commands.
 - [git-conventions.md](git-conventions.md) - branch, commit, and PR naming conventions.
 - [local-smoke-tests.md](local-smoke-tests.md) - local smoke test commands and manual runtime checks.
 - [terminal-scripts.md](terminal-scripts.md) - local-only helper script guidance for

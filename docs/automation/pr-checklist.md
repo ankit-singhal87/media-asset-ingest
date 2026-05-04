@@ -31,7 +31,8 @@ Automatic PR creation still requires all checks in this file.
 
 ## PR Creation Command
 
-Use the GitHub plugin or `gh pr create` after validation and authorization.
+Prefer the GitHub plugin after validation and authorization. Use `gh pr create`
+only when the plugin cannot cover the PR operation.
 
 The PR body must include:
 

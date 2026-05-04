@@ -37,7 +37,6 @@ Agents may edit only these files unless they escalate:
 - `MediaIngest.sln`
 - `scripts/dev/test-dotnet.sh`
 - `docs/plans/task-index.md`
-- `docs/plans/active-worktrees.md`
 - `docs/status/work-log.md`
 
 ## BDD Scenario
