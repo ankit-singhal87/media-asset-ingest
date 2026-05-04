@@ -4,6 +4,10 @@ public interface IIngestPersistenceStore
 {
     Task SaveAsync(PersistenceBatch batch, CancellationToken cancellationToken = default);
 
+    Task<IngestPackageState?> GetPackageStateAsync(
+        string packageId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<OutboxMessage>> GetPendingOutboxMessagesAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<OutboxMessage>> ClaimPendingOutboxMessagesAsync(

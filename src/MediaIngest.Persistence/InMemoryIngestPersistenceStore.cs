@@ -103,6 +103,28 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
         return Task.CompletedTask;
     }
 
+    public Task<IngestPackageState?> GetPackageStateAsync(
+        string packageId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(packageId))
+        {
+            throw new ArgumentException("Package id is required.", nameof(packageId));
+        }
+
+        IngestPackageState? packageState;
+
+        lock (storeLock)
+        {
+            packageState = packageStates.SingleOrDefault(
+                state => string.Equals(state.PackageId, packageId, StringComparison.Ordinal));
+        }
+
+        return Task.FromResult(packageState);
+    }
+
     public Task<IReadOnlyList<BusinessTimelineRecord>> GetWorkflowNodeTimelineAsync(
         string workflowInstanceId,
         string nodeId,
@@ -159,6 +181,8 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
         {
             pendingMessages = outboxMessages
                 .Where(message => message.DispatchedAt is null)
+                .OrderBy(message => message.CreatedAt)
+                .ThenBy(message => message.MessageId, StringComparer.Ordinal)
                 .ToArray();
         }
 

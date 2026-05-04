@@ -25,6 +25,22 @@ AssertEqual(1, store.OutboxMessages.Count, "saved outbox message count");
 AssertEqual("package-001", store.PackageStates[0].PackageId, "business state package id");
 AssertEqual("message-001", store.OutboxMessages[0].MessageId, "outbox message id");
 
+var updatedPackageState = packageState with
+{
+    Status = "WorkDispatched",
+    UpdatedAt = packageState.UpdatedAt.AddMinutes(5)
+};
+
+await store.SaveAsync(new PersistenceBatch([updatedPackageState], []));
+
+var savedPackageState = await store.GetPackageStateAsync("package-001");
+var missingPackageState = await store.GetPackageStateAsync("missing-package");
+
+AssertEqual(1, store.PackageStates.Count, "package state upsert count");
+AssertEqual("WorkDispatched", savedPackageState?.Status, "queried package state status");
+AssertEqual(updatedPackageState.UpdatedAt, savedPackageState?.UpdatedAt, "queried package state updated at");
+AssertEqual(null, missingPackageState, "missing package state");
+
 var timelineRecord = new BusinessTimelineRecord(
     EventId: "timeline-001",
     WorkflowInstanceId: "workflow-package-001",
@@ -66,6 +82,155 @@ var missingLogs = await store.GetWorkflowNodeLogsAsync("missing-workflow", "scan
 
 AssertEqual(0, missingTimeline.Count, "missing node timeline count");
 AssertEqual(0, missingLogs.Count, "missing workflow log count");
+
+var stateConfidenceStore = new InMemoryIngestPersistenceStore();
+var laterPendingMessage = command with
+{
+    MessageId = "message-later",
+    CreatedAt = packageState.UpdatedAt.AddMinutes(10)
+};
+var earlierPendingMessage = command with
+{
+    MessageId = "message-earlier",
+    CreatedAt = packageState.UpdatedAt.AddMinutes(1)
+};
+var sameTimePendingMessage = command with
+{
+    MessageId = "message-same-time",
+    CreatedAt = packageState.UpdatedAt.AddMinutes(1)
+};
+var dispatchedMessage = command with
+{
+    MessageId = "message-dispatched",
+    CreatedAt = packageState.UpdatedAt.AddMinutes(2),
+    DispatchedAt = packageState.UpdatedAt.AddMinutes(3)
+};
+
+await stateConfidenceStore.SaveAsync(new PersistenceBatch(
+    [],
+    [laterPendingMessage, sameTimePendingMessage, dispatchedMessage, earlierPendingMessage]));
+
+var pendingMessages = await stateConfidenceStore.GetPendingOutboxMessagesAsync();
+
+AssertSequenceEqual(
+    ["message-earlier", "message-same-time", "message-later"],
+    pendingMessages.Select(message => message.MessageId).ToArray(),
+    "pending outbox message order");
+
+var claimedMessages = await stateConfidenceStore.ClaimPendingOutboxMessagesAsync(
+    packageState.UpdatedAt.AddMinutes(20),
+    packageState.UpdatedAt.AddMinutes(25));
+
+AssertSequenceEqual(
+    ["message-earlier", "message-same-time", "message-later"],
+    claimedMessages.Select(message => message.MessageId).ToArray(),
+    "claimed outbox message order");
+AssertTrue(
+    claimedMessages.All(message => message.DispatchClaimExpiresAt == packageState.UpdatedAt.AddMinutes(25)),
+    "claimed outbox message expiry");
+
+var activeClaimMessages = await stateConfidenceStore.ClaimPendingOutboxMessagesAsync(
+    packageState.UpdatedAt.AddMinutes(21),
+    packageState.UpdatedAt.AddMinutes(26));
+
+AssertEqual(0, activeClaimMessages.Count, "active outbox claim prevents reclaim");
+
+var expiredClaimMessages = await stateConfidenceStore.ClaimPendingOutboxMessagesAsync(
+    packageState.UpdatedAt.AddMinutes(30),
+    packageState.UpdatedAt.AddMinutes(35));
+
+AssertEqual(3, expiredClaimMessages.Count, "expired outbox claim can be reclaimed");
+
+await stateConfidenceStore.MarkOutboxMessageDispatchedAsync("message-earlier", packageState.UpdatedAt.AddMinutes(40));
+
+pendingMessages = await stateConfidenceStore.GetPendingOutboxMessagesAsync();
+
+AssertSequenceEqual(
+    ["message-same-time", "message-later"],
+    pendingMessages.Select(message => message.MessageId).ToArray(),
+    "pending outbox message order after dispatch");
+AssertEqual(
+    null,
+    stateConfidenceStore.OutboxMessages.Single(message => message.MessageId == "message-earlier").DispatchClaimExpiresAt,
+    "dispatched outbox message claim cleared");
+
+var timelineConfidenceStore = new InMemoryIngestPersistenceStore();
+var timelineLater = timelineRecord with
+{
+    EventId = "timeline-later",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(4),
+    Message = "Later node event."
+};
+var timelineEarlier = timelineRecord with
+{
+    EventId = "timeline-earlier",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(3),
+    Message = "Earlier node event."
+};
+var timelineSameTime = timelineRecord with
+{
+    EventId = "timeline-same-time",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(3),
+    Message = "Same-time node event."
+};
+var timelineOtherNode = timelineRecord with
+{
+    EventId = "timeline-other-node",
+    NodeId = "classify-files",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(2)
+};
+
+await timelineConfidenceStore.SaveAsync(new PersistenceBatch(
+    [],
+    [],
+    [timelineLater, timelineSameTime, timelineOtherNode, timelineEarlier],
+    []));
+
+var orderedTimeline = await timelineConfidenceStore.GetWorkflowNodeTimelineAsync("workflow-package-001", "scan-package");
+
+AssertSequenceEqual(
+    ["timeline-earlier", "timeline-same-time", "timeline-later"],
+    orderedTimeline.Select(record => record.EventId).ToArray(),
+    "workflow node timeline order");
+
+var logConfidenceStore = new InMemoryIngestPersistenceStore();
+var logLater = logRecord with
+{
+    LogId = "log-later",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(7),
+    Message = "Later log."
+};
+var logEarlier = logRecord with
+{
+    LogId = "log-earlier",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(6),
+    Message = "Earlier log."
+};
+var logSameTime = logRecord with
+{
+    LogId = "log-same-time",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(6),
+    Message = "Same-time log."
+};
+var logOtherWorkflow = logRecord with
+{
+    LogId = "log-other-workflow",
+    WorkflowInstanceId = "workflow-other",
+    OccurredAt = packageState.UpdatedAt.AddMinutes(5)
+};
+
+await logConfidenceStore.SaveAsync(new PersistenceBatch(
+    [],
+    [],
+    [],
+    [logLater, logSameTime, logOtherWorkflow, logEarlier]));
+
+var orderedLogs = await logConfidenceStore.GetWorkflowNodeLogsAsync("workflow-package-001", "scan-package");
+
+AssertSequenceEqual(
+    ["log-earlier", "log-same-time", "log-later"],
+    orderedLogs.Select(record => record.LogId).ToArray(),
+    "workflow node diagnostic log order");
 
 var rejected = false;
 
@@ -113,6 +278,16 @@ AssertEqual("message-001", recordingConnection.ExecutedCommands[1].Parameters["@
 AssertEqual("timeline-001", recordingConnection.ExecutedCommands[2].Parameters["@event_id"], "postgres timeline event id parameter");
 AssertEqual("log-001", recordingConnection.ExecutedCommands[3].Parameters["@log_id"], "postgres diagnostic log id parameter");
 
+var packageStateReadConnection = new RecordingDbConnection();
+var packageStateReadStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(packageStateReadConnection));
+
+await packageStateReadStore.GetPackageStateAsync("package-001");
+
+AssertEqual(1, packageStateReadConnection.ExecutedCommands.Count, "postgres package state read command count");
+AssertContains("FROM ingest_package_states", packageStateReadConnection.ExecutedCommands[0].CommandText, "postgres package state read table");
+AssertContains("WHERE package_id = @package_id", packageStateReadConnection.ExecutedCommands[0].CommandText, "postgres package state read filter");
+AssertEqual("package-001", packageStateReadConnection.ExecutedCommands[0].Parameters["@package_id"], "postgres package state read parameter");
+
 var schemaConnection = new RecordingDbConnection();
 var schemaStore = new PostgresIngestPersistenceStore(_ => ValueTask.FromResult<DbConnection>(schemaConnection));
 
@@ -144,6 +319,15 @@ static void AssertContains(string expected, string actual, string name)
     if (!actual.Contains(expected, StringComparison.Ordinal))
     {
         throw new InvalidOperationException($"{name}: expected to contain '{expected}'.");
+    }
+}
+
+static void AssertSequenceEqual<T>(IReadOnlyList<T> expected, IReadOnlyList<T> actual, string name)
+{
+    if (!expected.SequenceEqual(actual))
+    {
+        throw new InvalidOperationException(
+            $"{name}: expected '{string.Join(", ", expected)}', got '{string.Join(", ", actual)}'.");
     }
 }
 
@@ -257,7 +441,11 @@ sealed class RecordingDbCommand(RecordingDbConnection connection) : DbCommand
 
     protected override DbParameter CreateDbParameter() => new RecordingDbParameter();
 
-    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => throw new NotSupportedException();
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
+    {
+        Record();
+        return new EmptyRecordingDataReader();
+    }
 
     private void Record() => connection.ExecutedCommands.Add(new ExecutedCommand(
         CommandText ?? string.Empty,
@@ -359,4 +547,71 @@ sealed class RecordingParameterCollection : DbParameterCollection
 }
 
 sealed record ExecutedCommand(string CommandText, IReadOnlyDictionary<string, object?> Parameters);
+
+sealed class EmptyRecordingDataReader : DbDataReader
+{
+    public override int Depth => 0;
+
+    public override int FieldCount => 0;
+
+    public override bool HasRows => false;
+
+    public override bool IsClosed => false;
+
+    public override int RecordsAffected => 0;
+
+    public override object this[int ordinal] => throw new IndexOutOfRangeException();
+
+    public override object this[string name] => throw new IndexOutOfRangeException();
+
+    public override bool GetBoolean(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override byte GetByte(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override long GetBytes(int ordinal, long dataOffset, byte[]? buffer, int bufferOffset, int length) =>
+        throw new IndexOutOfRangeException();
+
+    public override char GetChar(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override long GetChars(int ordinal, long dataOffset, char[]? buffer, int bufferOffset, int length) =>
+        throw new IndexOutOfRangeException();
+
+    public override string GetDataTypeName(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override DateTime GetDateTime(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override decimal GetDecimal(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override double GetDouble(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override Type GetFieldType(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override float GetFloat(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override Guid GetGuid(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override short GetInt16(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override int GetInt32(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override long GetInt64(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override string GetName(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override int GetOrdinal(string name) => throw new IndexOutOfRangeException();
+
+    public override string GetString(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override object GetValue(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override int GetValues(object[] values) => 0;
+
+    public override bool IsDBNull(int ordinal) => throw new IndexOutOfRangeException();
+
+    public override bool NextResult() => false;
+
+    public override bool Read() => false;
+
+    public override IEnumerator<object> GetEnumerator() => Enumerable.Empty<object>().GetEnumerator();
+}
 #pragma warning restore CS8764, CS8765
