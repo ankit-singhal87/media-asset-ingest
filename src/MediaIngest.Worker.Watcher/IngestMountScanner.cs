@@ -12,6 +12,17 @@ public sealed class IngestMountScanner
             .ToArray();
     }
 
+    public IReadOnlyList<IngestPackageCandidate> FindReadyPackageCandidates(
+        string ingestMountPath,
+        ManifestReadinessGate readinessGate)
+    {
+        ArgumentNullException.ThrowIfNull(readinessGate);
+
+        return FindPackageCandidates(ingestMountPath)
+            .Where(readinessGate.IsReady)
+            .ToArray();
+    }
+
     public IReadOnlyList<IngestPackageFile> FindPackageFiles(IngestPackageCandidate candidate)
     {
         ArgumentNullException.ThrowIfNull(candidate);
