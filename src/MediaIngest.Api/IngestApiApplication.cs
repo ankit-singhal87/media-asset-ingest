@@ -96,6 +96,7 @@ public sealed class IngestApiApplication : IAsyncDisposable
         app.MapPost("/api/ingest/start", StartIngestAsync);
         app.MapGet("/api/ingest/status", GetStatus);
         app.MapGet("/api/workflows/{workflowInstanceId}/graph", GetWorkflowGraph);
+        app.MapGet("/api/workflows/{workflowInstanceId}/nodes/{nodeId}", GetWorkflowNodeDetails);
     }
 
     private static async Task<IResult> StartIngestAsync(
@@ -123,6 +124,18 @@ public sealed class IngestApiApplication : IAsyncDisposable
         return graph is null
             ? Results.NotFound()
             : Results.Ok(graph);
+    }
+
+    private static IResult GetWorkflowNodeDetails(
+        string workflowInstanceId,
+        string nodeId,
+        IngestRuntimeService runtimeService)
+    {
+        var details = runtimeService.GetWorkflowNodeDetails(workflowInstanceId, nodeId);
+
+        return details is null
+            ? Results.NotFound()
+            : Results.Ok(details);
     }
 
     private static string FindRepoRoot()

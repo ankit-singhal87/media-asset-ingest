@@ -170,6 +170,59 @@ public sealed class IngestRuntimeService(
                 packageState.Status);
     }
 
+    public WorkflowNodeDetailsDto? GetWorkflowNodeDetails(string workflowInstanceId, string nodeId)
+    {
+        if (string.IsNullOrWhiteSpace(workflowInstanceId) || string.IsNullOrWhiteSpace(nodeId))
+        {
+            return null;
+        }
+
+        var graph = GetWorkflowGraph(workflowInstanceId);
+        var node = graph?.Nodes.SingleOrDefault(candidate =>
+            string.Equals(candidate.NodeId, nodeId, StringComparison.Ordinal));
+
+        if (graph is null || node is null)
+        {
+            return null;
+        }
+
+        var packageState = store.PackageStates
+            .Where(packageState =>
+                string.Equals(packageState.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal))
+            .OrderBy(packageState => packageState.UpdatedAt)
+            .LastOrDefault();
+
+        if (packageState is null)
+        {
+            return null;
+        }
+
+        var correlationId = $"correlation-{graph.PackageId}";
+        var occurredAt = packageState.UpdatedAt;
+
+        return new WorkflowNodeDetailsDto(
+            WorkflowInstanceId: graph.WorkflowInstanceId,
+            NodeId: node.NodeId,
+            Timeline:
+            [
+                new WorkflowTimelineEntryDto(
+                    OccurredAt: occurredAt,
+                    Status: node.Status,
+                    Message: $"{node.DisplayName} is {node.Status.ToString().ToLowerInvariant()}",
+                    CorrelationId: correlationId)
+            ],
+            Logs:
+            [
+                new WorkflowNodeLogEntryDto(
+                    OccurredAt: occurredAt,
+                    Level: node.Status == WorkflowNodeStatus.Failed ? "Error" : "Information",
+                    Message: $"{node.DisplayName} projected from in-memory workflow state.",
+                    CorrelationId: correlationId,
+                    TraceId: null,
+                    SpanId: null)
+            ]);
+    }
+
     public async ValueTask DisposeAsync()
     {
         CancellationTokenSource? cancellation;
