@@ -162,7 +162,7 @@ Components involved:
 Acceptance themes:
 
 - Work may begin before done marker exists.
-- Done marker triggers final package rescan.
+- Zero-byte `done.marker` file triggers final package rescan.
 - Late files are enqueued before package finalization.
 
 Dependencies:

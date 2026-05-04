@@ -74,6 +74,37 @@ try
         new FileInfo(Path.Combine(readyPackageSidecarPath, "clip.en.srt")).Length,
         discoveredFileByRelativePath[Path.Combine("sidecars", "captions", "clip.en.srt")].FileSizeBytes,
         "ready package discovered sidecar file size");
+
+    var doneMarkerGate = new DoneMarkerReadinessGate();
+    var initialReconciliation = scanner.ReconcilePackageFilesOnDoneMarker(
+        new IngestPackageCandidate(readyPackagePath),
+        doneMarkerGate);
+
+    AssertFalse(initialReconciliation.DoneMarkerObserved, "ready package initial done marker state");
+    AssertSequenceEqual(
+        discoveredFiles.Select(file => file.PackageRelativePath).ToArray(),
+        initialReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
+        "ready package initial reconciliation relative paths");
+
+    File.WriteAllText(Path.Combine(readyPackageMediaPath, "late.mov"), "late-media");
+    File.WriteAllText(Path.Combine(readyPackagePath, "done.marker"), string.Empty);
+
+    var finalReconciliation = scanner.ReconcilePackageFilesOnDoneMarker(
+        new IngestPackageCandidate(readyPackagePath),
+        doneMarkerGate);
+
+    AssertTrue(finalReconciliation.DoneMarkerObserved, "ready package final done marker state");
+    AssertSequenceEqual(
+        [
+            "done.marker",
+            "manifest.json",
+            "manifest.json.checksum",
+            Path.Combine("media", "clip.mov"),
+            Path.Combine("media", "late.mov"),
+            Path.Combine("sidecars", "captions", "clip.en.srt"),
+        ],
+        finalReconciliation.Files.Select(file => file.PackageRelativePath).ToArray(),
+        "ready package final reconciliation relative paths");
 }
 finally
 {
