@@ -61,7 +61,10 @@ introduced.
 This local workflow exercises the manifest start path through the API, React
 control plane, and repo-root runtime folders. It still runs in process for local
 development and does not use the real Dapr Workflow runtime, PostgreSQL, Azure
-Service Bus, or command runner services.
+Service Bus, or command runner services. Ready packages are scanned recursively;
+the manifest pair is copied to local output, and each non-metadata file becomes
+a locally accepted command envelope with a semantic topic and `executionClass`
+for the workflow graph demo.
 
 Start the local ingest API on a fixed development port:
 
@@ -88,10 +91,14 @@ the package start signal.
 mkdir -p input/asset-001
 printf '%s\n' '{"asset":"asset-001"}' > input/asset-001/manifest.json
 printf '%s\n' 'local-demo-checksum' > input/asset-001/manifest.json.checksum
+mkdir -p input/asset-001/media input/asset-001/sidecars
+printf '%s\n' 'not-real-video' > input/asset-001/media/source.mov
+printf '%s\n' 'not-real-caption' > input/asset-001/sidecars/caption.srt
 ```
 
 The expected local output is the matching manifest pair under
-`output/<asset>/`:
+`output/<asset>/`. The UI and workflow graph endpoints also show scan,
+classification, dispatch, routed command work, reconcile, and finalize nodes.
 
 ```text
 output/asset-001/manifest.json

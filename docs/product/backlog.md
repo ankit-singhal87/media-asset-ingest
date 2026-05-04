@@ -22,6 +22,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
   mocked workflow graph data.
 - MILESTONE-8 / USER-STORY-12: add the first workflow graph API and Mermaid
   control-plane rendering slice.
+- MILESTONE-3/4/5/8: integrate the local ingest demo so discovered files create
+  routed command outbox messages and real workflow command nodes.
 
 ## Ready For Planning
 
@@ -30,8 +32,8 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-2 / USER-STORY-16: merge the local ingest docs after the backend and
   UI draft PRs provide the documented API host, UI start action, and runtime
   ignore setup.
-- MILESTONE-3 / USER-STORY-2 / USER-STORY-3 / USER-STORY-4: wire manifest
-  gating, discovered files, and done-marker reconciliation into package work.
+- MILESTONE-3 / USER-STORY-4: deepen done-marker reconciliation beyond local
+  graph projection into package finalization behavior.
 - MILESTONE-3 / USER-STORY-5: implement essence classification.
 - MILESTONE-4 / USER-STORY-6: define Azure Service Bus topic/subscription
   adapters and local development strategy.

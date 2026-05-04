@@ -1,8 +1,10 @@
 using MediaIngest.Api;
+using MediaIngest.Contracts.Commands;
 using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 using MediaIngest.Worker.Watcher;
 using MediaIngest.Workflow;
+using System.Text.Json;
 
 var repoRoot = Path.Combine(Path.GetTempPath(), "media-ingest-api-tests", Guid.NewGuid().ToString("N"));
 
@@ -21,9 +23,14 @@ try
 
     var packagePath = Path.Combine(inputPath, "asset-001");
     Directory.CreateDirectory(packagePath);
+    var mediaPath = Directory.CreateDirectory(Path.Combine(packagePath, "media")).FullName;
+    var sidecarPath = Directory.CreateDirectory(Path.Combine(packagePath, "sidecars")).FullName;
     File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{garbage");
     File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "opaque checksum");
-    File.WriteAllText(Path.Combine(packagePath, "source.mov"), "media is not copied by local transfer");
+    File.WriteAllText(Path.Combine(mediaPath, "source.mov"), "media is not copied by local transfer");
+    File.WriteAllText(Path.Combine(mediaPath, "mix.wav"), "audio essence");
+    File.WriteAllText(Path.Combine(sidecarPath, "caption.srt"), "caption essence");
+    File.WriteAllText(Path.Combine(packagePath, "notes.bin"), "unknown essence");
 
     await WaitForAsync(
         () => runtimeService.GetStatus().Packages.SingleOrDefault()?.Status == "Succeeded",
@@ -39,13 +46,42 @@ try
     AssertEqual("package-asset-001", graph.WorkflowInstanceId, "graph workflow instance id");
     AssertEqual("PackageIngestWorkflow", graph.WorkflowName, "graph workflow name");
     AssertEqual("asset-001", graph.PackageId, "graph package id");
-    AssertEqual(4, graph.Nodes.Count, "graph node count");
-    AssertEqual(3, graph.Edges.Count, "graph edge count");
+    AssertEqual(10, graph.Nodes.Count, "graph node count");
+    AssertEqual(9, graph.Edges.Count, "graph edge count");
     AssertEqual("package-start", graph.Nodes[0].NodeId, "graph first node id");
     AssertEqual("scan-package", graph.Nodes[1].NodeId, "graph scan node id");
     AssertEqual("classify-files", graph.Nodes[2].NodeId, "graph classify node id");
     AssertEqual("dispatch-processing", graph.Nodes[3].NodeId, "graph dispatch node id");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-mix-wav"), "audio command graph node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-source-mov"), "video command graph node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-sidecars-caption-srt"), "text command graph node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-notes-bin"), "other command graph node");
+    AssertEqual("reconcile-package", graph.Nodes[^2].NodeId, "graph reconcile node id");
+    AssertEqual("finalize-package", graph.Nodes[^1].NodeId, "graph finalize node id");
     AssertEqual("Succeeded", graph.Nodes[0].Status.ToString(), "graph first node status");
+
+    var mediaCommandMessages = runtime.Store.OutboxMessages
+        .Where(message => message.MessageType == nameof(MediaCommandEnvelope))
+        .OrderBy(message => message.MessageId, StringComparer.Ordinal)
+        .ToArray();
+    AssertEqual(4, mediaCommandMessages.Length, "media command message count");
+    AssertTrue(mediaCommandMessages.All(message => message.DispatchedAt is not null), "media command messages dispatched");
+
+    var commands = mediaCommandMessages
+        .Select(message => JsonSerializer.Deserialize<MediaCommandEnvelope>(message.PayloadJson)
+            ?? throw new InvalidOperationException("Media command envelope is required."))
+        .OrderBy(command => command.InputPaths.Single(), StringComparer.Ordinal)
+        .ToArray();
+
+    AssertEqual(Path.Combine(packagePath, "media", "mix.wav"), commands[0].InputPaths.Single(), "audio command input");
+    AssertEqual(CommandNames.CreateProxy, commands[0].CommandName, "audio command name");
+    AssertEqual(ExecutionClass.Light, commands[0].ExecutionClass, "audio command execution class");
+    AssertEqual(Path.Combine(packagePath, "media", "source.mov"), commands[1].InputPaths.Single(), "video command input");
+    AssertEqual(CommandNames.CreateProxy, commands[1].CommandName, "video command name");
+    AssertEqual(Path.Combine(packagePath, "notes.bin"), commands[2].InputPaths.Single(), "other command input");
+    AssertEqual(CommandNames.CreateChecksum, commands[2].CommandName, "other command name");
+    AssertEqual(Path.Combine(packagePath, "sidecars", "caption.srt"), commands[3].InputPaths.Single(), "text command input");
+    AssertEqual(CommandNames.RunSecurityScan, commands[3].CommandName, "text command name");
 
     var missingGraph = runtimeService.GetWorkflowGraph("missing-workflow");
     AssertNull(missingGraph, "missing graph");
@@ -64,7 +100,7 @@ try
 
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json")), "manifest copied");
     AssertTrue(File.Exists(Path.Combine(outputPath, "asset-001", "manifest.json.checksum")), "checksum copied");
-    AssertFalse(File.Exists(Path.Combine(outputPath, "asset-001", "source.mov")), "source file not copied");
+    AssertFalse(File.Exists(Path.Combine(outputPath, "asset-001", "media", "source.mov")), "source file not copied");
 
     var stateCountAfterSuccess = runtimeService.GetStatus().Packages.Count;
     await Task.Delay(TimeSpan.FromMilliseconds(250));

@@ -1,5 +1,7 @@
 using System.Text.Json;
+using MediaIngest.Contracts.Commands;
 using MediaIngest.Contracts.Workflow;
+using MediaIngest.Essence.Classification;
 using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 using MediaIngest.Worker.Watcher;
@@ -92,10 +94,13 @@ public sealed class IngestRuntimeService(
                     AcceptedAt: acceptedAt));
 
                 var message = CreateLocalTransferMessage(workflowStart, paths.OutputPath);
+                var mediaCommandMessages = CreateMediaCommandMessages(
+                    workflowStart,
+                    scanner.FindPackageFiles(candidate));
 
                 await store.SaveAsync(new PersistenceBatch(
                     [new IngestPackageState(packageId, workflowStart.WorkflowInstanceId, "Started", acceptedAt)],
-                    [message]), cancellationToken);
+                    [message, .. mediaCommandMessages]), cancellationToken);
 
                 startedPackages.Add(new StartedIngestPackageResponse(
                     packageId,
@@ -164,7 +169,7 @@ public sealed class IngestRuntimeService(
 
         return packageState is null
             ? null
-            : PackageWorkflowGraphProjection.FromPackageStatus(
+            : CreateWorkflowGraph(
                 packageState.PackageId,
                 packageState.WorkflowInstanceId,
                 packageState.Status);
@@ -275,5 +280,178 @@ public sealed class IngestRuntimeService(
             PayloadJson: payload,
             CorrelationId: workflowStart.CorrelationId,
             CreatedAt: workflowStart.AcceptedAt);
+    }
+
+    private static IReadOnlyList<OutboxMessage> CreateMediaCommandMessages(
+        PackageWorkflowStart workflowStart,
+        IReadOnlyList<IngestPackageFile> discoveredFiles)
+    {
+        return discoveredFiles
+            .Where(file => !IsPackageMetadataFile(file.PackageRelativePath))
+            .Select(file => CreateMediaCommandMessage(workflowStart, file))
+            .ToArray();
+    }
+
+    private static OutboxMessage CreateMediaCommandMessage(
+        PackageWorkflowStart workflowStart,
+        IngestPackageFile file)
+    {
+        var commandName = SelectCommandName(file);
+        var route = CommandRoutingPolicy.Route(commandName, file.FileSizeBytes);
+        var command = new MediaCommandEnvelope(
+            CommandId: $"command-{workflowStart.PackageId}-{SanitizeIdentifier(file.PackageRelativePath)}",
+            CommandName: commandName,
+            TopicName: route.TopicName,
+            ExecutionClass: route.ExecutionClass,
+            CommandLine: CreateLocalCommandLine(commandName, file.PackageRelativePath),
+            WorkingDirectory: workflowStart.PackagePath,
+            InputPaths: [file.FilePath],
+            OutputPaths: [],
+            CorrelationId: workflowStart.CorrelationId);
+
+        return new OutboxMessage(
+            MessageId: command.CommandId,
+            Destination: route.TopicName,
+            MessageType: nameof(MediaCommandEnvelope),
+            PayloadJson: JsonSerializer.Serialize(command),
+            CorrelationId: workflowStart.CorrelationId,
+            CreatedAt: workflowStart.AcceptedAt);
+    }
+
+    private static string SelectCommandName(IngestPackageFile file)
+    {
+        return EssenceClassifier.Classify(file.PackageRelativePath) switch
+        {
+            EssenceType.VideoSource => CommandNames.CreateProxy,
+            EssenceType.Audio => CommandNames.CreateProxy,
+            EssenceType.Text => CommandNames.RunSecurityScan,
+            _ => CommandNames.CreateChecksum
+        };
+    }
+
+    private static string CreateLocalCommandLine(string commandName, string packageRelativePath)
+    {
+        return $"{commandName} {packageRelativePath}";
+    }
+
+    private WorkflowGraphDto CreateWorkflowGraph(
+        string packageId,
+        string workflowInstanceId,
+        string status)
+    {
+        var workflowStatus = MapPackageStatus(status);
+        var nodes = new List<WorkflowNodeDto>
+        {
+            CreateWorkflowNode("package-start", "Package ingest", WorkflowNodeKind.WorkflowStep, workflowStatus, workflowInstanceId, packageId, null),
+            CreateWorkflowNode("scan-package", "Package scan", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "scan-package"),
+            CreateWorkflowNode("classify-files", "Classify discovered files", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "classify-files"),
+            CreateWorkflowNode("dispatch-processing", "Dispatch processing work", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "dispatch-processing")
+        };
+
+        nodes.AddRange(GetMediaCommandEnvelopes(packageId)
+            .OrderBy(command => command.InputPaths.SingleOrDefault() ?? command.CommandId, StringComparer.Ordinal)
+            .Select(command => CreateWorkflowNode(
+                $"command-{SanitizeIdentifier(GetPackageRelativeCommandPath(command, packageId))}",
+                CreateCommandDisplayName(command),
+                WorkflowNodeKind.WorkItem,
+                workflowStatus,
+                workflowInstanceId,
+                packageId,
+                command.CommandId)));
+
+        nodes.Add(CreateWorkflowNode("reconcile-package", "Reconcile package", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "reconcile-package"));
+        nodes.Add(CreateWorkflowNode("finalize-package", "Finalize package", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "finalize-package"));
+
+        return new WorkflowGraphDto(
+            WorkflowInstanceId: workflowInstanceId,
+            WorkflowName: WorkflowContractNames.PackageIngestWorkflow,
+            PackageId: packageId,
+            ParentWorkflowInstanceId: null,
+            Nodes: nodes,
+            Edges: CreateLinearEdges(nodes));
+    }
+
+    private IEnumerable<MediaCommandEnvelope> GetMediaCommandEnvelopes(string packageId)
+    {
+        var correlationId = $"correlation-{packageId}";
+
+        return store.OutboxMessages
+            .Where(message =>
+                message.MessageType == nameof(MediaCommandEnvelope)
+                && string.Equals(message.CorrelationId, correlationId, StringComparison.Ordinal))
+            .Select(message => JsonSerializer.Deserialize<MediaCommandEnvelope>(message.PayloadJson))
+            .Where(command => command is not null)
+            .Cast<MediaCommandEnvelope>();
+    }
+
+    private static WorkflowNodeDto CreateWorkflowNode(
+        string nodeId,
+        string displayName,
+        WorkflowNodeKind kind,
+        WorkflowNodeStatus status,
+        string workflowInstanceId,
+        string packageId,
+        string? workItemId)
+    {
+        return new WorkflowNodeDto(
+            NodeId: nodeId,
+            DisplayName: displayName,
+            Kind: kind,
+            Status: status,
+            WorkflowInstanceId: workflowInstanceId,
+            PackageId: packageId,
+            WorkItemId: workItemId,
+            ChildWorkflowInstanceId: null);
+    }
+
+    private static WorkflowEdgeDto[] CreateLinearEdges(IReadOnlyList<WorkflowNodeDto> nodes)
+    {
+        return nodes
+            .Zip(nodes.Skip(1), (source, target) => new WorkflowEdgeDto(
+                EdgeId: $"{source.NodeId}-{target.NodeId}",
+                SourceNodeId: source.NodeId,
+                TargetNodeId: target.NodeId))
+            .ToArray();
+    }
+
+    private static WorkflowNodeStatus MapPackageStatus(string status)
+    {
+        return status switch
+        {
+            "Started" => WorkflowNodeStatus.Running,
+            "Succeeded" => WorkflowNodeStatus.Succeeded,
+            "Failed" => WorkflowNodeStatus.Failed,
+            _ => WorkflowNodeStatus.Pending
+        };
+    }
+
+    private static string CreateCommandDisplayName(MediaCommandEnvelope command)
+    {
+        var inputPath = command.InputPaths.SingleOrDefault() ?? command.CommandId;
+        return $"{command.CommandName} {Path.GetFileName(inputPath)}";
+    }
+
+    private static string GetPackageRelativeCommandPath(MediaCommandEnvelope command, string packageId)
+    {
+        var inputPath = command.InputPaths.SingleOrDefault() ?? command.CommandId;
+        var packagePathMarker = $"{Path.DirectorySeparatorChar}{packageId}{Path.DirectorySeparatorChar}";
+        var markerIndex = inputPath.IndexOf(packagePathMarker, StringComparison.Ordinal);
+
+        return markerIndex < 0
+            ? inputPath
+            : inputPath[(markerIndex + packagePathMarker.Length)..];
+    }
+
+    private static bool IsPackageMetadataFile(string packageRelativePath)
+    {
+        return string.Equals(packageRelativePath, "manifest.json", StringComparison.Ordinal)
+            || string.Equals(packageRelativePath, "manifest.json.checksum", StringComparison.Ordinal)
+            || string.Equals(packageRelativePath, "done.marker", StringComparison.Ordinal);
+    }
+
+    private static string SanitizeIdentifier(string value)
+    {
+        var chars = value.Select(character => char.IsLetterOrDigit(character) ? character : '-').ToArray();
+        return new string(chars).Trim('-').ToLowerInvariant();
     }
 }

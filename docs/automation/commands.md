@@ -19,7 +19,7 @@
 | `dotnet run --project src/MediaIngest.Api --urls http://127.0.0.1:5000` | Start the local ingest API on the fixed development port. | cheap | no | no |
 | `cd web/ingest-control-plane && npm run dev` | Start the React control plane with Vite `/api` proxying to the local API. | cheap | no | no |
 | `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Print the local manifest ingest E2E smoke plan without changing files or calling the API. | cheap | no | no |
-| `sh scripts/dev/local-e2e-smoke.sh` | Post local ingest start, create a smoke package, and assert manifest output files. Requires the API to be running locally. | cheap | no | no |
+| `sh scripts/dev/local-e2e-smoke.sh` | Post local ingest start, create a smoke package, assert manifest output files, and verify the workflow graph exposes routed command nodes. Requires the API to be running locally. | cheap | no | no |
 | `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-foundation` | Run the foundation smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-contracts` | Run the contracts smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |

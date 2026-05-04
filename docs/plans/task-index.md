@@ -19,6 +19,7 @@ Project is only a lightweight status board.
 | TASK-2-1 | #30 | Create .NET solution skeleton | Forge | `docs/plans/tasks/TASK-2-1-create-dotnet-solution.md` | Completed |
 | TASK-2-2 | #32 | Define shared backend and UI contracts | Forge | `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md` | Completed |
 | TASK-3-1 | #35 | Add ingest watcher and scanner foundation | Mount | `docs/plans/tasks/TASK-3-1-ingest-watcher-scanner.md` | Completed |
+| TASK-3-2 | none | Add integrated local ingest demo | Gauge | `docs/plans/tasks/TASK-3-2-integrated-local-ingest-demo.md` | Completed |
 | TASK-4-1 | #36 | Add persistence and outbox foundation | Vault | `docs/plans/tasks/TASK-4-1-persistence-outbox-foundation.md` | Completed |
 | TASK-5-1 | #31 | Add Dapr workflow skeleton | Pulse | `docs/plans/tasks/TASK-5-1-dapr-workflow-skeleton.md` | Completed |
 | TASK-6-1 | #34 | Add command execution foundation | Essence | `docs/plans/tasks/TASK-6-1-specialized-agent-skeletons.md` | Completed |
