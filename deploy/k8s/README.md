@@ -35,16 +35,16 @@ Do not commit the filled-in copy.
 The expected validation for this slice is static review:
 
 ```bash
-make validate
+kubectl kustomize deploy/k8s
+kubectl kustomize deploy/dapr/k8s
+make docs-check
 git diff --check
 ```
 
-Optional local validation, when `kubectl` is installed and a disposable local
-cluster is selected and reachable:
+Optional local validation, only when a disposable local cluster is selected and
+reachable:
 
 ```bash
-kubectl kustomize deploy/k8s
-kubectl kustomize deploy/dapr/k8s
 kubectl apply --dry-run=client -k deploy/k8s
 kubectl apply --dry-run=client -k deploy/dapr/k8s
 ```
