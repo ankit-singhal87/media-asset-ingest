@@ -110,6 +110,8 @@ try
     await VerifyObservationLoopScansRepeatedlyUntilCancelled();
     await VerifyObservationLoopDoesNotReportUnchangedPackageTwice();
     await VerifyObservationLoopStopsWhenCancellationIsRequested();
+    VerifyManifestDiscrepancyWarnings();
+    VerifyMalformedManifestWarningDoesNotStopDiskDiscovery();
 }
 finally
 {
@@ -120,6 +122,84 @@ finally
 }
 
 Console.WriteLine("MediaIngest watcher smoke tests passed.");
+
+static void VerifyManifestDiscrepancyWarnings()
+{
+    var packagePath = CreateTestDirectory();
+    var mediaPath = Directory.CreateDirectory(Path.Combine(packagePath, "media")).FullName;
+    var sidecarPath = Directory.CreateDirectory(Path.Combine(packagePath, "sidecars")).FullName;
+
+    try
+    {
+        File.WriteAllText(
+            Path.Combine(packagePath, "manifest.json"),
+            """
+            {
+              "files": [
+                "media/clip.mov",
+                "missing/proxy.mp4"
+              ]
+            }
+            """);
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "not-a-real-checksum");
+        File.WriteAllText(Path.Combine(mediaPath, "clip.mov"), "not-real-media");
+        File.WriteAllText(Path.Combine(sidecarPath, "clip.en.srt"), "not-real-captions");
+
+        var scan = new IngestMountScanner().ScanPackageFiles(new IngestPackageCandidate(packagePath));
+
+        AssertSequenceEqual(
+            new[]
+            {
+                "manifest.json",
+                "manifest.json.checksum",
+                Path.Combine("media", "clip.mov"),
+                Path.Combine("sidecars", "clip.en.srt"),
+            },
+            scan.Files.Select(file => file.PackageRelativePath).ToArray(),
+            "manifest discrepancy scan discovered relative paths");
+        AssertEqual(1, scan.Warnings.Count, "manifest discrepancy warning count");
+        AssertEqual("ManifestFileMissing", scan.Warnings[0].Code, "manifest discrepancy warning code");
+        AssertEqual(
+            Path.Combine("missing", "proxy.mp4"),
+            scan.Warnings[0].PackageRelativePath,
+            "manifest discrepancy warning relative path");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
+    }
+}
+
+static void VerifyMalformedManifestWarningDoesNotStopDiskDiscovery()
+{
+    var packagePath = CreateTestDirectory();
+
+    try
+    {
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json"), "{not-json");
+        File.WriteAllText(Path.Combine(packagePath, "manifest.json.checksum"), "not-a-real-checksum");
+        File.WriteAllText(Path.Combine(packagePath, "clip.mov"), "not-real-media");
+
+        var scan = new IngestMountScanner().ScanPackageFiles(new IngestPackageCandidate(packagePath));
+
+        AssertSequenceEqual(
+            new[]
+            {
+                "clip.mov",
+                "manifest.json",
+                "manifest.json.checksum",
+            },
+            scan.Files.Select(file => file.PackageRelativePath).ToArray(),
+            "malformed manifest scan discovered relative paths");
+        AssertEqual(1, scan.Warnings.Count, "malformed manifest warning count");
+        AssertEqual("ManifestMalformed", scan.Warnings[0].Code, "malformed manifest warning code");
+        AssertEqual("manifest.json", scan.Warnings[0].PackageRelativePath, "malformed manifest warning relative path");
+    }
+    finally
+    {
+        DeleteTestDirectory(packagePath);
+    }
+}
 
 static async Task VerifyObservationLoopUsesConfiguredMountPath()
 {
