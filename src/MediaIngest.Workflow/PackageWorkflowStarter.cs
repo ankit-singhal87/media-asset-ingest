@@ -8,7 +8,9 @@ public sealed class PackageWorkflowStarter
     [
         new("scan-package", "Package scan"),
         new("classify-files", "Classify discovered files"),
-        new("dispatch-processing", "Dispatch processing work")
+        new("dispatch-processing", "Dispatch processing work"),
+        new("reconcile-package", "Reconcile package"),
+        new("finalize-package", "Finalize package")
     ];
 
     public PackageWorkflowStart Start(PackageIngestRequest request)
