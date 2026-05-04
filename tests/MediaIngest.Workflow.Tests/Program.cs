@@ -14,10 +14,12 @@ AssertEqual("package-001", start.PackageId, "package id");
 AssertEqual("PackageIngestWorkflow", start.WorkflowName, "workflow name");
 AssertEqual("package-package-001", start.WorkflowInstanceId, "workflow instance id");
 AssertEqual("correlation-001", start.CorrelationId, "correlation id");
-AssertEqual(3, start.PreparedChildWork.Count, "prepared child work count");
+AssertEqual(5, start.PreparedChildWork.Count, "prepared child work count");
 AssertEqual("scan-package", start.PreparedChildWork[0].NodeId, "scan node id");
 AssertEqual("classify-files", start.PreparedChildWork[1].NodeId, "classify node id");
 AssertEqual("dispatch-processing", start.PreparedChildWork[2].NodeId, "dispatch node id");
+AssertEqual("reconcile-package", start.PreparedChildWork[3].NodeId, "reconcile node id");
+AssertEqual("finalize-package", start.PreparedChildWork[4].NodeId, "finalize node id");
 
 var lifecycle = PackageWorkflowLifecycle.Observe(request);
 AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");
@@ -43,12 +45,16 @@ var succeededGraph = PackageWorkflowGraphProjection.FromLifecycle(lifecycle);
 AssertEqual("package-package-001", succeededGraph.WorkflowInstanceId, "succeeded graph workflow instance id");
 AssertEqual("PackageIngestWorkflow", succeededGraph.WorkflowName, "succeeded graph workflow name");
 AssertEqual("package-001", succeededGraph.PackageId, "succeeded graph package id");
-AssertEqual(4, succeededGraph.Nodes.Count, "succeeded graph node count");
-AssertEqual(3, succeededGraph.Edges.Count, "succeeded graph edge count");
+AssertEqual(6, succeededGraph.Nodes.Count, "succeeded graph node count");
+AssertEqual(5, succeededGraph.Edges.Count, "succeeded graph edge count");
 AssertEqual("package-start", succeededGraph.Nodes[0].NodeId, "succeeded graph start node id");
 AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[0].Status, "succeeded graph start status");
 AssertEqual("scan-package", succeededGraph.Nodes[1].NodeId, "succeeded graph scan node id");
 AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[1].Status, "succeeded graph scan status");
+AssertEqual("reconcile-package", succeededGraph.Nodes[4].NodeId, "succeeded graph reconcile node id");
+AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[4].Status, "succeeded graph reconcile status");
+AssertEqual("finalize-package", succeededGraph.Nodes[5].NodeId, "succeeded graph finalization node id");
+AssertEqual(WorkflowNodeStatus.Succeeded, succeededGraph.Nodes[5].Status, "succeeded graph finalization status");
 
 var failingLifecycle = PackageWorkflowLifecycle.Observe(request);
 failingLifecycle.MarkReady(new DateTimeOffset(2026, 5, 3, 12, 4, 0, TimeSpan.Zero));
@@ -68,6 +74,13 @@ var readyGraph = PackageWorkflowGraphProjection.FromLifecycle(PackageWorkflowLif
 AssertEqual("pending-package-001", readyGraph.WorkflowInstanceId, "ready graph fallback workflow instance id");
 AssertEqual(WorkflowNodeStatus.Queued, readyGraph.Nodes[0].Status, "ready graph start status");
 AssertEqual(WorkflowNodeStatus.Pending, readyGraph.Nodes[1].Status, "ready graph scan status");
+
+var businessStatusGraph = PackageWorkflowGraphProjection.FromPackageStatus(
+    packageId: "package-001",
+    workflowInstanceId: "package-package-001",
+    status: "Succeeded");
+AssertEqual(4, businessStatusGraph.Nodes.Count, "business status graph node count");
+AssertEqual("dispatch-processing", businessStatusGraph.Nodes[3].NodeId, "business status graph final visible node");
 
 AssertThrows<InvalidOperationException>(
     () => PackageWorkflowLifecycle.Observe(request).Start(new DateTimeOffset(2026, 5, 3, 12, 7, 0, TimeSpan.Zero)),

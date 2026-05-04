@@ -4,7 +4,16 @@ namespace MediaIngest.Workflow;
 
 public static class PackageWorkflowGraphProjection
 {
-    private static readonly PreparedChildWork[] PackageStartPlan =
+    private static readonly PreparedChildWork[] PackageLifecyclePlan =
+    [
+        new("scan-package", "Package scan"),
+        new("classify-files", "Classify discovered files"),
+        new("dispatch-processing", "Dispatch processing work"),
+        new("reconcile-package", "Reconcile package"),
+        new("finalize-package", "Finalize package")
+    ];
+
+    private static readonly PreparedChildWork[] PackageBusinessStatusPlan =
     [
         new("scan-package", "Package scan"),
         new("classify-files", "Classify discovered files"),
@@ -29,7 +38,8 @@ public static class PackageWorkflowGraphProjection
         return CreateGraph(
             snapshot.PackageId,
             workflowInstanceId,
-            MapLifecycleState(snapshot.State));
+            MapLifecycleState(snapshot.State),
+            PackageLifecyclePlan);
     }
 
     public static WorkflowGraphDto FromPackageStatus(
@@ -52,15 +62,20 @@ public static class PackageWorkflowGraphProjection
             throw new ArgumentException("Package status is required.", nameof(status));
         }
 
-        return CreateGraph(packageId, workflowInstanceId, MapPackageStatus(status));
+        return CreateGraph(
+            packageId,
+            workflowInstanceId,
+            MapPackageStatus(status),
+            PackageBusinessStatusPlan);
     }
 
     private static WorkflowGraphDto CreateGraph(
         string packageId,
         string workflowInstanceId,
-        WorkflowNodeStatus packageStatus)
+        WorkflowNodeStatus packageStatus,
+        IReadOnlyList<PreparedChildWork> workflowPlan)
     {
-        var childStatuses = MapChildStatuses(packageStatus);
+        var childStatuses = MapChildStatuses(packageStatus, workflowPlan.Count);
         var nodes = new List<WorkflowNodeDto>
         {
             new(
@@ -74,7 +89,7 @@ public static class PackageWorkflowGraphProjection
                 ChildWorkflowInstanceId: null)
         };
 
-        nodes.AddRange(PackageStartPlan.Select((work, index) => new WorkflowNodeDto(
+        nodes.AddRange(workflowPlan.Select((work, index) => new WorkflowNodeDto(
             NodeId: work.NodeId,
             DisplayName: work.DisplayName,
             Kind: WorkflowNodeKind.Activity,
@@ -84,12 +99,7 @@ public static class PackageWorkflowGraphProjection
             WorkItemId: work.NodeId,
             ChildWorkflowInstanceId: null)));
 
-        var edges = new[]
-        {
-            new WorkflowEdgeDto("package-start-scan-package", "package-start", "scan-package"),
-            new WorkflowEdgeDto("scan-package-classify-files", "scan-package", "classify-files"),
-            new WorkflowEdgeDto("classify-files-dispatch-processing", "classify-files", "dispatch-processing")
-        };
+        var edges = CreateEdges(workflowPlan);
 
         return new WorkflowGraphDto(
             WorkflowInstanceId: workflowInstanceId,
@@ -124,40 +134,36 @@ public static class PackageWorkflowGraphProjection
         };
     }
 
-    private static WorkflowNodeStatus[] MapChildStatuses(WorkflowNodeStatus packageStatus)
+    private static WorkflowEdgeDto[] CreateEdges(IReadOnlyList<PreparedChildWork> workflowPlan)
     {
-        return packageStatus switch
+        var edges = new List<WorkflowEdgeDto>(workflowPlan.Count);
+        var previousNodeId = "package-start";
+
+        foreach (var work in workflowPlan)
         {
-            WorkflowNodeStatus.Succeeded =>
-            [
-                WorkflowNodeStatus.Succeeded,
-                WorkflowNodeStatus.Succeeded,
-                WorkflowNodeStatus.Succeeded
-            ],
-            WorkflowNodeStatus.Failed =>
-            [
-                WorkflowNodeStatus.Failed,
-                WorkflowNodeStatus.Failed,
-                WorkflowNodeStatus.Failed
-            ],
-            WorkflowNodeStatus.Running =>
-            [
-                WorkflowNodeStatus.Running,
-                WorkflowNodeStatus.Pending,
-                WorkflowNodeStatus.Pending
-            ],
-            WorkflowNodeStatus.Queued =>
-            [
-                WorkflowNodeStatus.Pending,
-                WorkflowNodeStatus.Pending,
-                WorkflowNodeStatus.Pending
-            ],
-            _ =>
-            [
-                WorkflowNodeStatus.Pending,
-                WorkflowNodeStatus.Pending,
-                WorkflowNodeStatus.Pending
-            ]
-        };
+            edges.Add(new WorkflowEdgeDto(
+                EdgeId: $"{previousNodeId}-{work.NodeId}",
+                SourceNodeId: previousNodeId,
+                TargetNodeId: work.NodeId));
+            previousNodeId = work.NodeId;
+        }
+
+        return [.. edges];
+    }
+
+    private static WorkflowNodeStatus[] MapChildStatuses(WorkflowNodeStatus packageStatus, int childCount)
+    {
+        var childStatuses = Enumerable.Repeat(WorkflowNodeStatus.Pending, childCount).ToArray();
+
+        if (packageStatus is WorkflowNodeStatus.Succeeded or WorkflowNodeStatus.Failed)
+        {
+            Array.Fill(childStatuses, packageStatus);
+        }
+        else if (packageStatus == WorkflowNodeStatus.Running && childStatuses.Length > 0)
+        {
+            childStatuses[0] = WorkflowNodeStatus.Running;
+        }
+
+        return childStatuses;
     }
 }
