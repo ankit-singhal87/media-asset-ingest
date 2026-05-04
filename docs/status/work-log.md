@@ -116,6 +116,10 @@ messages or paste command output unless it explains a decision.
   state now projects to graph DTO statuses, `/api/workflows/{id}/graph` serves
   those DTOs, and the React control plane renders Mermaid diagrams from live
   graph data with focused API, workflow, and UI tests.
+- Added USER-STORY-17 static Kubernetes and Dapr readiness assets with
+  ClusterIP-only API/UI/PostgreSQL manifests, Dapr workflow state and Azure
+  Service Bus component templates, placeholder-only secret examples, and
+  architecture/automation docs that keep cloud validation approval-gated.
 
 ## Update Rule
 

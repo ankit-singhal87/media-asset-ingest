@@ -262,7 +262,7 @@ Components:
 
 ## MILESTONE-9: Kubernetes And Azure Readiness
 
-Status: Planned
+Status: In Review
 
 Purpose: Add Kubernetes manifests, Dapr components, and Azure deployment
 documentation without requiring paid cloud execution by default.
@@ -287,6 +287,14 @@ Components:
 
 - `deploy/k8s`
 - `deploy/dapr`
-- `deploy/azure`
 - `docs/architecture`
 - `docs/automation`
+
+Current readiness boundary:
+
+- Static Kubernetes manifests cover internal API, UI, PostgreSQL, and Dapr
+  sidecar wiring without load balancers.
+- Dapr component templates cover PostgreSQL workflow state and Azure Service Bus
+  pub/sub through Kubernetes Secret references.
+- Azure resource creation and cloud validation remain deferred until explicitly
+  approved.

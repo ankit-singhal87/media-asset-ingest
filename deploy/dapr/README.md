@@ -1,8 +1,8 @@
-# Dapr Workflow Skeleton
+# Dapr Workflow Runtime Assets
 
 This directory records the local Dapr lane for workflow runtime assets. TASK-5-1
-does not add runtime components or Azure-backed state stores; those remain
-deferred until the local runtime slice defines the Dapr sidecar wiring.
+added the workflow skeleton. USER-STORY-17 adds static Kubernetes-oriented Dapr
+component templates while keeping cloud execution deferred.
 
 Current workflow skeleton:
 
@@ -10,3 +10,18 @@ Current workflow skeleton:
 - workflow application lane: `MediaIngest.Workflow`
 - workflow instance id shape: `package-<packageId>`
 - workflow runtime state remains separate from PostgreSQL business state
+
+Kubernetes component templates:
+
+- `k8s/configuration.yaml` defines the Dapr sidecar configuration name used by
+  Kubernetes workload annotations.
+- `k8s/postgres-state.yaml` defines the Dapr workflow state store as a
+  PostgreSQL-backed component named `workflowstatestore`.
+- `k8s/servicebus-pubsub.yaml` defines the Azure Service Bus topic pub/sub
+  component named `commandbus`.
+- `k8s/kustomization.yaml` lets agents render the Dapr assets without contacting
+  a Kubernetes API server.
+
+All credentials are Kubernetes Secret references. Real secret values,
+kubeconfigs, Azure subscription details, and Terraform state are intentionally
+absent from this repository.

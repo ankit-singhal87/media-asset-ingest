@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: media-ingest
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - api.yaml
+  - ui.yaml
+configMapGenerator:
+  - name: media-ingest-runtime
+    literals:
+      - ASPNETCORE_URLS=http://+:8080
+      - Ingest__InputPath=/mnt/ingest/input
+      - Ingest__OutputPath=/mnt/ingest/output
+generatorOptions:
+  disableNameSuffixHash: true
+images:
+  - name: ghcr.io/example/media-ingest-api
+    newName: ghcr.io/example/media-ingest-api
+    newTag: replace-with-image-tag
+  - name: ghcr.io/example/media-ingest-ui
+    newName: ghcr.io/example/media-ingest-ui
+    newTag: replace-with-image-tag

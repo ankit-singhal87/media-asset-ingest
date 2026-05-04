@@ -40,6 +40,19 @@ distributes command work. Command runners execute supplied commands in
 appropriately sized containers. PostgreSQL stores business truth. Dapr stores
 workflow runtime state in its own state store.
 
+## Runtime Readiness Boundary
+
+The repository includes Docker and static Kubernetes readiness assets for the
+API, UI, PostgreSQL dependency, Dapr sidecar configuration, Dapr workflow state
+store, and Azure Service Bus pub/sub component. These assets document the
+intended container runtime shape without creating Azure resources by default.
+
+Kubernetes services stay internal by default with `ClusterIP` networking. Image
+repository names, image tags, secret values, kubeconfigs, Azure subscription
+details, and Terraform state are placeholders or omitted. Applying manifests to
+an Azure cluster, creating Azure Service Bus, or binding managed storage remains
+a manual step that requires explicit approval.
+
 ## Deferred Decisions
 
 - Production mount backing: Azure Files, Blob CSI, or another Azure-backed option.

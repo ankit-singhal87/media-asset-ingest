@@ -79,16 +79,21 @@
   exposes workflow graph DTOs by workflow instance, workflow lifecycle state
   projects to graph node statuses, and the React UI renders Mermaid diagrams
   while keeping package status and local start controls intact.
+- USER-STORY-17 added static Kubernetes and Dapr readiness assets for the API,
+  UI, PostgreSQL dependency, internal service networking, workflow state, and
+  Azure Service Bus pub/sub placeholders without running cloud validation.
 
 ## Ready For Review
 
-- No active PR is awaiting review.
+- USER-STORY-17 runtime readiness branch is preparing PR validation.
 
 ## Next
 
 - Keep the local ingest docs PR in draft until the backend and UI slice PRs
   merge the API host, UI **Start ingest** action, Vite `/api` proxy, and runtime
   folder ignore setup.
+- Review USER-STORY-17 static runtime readiness assets before any approved
+  cluster or Azure validation.
 
 ## Update Rule
 
