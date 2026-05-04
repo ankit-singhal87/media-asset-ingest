@@ -37,6 +37,11 @@ Command routing boundary:
 on the application property; command topic names stay semantic and do not encode
 runner capacity.
 
+TASK-4-3 defines static topology readiness only. The command contracts enumerate
+the semantic topics and the `light`, `medium`, and `heavy` subscription filters
+that Azure Service Bus resources must eventually use, but these Dapr assets do
+not create topics or subscriptions and do not require paid Azure validation.
+
 All credentials are Kubernetes Secret references. Real secret values,
 kubeconfigs, Azure subscription details, and Terraform state are intentionally
 absent from this repository.

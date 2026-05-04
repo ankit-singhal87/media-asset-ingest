@@ -145,6 +145,9 @@ messages or paste command output unless it explains a decision.
 - Added TASK-8-2 UI package workflow selection so operators can choose among
   multiple package workflow graphs, keep node details on same-workflow refresh,
   and clear node details when switching workflows.
+- Added TASK-4-3 static command-bus topology readiness in the Courier contract
+  lane, covering semantic command topics, light/medium/heavy subscription
+  filters, and documentation that keeps Azure resource creation out of scope.
 
 ## Update Rule
 

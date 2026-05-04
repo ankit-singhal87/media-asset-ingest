@@ -88,6 +88,37 @@ AssertEqual("medium", mediumRouting.ApplicationProperties[CommandRoute.Execution
 AssertEqual(ExecutionClass.Heavy, heavyRouting.ExecutionClass, "heavy route");
 AssertEqual("heavy", heavyRouting.ApplicationProperties[CommandRoute.ExecutionClassPropertyName], "heavy route property");
 
+var expectedCommandTopics = new[]
+{
+    CommandNames.CreateProxy,
+    CommandNames.CreateChecksum,
+    CommandNames.VerifyChecksum,
+    CommandNames.RunSecurityScan,
+    CommandNames.ArchiveAsset
+};
+
+var topology = CommandBusTopology.Topics;
+AssertSequenceEqual(expectedCommandTopics, topology.Select(topic => topic.TopicName).ToArray(), "command bus topics");
+
+foreach (var topic in topology)
+{
+    AssertEqual(3, topic.Subscriptions.Count, $"{topic.TopicName} subscription count");
+    AssertSequenceEqual(
+        ["light", "medium", "heavy"],
+        topic.Subscriptions.Select(subscription => subscription.SubscriptionName).ToArray(),
+        $"{topic.TopicName} subscription names");
+
+    foreach (var subscription in topic.Subscriptions)
+    {
+        AssertEqual("executionClass", subscription.FilterPropertyName, $"{topic.TopicName}/{subscription.SubscriptionName} filter property");
+        AssertEqual(subscription.SubscriptionName, subscription.FilterPropertyValue, $"{topic.TopicName}/{subscription.SubscriptionName} filter value");
+        AssertEqual(
+            $"executionClass = '{subscription.SubscriptionName}'",
+            subscription.SqlFilterExpression,
+            $"{topic.TopicName}/{subscription.SubscriptionName} filter expression");
+    }
+}
+
 var checksumRouting = CommandRoutingPolicy.Route(
     commandName: CommandNames.CreateChecksum,
     inputBytes: 25L * 1024L * 1024L * 1024L);
@@ -140,5 +171,14 @@ static void AssertEqual<T>(T expected, T actual, string name)
     if (!EqualityComparer<T>.Default.Equals(expected, actual))
     {
         throw new InvalidOperationException($"{name}: expected '{expected}', got '{actual}'.");
+    }
+}
+
+static void AssertSequenceEqual<T>(IReadOnlyList<T> expected, IReadOnlyList<T> actual, string name)
+{
+    if (!expected.SequenceEqual(actual))
+    {
+        throw new InvalidOperationException(
+            $"{name}: expected '{string.Join(", ", expected)}', got '{string.Join(", ", actual)}'.");
     }
 }
