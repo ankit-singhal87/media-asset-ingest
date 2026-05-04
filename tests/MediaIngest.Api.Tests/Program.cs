@@ -33,8 +33,17 @@ try
     File.WriteAllText(Path.Combine(packagePath, "notes.bin"), "unknown essence");
 
     await WaitForAsync(
+        () => runtimeService.GetStatus().Packages.SingleOrDefault() is not null,
+        "package created after start");
+
+    AssertEqual("Started", runtimeService.GetStatus().Packages.Single().Status, "status before done marker");
+
+    File.WriteAllText(Path.Combine(mediaPath, "late.mov"), "late video before done marker");
+    File.WriteAllText(Path.Combine(packagePath, "done.marker"), string.Empty);
+
+    await WaitForAsync(
         () => runtimeService.GetStatus().Packages.SingleOrDefault()?.Status == "Succeeded",
-        "package created after start to succeed");
+        "package to succeed after done marker");
 
     var startedStatus = runtimeService.GetStatus();
     AssertEqual(1, startedStatus.Packages.Count, "started package count");
@@ -46,13 +55,14 @@ try
     AssertEqual("package-asset-001", graph.WorkflowInstanceId, "graph workflow instance id");
     AssertEqual("PackageIngestWorkflow", graph.WorkflowName, "graph workflow name");
     AssertEqual("asset-001", graph.PackageId, "graph package id");
-    AssertEqual(10, graph.Nodes.Count, "graph node count");
-    AssertEqual(9, graph.Edges.Count, "graph edge count");
+    AssertEqual(11, graph.Nodes.Count, "graph node count");
+    AssertEqual(10, graph.Edges.Count, "graph edge count");
     AssertEqual("package-start", graph.Nodes[0].NodeId, "graph first node id");
     AssertEqual("scan-package", graph.Nodes[1].NodeId, "graph scan node id");
     AssertEqual("classify-files", graph.Nodes[2].NodeId, "graph classify node id");
     AssertEqual("dispatch-processing", graph.Nodes[3].NodeId, "graph dispatch node id");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-mix-wav"), "audio command graph node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-late-mov"), "late video command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-source-mov"), "video command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-sidecars-caption-srt"), "text command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-notes-bin"), "other command graph node");
@@ -64,7 +74,7 @@ try
         .Where(message => message.MessageType == nameof(MediaCommandEnvelope))
         .OrderBy(message => message.MessageId, StringComparer.Ordinal)
         .ToArray();
-    AssertEqual(4, mediaCommandMessages.Length, "media command message count");
+    AssertEqual(5, mediaCommandMessages.Length, "media command message count");
     AssertTrue(mediaCommandMessages.All(message => message.DispatchedAt is not null), "media command messages dispatched");
 
     var commands = mediaCommandMessages
@@ -73,15 +83,17 @@ try
         .OrderBy(command => command.InputPaths.Single(), StringComparer.Ordinal)
         .ToArray();
 
-    AssertEqual(Path.Combine(packagePath, "media", "mix.wav"), commands[0].InputPaths.Single(), "audio command input");
-    AssertEqual(CommandNames.CreateProxy, commands[0].CommandName, "audio command name");
-    AssertEqual(ExecutionClass.Light, commands[0].ExecutionClass, "audio command execution class");
-    AssertEqual(Path.Combine(packagePath, "media", "source.mov"), commands[1].InputPaths.Single(), "video command input");
-    AssertEqual(CommandNames.CreateProxy, commands[1].CommandName, "video command name");
-    AssertEqual(Path.Combine(packagePath, "notes.bin"), commands[2].InputPaths.Single(), "other command input");
-    AssertEqual(CommandNames.CreateChecksum, commands[2].CommandName, "other command name");
-    AssertEqual(Path.Combine(packagePath, "sidecars", "caption.srt"), commands[3].InputPaths.Single(), "text command input");
-    AssertEqual(CommandNames.RunSecurityScan, commands[3].CommandName, "text command name");
+    AssertEqual(Path.Combine(packagePath, "media", "late.mov"), commands[0].InputPaths.Single(), "late video command input");
+    AssertEqual(CommandNames.CreateProxy, commands[0].CommandName, "late video command name");
+    AssertEqual(ExecutionClass.Light, commands[0].ExecutionClass, "late video command execution class");
+    AssertEqual(Path.Combine(packagePath, "media", "mix.wav"), commands[1].InputPaths.Single(), "audio command input");
+    AssertEqual(CommandNames.CreateProxy, commands[1].CommandName, "audio command name");
+    AssertEqual(Path.Combine(packagePath, "media", "source.mov"), commands[2].InputPaths.Single(), "video command input");
+    AssertEqual(CommandNames.CreateProxy, commands[2].CommandName, "video command name");
+    AssertEqual(Path.Combine(packagePath, "notes.bin"), commands[3].InputPaths.Single(), "other command input");
+    AssertEqual(CommandNames.CreateChecksum, commands[3].CommandName, "other command name");
+    AssertEqual(Path.Combine(packagePath, "sidecars", "caption.srt"), commands[4].InputPaths.Single(), "text command input");
+    AssertEqual(CommandNames.RunSecurityScan, commands[4].CommandName, "text command name");
 
     var missingGraph = runtimeService.GetWorkflowGraph("missing-workflow");
     AssertNull(missingGraph, "missing graph");
