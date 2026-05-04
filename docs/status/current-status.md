@@ -6,10 +6,10 @@
 - Current branch: `main`.
 - Current focus: local `main` contains the first implementation foundations
   across watcher, persistence/outbox, workflow, command routing, observability,
-  and the React control plane. The local ingest demo now waits for a zero-byte
-  `done.marker` before terminal success, routes command publish metadata for
-  local outbox dispatch, and lets the UI select among multiple package workflow
-  graphs.
+  a local generic command runner foundation, and the React control plane. The
+  local ingest demo now waits for a zero-byte `done.marker` before terminal
+  success, routes command publish metadata for local outbox dispatch, and lets
+  the UI select among multiple package workflow graphs.
 
 ## Completed
 
@@ -104,6 +104,12 @@
 - TASK-4-3 defined the static command-bus topology readiness model for semantic
   command topics and the `light`, `medium`, and `heavy` execution-class
   subscriptions without provisioning Azure resources.
+- USER-STORY-7 added a local generic command runner foundation for light,
+  medium, and heavy execution classes. The runner accepts matching
+  `MediaCommandEnvelope` values, rejects mismatched execution classes, skips
+  duplicate `CommandId` handling, and records in-memory business progress with
+  canonical correlation fields. Azure Service Bus consumption, Kubernetes
+  scaling, and real media command execution remain deferred.
 - TASK-8-2 added multi-package workflow selection in the React control plane,
   preserving node detail during same-workflow refreshes and clearing detail when
   the operator switches workflows.
@@ -114,8 +120,8 @@
 ## Next
 
 - Push or open a PR for the local `main` integration when authorized.
-- Plan the next runtime slice: richer node log/timeline data sources or local
-  container runtime validation.
+- Plan the next runtime slice: Azure Service Bus runner consumption, richer
+  node log/timeline data sources, or local container runtime validation.
 
 ## Update Rule
 

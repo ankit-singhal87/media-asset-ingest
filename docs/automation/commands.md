@@ -31,6 +31,7 @@
 | `make test-dotnet-outbox` | Run the outbox worker smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-workflow` | Run the workflow smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-observability` | Run the observability smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
+| `make test-dotnet-command-runner` | Run the generic command runner smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |
 | `make github-projects-script-test` | Test GitHub tracker helper wrappers without network. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |

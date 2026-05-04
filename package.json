@@ -9,6 +9,7 @@
     "dotnet:test:contracts": "sh scripts/dev/test-dotnet.sh contracts",
     "dotnet:test:foundation": "sh scripts/dev/test-dotnet.sh foundation",
     "dotnet:test:api": "sh scripts/dev/test-dotnet.sh api",
+    "dotnet:test:command-runner": "sh scripts/dev/test-dotnet.sh command-runner",
     "dotnet:test:observability": "sh scripts/dev/test-dotnet.sh observability",
     "dotnet:test:outbox": "sh scripts/dev/test-dotnet.sh outbox",
     "dotnet:test:persistence": "sh scripts/dev/test-dotnet.sh persistence",

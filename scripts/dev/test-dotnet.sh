@@ -13,8 +13,9 @@ persistence_tests="tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.T
 outbox_tests="tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Tests.csproj"
 workflow_tests="tests/MediaIngest.Workflow.Tests/MediaIngest.Workflow.Tests.csproj"
 observability_tests="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj"
+command_runner_tests="tests/MediaIngest.Worker.CommandRunner.Tests/MediaIngest.Worker.CommandRunner.Tests.csproj"
 
-all_test_projects="$foundation_tests $contracts_tests $watcher_tests $api_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests"
+all_test_projects="$foundation_tests $contracts_tests $watcher_tests $api_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests $command_runner_tests"
 test_projects=""
 scope="selected"
 
@@ -56,9 +57,12 @@ else
       observability)
         append_project "$observability_tests"
         ;;
+      command-runner)
+        append_project "$command_runner_tests"
+        ;;
       *)
         printf 'Unknown .NET test target: %s\n' "$target"
-        printf '%s\n' "Supported targets: all foundation contracts watcher api persistence outbox workflow observability"
+        printf '%s\n' "Supported targets: all foundation contracts watcher api persistence outbox workflow observability command-runner"
         exit 2
         ;;
     esac
