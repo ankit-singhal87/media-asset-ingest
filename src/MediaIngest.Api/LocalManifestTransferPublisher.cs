@@ -12,12 +12,12 @@ public sealed class LocalManifestTransferPublisher : IOutboxMessagePublisher
         "manifest.json.checksum"
     ];
 
-    public async Task PublishAsync(OutboxMessage message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(OutboxPublishRequest publishRequest, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(publishRequest);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var request = JsonSerializer.Deserialize<LocalManifestTransferRequest>(message.PayloadJson)
+        var request = JsonSerializer.Deserialize<LocalManifestTransferRequest>(publishRequest.Message.PayloadJson)
             ?? throw new InvalidOperationException("Local manifest transfer payload is required.");
 
         var outputPackagePath = Path.Combine(request.OutputRootPath, request.PackageId);

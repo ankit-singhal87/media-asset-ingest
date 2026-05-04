@@ -81,8 +81,12 @@ var heavyRouting = CommandRoutingPolicy.Route(
 
 AssertEqual(CommandNames.CreateProxy, lightRouting.TopicName, "create proxy topic");
 AssertEqual(ExecutionClass.Light, lightRouting.ExecutionClass, "light route");
+AssertEqual("executionClass", CommandRoute.ExecutionClassPropertyName, "execution class property name");
+AssertEqual("light", lightRouting.ApplicationProperties[CommandRoute.ExecutionClassPropertyName], "light route property");
 AssertEqual(ExecutionClass.Medium, mediumRouting.ExecutionClass, "medium route");
+AssertEqual("medium", mediumRouting.ApplicationProperties[CommandRoute.ExecutionClassPropertyName], "medium route property");
 AssertEqual(ExecutionClass.Heavy, heavyRouting.ExecutionClass, "heavy route");
+AssertEqual("heavy", heavyRouting.ApplicationProperties[CommandRoute.ExecutionClassPropertyName], "heavy route property");
 
 var checksumRouting = CommandRoutingPolicy.Route(
     commandName: CommandNames.CreateChecksum,
@@ -103,6 +107,9 @@ var command = new MediaCommandEnvelope(
 
 AssertEqual("media.command.create_proxy", command.TopicName, "command topic");
 AssertEqual(ExecutionClass.Light, command.ExecutionClass, "command execution class");
+AssertJsonContains(command, """
+    "ExecutionClass":"light"
+    """, "command execution class JSON");
 AssertJsonRoundTrip(command);
 
 Console.WriteLine("MediaIngest contract smoke tests passed.");
@@ -115,6 +122,16 @@ static void AssertJsonRoundTrip<T>(T value)
     if (roundTrip is null)
     {
         throw new InvalidOperationException($"JSON round trip failed for {typeof(T).Name}.");
+    }
+}
+
+static void AssertJsonContains<T>(T value, string expectedJsonFragment, string name)
+{
+    var json = JsonSerializer.Serialize(value);
+
+    if (!json.Contains(expectedJsonFragment, StringComparison.Ordinal))
+    {
+        throw new InvalidOperationException($"{name}: expected JSON to contain '{expectedJsonFragment}', got '{json}'.");
     }
 }
 
