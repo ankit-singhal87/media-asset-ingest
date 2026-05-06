@@ -281,8 +281,9 @@ Acceptance themes:
 - Runners can emit downstream work when allowed by workflow design.
 - Current foundation is local only: runners accept command envelopes by
   configured execution class, record in-memory progress with canonical
-  correlation fields, and keep execution behind a stub abstraction.
-- Azure Service Bus consumption, Kubernetes scaling, downstream command
+  correlation fields, keep execution behind a stub abstraction, and consume
+  Azure-shaped command-bus messages through a local broker-neutral boundary.
+- Live Azure Service Bus SDK receiving, Kubernetes scaling, downstream command
   emission, and real media command execution are deferred.
 
 Dependencies:

@@ -160,7 +160,348 @@ finally
     processWorkDirectory.Delete(recursive: true);
 }
 
+await CommandBusConsumerCompletesValidMessagesForAllExecutionClasses();
+await CommandBusConsumerCompletesDuplicateMessagesWithoutReexecution();
+await CommandBusConsumerAbandonsRunnerExecutionFailures();
+await CommandBusConsumerDeadLettersInvalidJson();
+await CommandBusConsumerDeadLettersMissingExecutionClass();
+await CommandBusConsumerDeadLettersUnknownTopic();
+await CommandBusConsumerDeadLettersUnknownSubscription();
+await CommandBusConsumerDeadLettersSubscriptionExecutionClassMismatch();
+await CommandBusConsumerDeadLettersEnvelopeRouteMismatch();
+await CommandBusConsumerDeadLettersEnvelopeCommandNameTopicMismatch();
+await CommandBusConsumerDeadLettersBrokerEnvelopeExecutionClassMismatch();
+await CommandBusConsumerDeadLettersRunnerClassMismatch();
+await CommandBusConsumerDeadLettersMissingEnvelopeExecutionClass();
+await CommandBusConsumerDeadLettersMisCasedEnvelopeExecutionClass();
+await CommandBusConsumerDeadLettersMissingEnvelopeCommandId();
+await CommandBusConsumerDeadLettersBlankEnvelopeCommandId();
+await CommandBusConsumerAbandonsUnexpectedBoundaryExceptions();
+
 Console.WriteLine("MediaIngest command runner tests passed.");
+
+static async Task CommandBusConsumerCompletesValidMessagesForAllExecutionClasses()
+{
+    foreach (var executionClass in new[] { ExecutionClass.Light, ExecutionClass.Medium, ExecutionClass.Heavy })
+    {
+        var executor = new RecordingCommandExecutor();
+        var progress = new InMemoryCommandProgressSink();
+        var runner = new GenericCommandRunner(executionClass, executor, progress);
+        var consumer = new CommandBusMessageConsumer(runner);
+        var envelope = CreateEnvelope(executionClass, $"consumer-valid-{executionClass.ToPropertyValue()}");
+
+        CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(envelope));
+
+        AssertEqual(CommandBusMessageDisposition.Complete, result.Disposition, $"{executionClass} consumer disposition");
+        AssertEqual(envelope.CommandId, result.CommandId, $"{executionClass} consumer command id");
+        AssertEqual(1, executor.ExecutionCount, $"{executionClass} consumer executes command");
+        AssertEqual(CommandProgressStatus.Succeeded, progress.Records.Last().Status, $"{executionClass} consumer progress");
+    }
+}
+
+static async Task CommandBusConsumerCompletesDuplicateMessagesWithoutReexecution()
+{
+    var executor = new RecordingCommandExecutor();
+    var progress = new InMemoryCommandProgressSink();
+    var runner = new GenericCommandRunner(ExecutionClass.Medium, executor, progress);
+    var consumer = new CommandBusMessageConsumer(runner);
+    var envelope = CreateEnvelope(ExecutionClass.Medium, "consumer-duplicate");
+    var message = CreateReceivedMessage(envelope);
+
+    CommandBusMessageHandlingResult first = await consumer.HandleAsync(message);
+    CommandBusMessageHandlingResult second = await consumer.HandleAsync(message);
+
+    AssertEqual(CommandBusMessageDisposition.Complete, first.Disposition, "first duplicate consumer disposition");
+    AssertEqual(CommandBusMessageDisposition.Complete, second.Disposition, "second duplicate consumer disposition");
+    AssertEqual(1, executor.ExecutionCount, "duplicate consumer executes once");
+    AssertEqual(CommandProgressStatus.DuplicateSkipped, progress.Records.Last().Status, "duplicate consumer progress");
+}
+
+static async Task CommandBusConsumerAbandonsRunnerExecutionFailures()
+{
+    var executor = new RecordingCommandExecutor { NextResult = CommandExecutionResult.Failed("exit-code-1") };
+    var runner = new GenericCommandRunner(ExecutionClass.Heavy, executor, new InMemoryCommandProgressSink());
+    var consumer = new CommandBusMessageConsumer(runner);
+    var envelope = CreateEnvelope(ExecutionClass.Heavy, "consumer-failed");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(envelope));
+
+    AssertEqual(CommandBusMessageDisposition.Abandon, result.Disposition, "failed consumer disposition");
+    AssertEqual(envelope.CommandId, result.CommandId, "failed consumer command id");
+    AssertEqual("exit-code-1", result.Reason, "failed consumer reason");
+}
+
+static async Task CommandBusConsumerDeadLettersInvalidJson()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(new CommandBusReceivedMessage(
+        MessageId: "message-invalid-json",
+        TopicName: CommandNames.CreateProxy,
+        SubscriptionName: CommandBusTopology.LightSubscriptionName,
+        BodyJson: "{not-json",
+        ApplicationProperties: new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = ExecutionClass.Light.ToPropertyValue()
+        }));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "invalid json disposition");
+    AssertEqual(0, executor.ExecutionCount, "invalid json does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersMissingExecutionClass()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-missing-execution-class");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        applicationProperties: new Dictionary<string, string>()));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "missing execution class disposition");
+    AssertEqual(0, executor.ExecutionCount, "missing execution class does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersUnknownTopic()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-unknown-topic") with
+    {
+        TopicName = "media.command.unknown"
+    };
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(envelope));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "unknown topic disposition");
+    AssertEqual(0, executor.ExecutionCount, "unknown topic does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersUnknownSubscription()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-unknown-subscription");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        subscriptionName: "unknown-subscription"));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "unknown subscription disposition");
+    AssertEqual(0, executor.ExecutionCount, "unknown subscription does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersSubscriptionExecutionClassMismatch()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-subscription-mismatch");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        subscriptionName: CommandBusTopology.HeavySubscriptionName));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "subscription mismatch disposition");
+    AssertEqual(0, executor.ExecutionCount, "subscription mismatch does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersEnvelopeRouteMismatch()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-envelope-mismatch") with
+    {
+        TopicName = CommandNames.ArchiveAsset
+    };
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        topicName: CommandNames.CreateProxy));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "envelope route mismatch disposition");
+    AssertEqual(0, executor.ExecutionCount, "envelope route mismatch does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersEnvelopeCommandNameTopicMismatch()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-envelope-command-topic-mismatch") with
+    {
+        CommandName = CommandNames.ArchiveAsset,
+        TopicName = CommandNames.CreateProxy
+    };
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        topicName: CommandNames.CreateProxy));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "envelope command route mismatch disposition");
+    AssertEqual(0, executor.ExecutionCount, "envelope command route mismatch does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersBrokerEnvelopeExecutionClassMismatch()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-broker-envelope-class-mismatch");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(
+        envelope,
+        subscriptionName: CommandBusTopology.HeavySubscriptionName,
+        applicationProperties: new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = ExecutionClass.Heavy.ToPropertyValue()
+        }));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "broker envelope class mismatch disposition");
+    AssertEqual(0, executor.ExecutionCount, "broker envelope class mismatch does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersRunnerClassMismatch()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Heavy, "consumer-runner-class-mismatch");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(envelope));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "runner class mismatch disposition");
+    AssertEqual(0, executor.ExecutionCount, "runner class mismatch does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersMissingEnvelopeExecutionClass()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-missing-envelope-execution-class");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(new CommandBusReceivedMessage(
+        MessageId: $"message-{envelope.CommandId}",
+        TopicName: envelope.TopicName,
+        SubscriptionName: envelope.ExecutionClass.ToPropertyValue(),
+        BodyJson: CreateEnvelopeJsonWithoutExecutionClass(envelope),
+        ApplicationProperties: new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = envelope.ExecutionClass.ToPropertyValue()
+        }));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "missing envelope execution class disposition");
+    AssertEqual(0, executor.ExecutionCount, "missing envelope execution class does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersMisCasedEnvelopeExecutionClass()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-miscased-envelope-execution-class");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(new CommandBusReceivedMessage(
+        MessageId: $"message-{envelope.CommandId}",
+        TopicName: envelope.TopicName,
+        SubscriptionName: envelope.ExecutionClass.ToPropertyValue(),
+        BodyJson: CreateEnvelopeJsonWithMisCasedExecutionClass(envelope),
+        ApplicationProperties: new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = envelope.ExecutionClass.ToPropertyValue()
+        }));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "miscased envelope execution class disposition");
+    AssertEqual(0, executor.ExecutionCount, "miscased envelope execution class does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersMissingEnvelopeCommandId()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-missing-envelope-command-id");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(new CommandBusReceivedMessage(
+        MessageId: $"message-{envelope.CommandId}",
+        TopicName: envelope.TopicName,
+        SubscriptionName: envelope.ExecutionClass.ToPropertyValue(),
+        BodyJson: CreateEnvelopeJsonWithoutCommandId(envelope),
+        ApplicationProperties: new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = envelope.ExecutionClass.ToPropertyValue()
+        }));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "missing envelope command id disposition");
+    AssertEqual(0, executor.ExecutionCount, "missing envelope command id does not execute command");
+}
+
+static async Task CommandBusConsumerDeadLettersBlankEnvelopeCommandId()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, string.Empty);
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(CreateReceivedMessage(envelope));
+
+    AssertEqual(CommandBusMessageDisposition.DeadLetter, result.Disposition, "blank envelope command id disposition");
+    AssertEqual(0, executor.ExecutionCount, "blank envelope command id does not execute command");
+}
+
+static async Task CommandBusConsumerAbandonsUnexpectedBoundaryExceptions()
+{
+    var executor = new RecordingCommandExecutor();
+    var consumer = new CommandBusMessageConsumer(new GenericCommandRunner(
+        ExecutionClass.Light,
+        executor,
+        new InMemoryCommandProgressSink()));
+    var envelope = CreateEnvelope(ExecutionClass.Light, "consumer-boundary-exception");
+
+    CommandBusMessageHandlingResult result = await consumer.HandleAsync(new CommandBusReceivedMessage(
+        MessageId: $"message-{envelope.CommandId}",
+        TopicName: envelope.TopicName,
+        SubscriptionName: envelope.ExecutionClass.ToPropertyValue(),
+        BodyJson: System.Text.Json.JsonSerializer.Serialize(envelope),
+        ApplicationProperties: null!));
+
+    AssertEqual(CommandBusMessageDisposition.Abandon, result.Disposition, "boundary exception disposition");
+    AssertEqual(0, executor.ExecutionCount, "boundary exception does not execute command");
+}
 
 static MediaCommandEnvelope CreateEnvelope(ExecutionClass executionClass, string commandId)
 {
@@ -174,6 +515,72 @@ static MediaCommandEnvelope CreateEnvelope(ExecutionClass executionClass, string
         InputPaths: ["/mnt/ingest/package-001/source.mov"],
         OutputPaths: ["/mnt/work/package-001/proxy.mp4"],
         CorrelationId: $"correlation-{commandId}");
+}
+
+static string CreateEnvelopeJsonWithoutExecutionClass(MediaCommandEnvelope envelope)
+{
+    return $$"""
+        {
+          "CommandId": "{{envelope.CommandId}}",
+          "CommandName": "{{envelope.CommandName}}",
+          "TopicName": "{{envelope.TopicName}}",
+          "CommandLine": "{{envelope.CommandLine}}",
+          "WorkingDirectory": "{{envelope.WorkingDirectory}}",
+          "InputPaths": ["{{envelope.InputPaths.Single()}}"],
+          "OutputPaths": ["{{envelope.OutputPaths.Single()}}"],
+          "CorrelationId": "{{envelope.CorrelationId}}"
+        }
+        """;
+}
+
+static string CreateEnvelopeJsonWithMisCasedExecutionClass(MediaCommandEnvelope envelope)
+{
+    return $$"""
+        {
+          "CommandId": "{{envelope.CommandId}}",
+          "CommandName": "{{envelope.CommandName}}",
+          "TopicName": "{{envelope.TopicName}}",
+          "executionClass": "{{envelope.ExecutionClass.ToPropertyValue()}}",
+          "CommandLine": "{{envelope.CommandLine}}",
+          "WorkingDirectory": "{{envelope.WorkingDirectory}}",
+          "InputPaths": ["{{envelope.InputPaths.Single()}}"],
+          "OutputPaths": ["{{envelope.OutputPaths.Single()}}"],
+          "CorrelationId": "{{envelope.CorrelationId}}"
+        }
+        """;
+}
+
+static string CreateEnvelopeJsonWithoutCommandId(MediaCommandEnvelope envelope)
+{
+    return $$"""
+        {
+          "CommandName": "{{envelope.CommandName}}",
+          "TopicName": "{{envelope.TopicName}}",
+          "ExecutionClass": "{{envelope.ExecutionClass.ToPropertyValue()}}",
+          "CommandLine": "{{envelope.CommandLine}}",
+          "WorkingDirectory": "{{envelope.WorkingDirectory}}",
+          "InputPaths": ["{{envelope.InputPaths.Single()}}"],
+          "OutputPaths": ["{{envelope.OutputPaths.Single()}}"],
+          "CorrelationId": "{{envelope.CorrelationId}}"
+        }
+        """;
+}
+
+static CommandBusReceivedMessage CreateReceivedMessage(
+    MediaCommandEnvelope envelope,
+    string? topicName = null,
+    string? subscriptionName = null,
+    IReadOnlyDictionary<string, string>? applicationProperties = null)
+{
+    return new CommandBusReceivedMessage(
+        MessageId: $"message-{envelope.CommandId}",
+        TopicName: topicName ?? envelope.TopicName,
+        SubscriptionName: subscriptionName ?? envelope.ExecutionClass.ToPropertyValue(),
+        BodyJson: System.Text.Json.JsonSerializer.Serialize(envelope),
+        ApplicationProperties: applicationProperties ?? new Dictionary<string, string>
+        {
+            [CommandRoute.ExecutionClassPropertyName] = envelope.ExecutionClass.ToPropertyValue()
+        });
 }
 
 static ObservabilityCorrelationContext CreateCorrelation(MediaCommandEnvelope envelope)

@@ -112,6 +112,13 @@
   duplicate `CommandId` handling, and records in-memory business progress with
   canonical correlation fields. Azure Service Bus consumption, Kubernetes
   scaling, and real media command execution remain deferred.
+- USER-STORY-7 and USER-STORY-16 now have a local Azure-shaped command-runner
+  consumption boundary. Broker-shaped command messages are validated against
+  semantic topic and execution-class subscription metadata, deserialized into
+  `MediaCommandEnvelope` values, checked for required envelope shape and route,
+  handled by the generic runner, and mapped to complete, abandon, or
+  dead-letter decisions without Azure SDK dependencies, secrets, or cloud
+  validation.
 - TASK-8-2 added multi-package workflow selection in the React control plane,
   preserving node detail during same-workflow refreshes and clearing detail when
   the operator switches workflows.
@@ -140,7 +147,7 @@
 
 ## Next
 
-- Plan the next runtime slice: Azure Service Bus runner consumption, richer
+- Plan the next runtime slice: live Azure Service Bus SDK receiving, richer
   node log/timeline data sources, or deeper local container runtime validation.
 
 ## Update Rule

@@ -3,6 +3,15 @@
 Use this log for concise human-readable progress notes. Do not duplicate commit
 messages or paste command output unless it explains a decision.
 
+## 2026-05-06
+
+- Added a local Azure-shaped command-runner consumption boundary for
+  USER-STORY-7 and USER-STORY-16: broker-shaped command messages now validate
+  semantic topic, subscription, `executionClass`, and required envelope-shape
+  metadata before reaching the generic runner, then map handling outcomes to
+  complete, abandon, or dead-letter decisions without Azure SDK dependencies or
+  cloud validation.
+
 ## 2026-05-04
 
 - Added TASK-4-4 Service Bus command-bus adapter boundary for outbox command
