@@ -45,12 +45,15 @@ scope and report staged and unstaged files separately.
 - [ ] Identify validation command.
 - [ ] Check `.worktrees/state/*.md` and `git worktree list` for overlapping work.
 - [ ] Confirm no other parallel task owns the same target files.
+- [ ] Create or update the current task capsule in `.worktrees/state/<worktree-slug>.md` with goal, branch/worktree, changed files, validation status, next action, and blockers.
 
 ## During Work
 
 - [ ] Keep edits inside target files.
 - [ ] Escalate before dependency, cloud, secret, or out-of-scope work.
 - [ ] Write or update a durable checkpoint before long logs, broad diffs, or compaction risk.
+- [ ] Inspect diffs in this order by default: `git diff --name-only`, `git diff --stat`, targeted `git diff -- <file>`, then full diff only when needed.
+- [ ] Before `make validate`, `local-runtime-smoke`, Docker validation, or other long commands, update the state record, then run a summary validation command when available.
 - [ ] Close completed subagents after their findings are integrated.
 - [ ] Follow BDD/TDD for behavior changes.
 - [ ] Update GitHub issue or simple Project status only when tracker state changes.
@@ -60,6 +63,7 @@ scope and report staged and unstaged files separately.
 ## Before Reporting Completion
 
 - [ ] Run the cheapest relevant validation.
+- [ ] Prefer `*-summary` validation targets for broad commands, and report the log path.
 - [ ] Run stronger validation if the change touches runtime, contracts, infra, or tooling.
 - [ ] Run `git diff --check`.
 - [ ] Run lightweight GitHub tracker validation when tracker state changed.

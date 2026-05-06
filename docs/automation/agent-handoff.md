@@ -4,6 +4,10 @@ Every implementation, review, or bug-fix agent should return a concise handoff.
 
 ## Required Handoff Format
 
+Keep handoffs compact. Use at most five finding bullets, summarize validation as
+command plus pass/fail and log path, avoid quoted file contents, and include logs
+only when a failure cannot be understood from the summary.
+
 ```text
 status: completed | blocked | escalation-needed | no-op
 scope:

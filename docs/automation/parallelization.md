@@ -36,6 +36,10 @@ Common default subagent lanes:
 - focused test or CI failure investigation
 - isolated implementation tasks with disjoint file ownership
 
+For small doc-only or tooling-documentation changes, prefer one implementer and
+one final read-only reviewer. Skip multi-reviewer loops unless the change
+touches code behavior, contracts, runtime validation, or architecture decisions.
+
 Do not wait for a reminder when these conditions are met. If authorization is
 missing, ask once near the start instead of doing all work inline.
 
@@ -128,9 +132,9 @@ short handoffs only.
 
 Subagent output should include:
 
-- finding or change summary
+- finding or change summary, capped at five bullets
 - files inspected or changed
-- validation command and outcome
+- validation command and outcome, plus a log path when available
 - blockers or conflicts
 
 Subagents should not paste full logs, full diffs, or broad repo scans unless the

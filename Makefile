@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint summary-validation-script-test
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -14,11 +14,16 @@ help:
 	@printf '%s\n' "  make local-compose-check Validate local Docker Compose configuration"
 	@printf '%s\n' "  make local-runtime-smoke Start Compose and run local ingest smoke"
 	@printf '%s\n' "  make validate            Run cheap repository validation"
+	@printf '%s\n' "  make validate-summary    Run cheap validation with compact output and /tmp log"
 	@printf '%s\n' "  make validate-docs       Run docs validation only"
+	@printf '%s\n' "  make validate-docs-summary Run docs validation with compact output"
 	@printf '%s\n' "  make validate-automation Run automation script validation only"
+	@printf '%s\n' "  make validate-automation-summary Run automation validation with compact output"
 	@printf '%s\n' "  make test-dotnet         Build and smoke-test the .NET solution"
+	@printf '%s\n' "  make test-dotnet-summary Build and smoke-test .NET with compact output"
 	@printf '%s\n' "  make test-dotnet-*       Run a focused .NET smoke target"
 	@printf '%s\n' "  make test-ui             Run React control-plane Vitest tests"
+	@printf '%s\n' "  make test-ui-summary     Run UI tests with compact output"
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
 	@printf '%s\n' "  make docs-fix            Apply safe docs formatting fixes"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
@@ -63,14 +68,26 @@ local-compose-check:
 local-runtime-smoke:
 	@sh scripts/dev/local-compose-check.sh --runtime-smoke
 
-validate: docs-check scripts-check github-projects-script-test test-dotnet
+validate: docs-check scripts-check github-projects-script-test summary-validation-script-test test-dotnet
+
+validate-summary:
+	@sh scripts/dev/validation-summary.sh make validate
 
 validate-docs: docs-check
 
-validate-automation: scripts-check github-projects-script-test
+validate-docs-summary:
+	@sh scripts/dev/validation-summary.sh make validate-docs
+
+validate-automation: scripts-check github-projects-script-test summary-validation-script-test
+
+validate-automation-summary:
+	@sh scripts/dev/validation-summary.sh make validate-automation
 
 test-dotnet:
 	@sh scripts/dev/test-dotnet.sh
+
+test-dotnet-summary:
+	@sh scripts/dev/validation-summary.sh make test-dotnet
 
 test-dotnet-foundation:
 	@sh scripts/dev/test-dotnet.sh foundation
@@ -102,8 +119,14 @@ test-dotnet-command-runner:
 test-ui:
 	@npm run ui:test
 
+test-ui-summary:
+	@sh scripts/dev/validation-summary.sh make test-ui
+
 docs-check:
 	@npm run docs:check
+
+docs-check-summary:
+	@sh scripts/dev/validation-summary.sh make docs-check
 
 docs-fix:
 	@npm run docs:fix
@@ -114,6 +137,8 @@ scripts-check:
 	@sh -n scripts/dev/install-optional-tools.sh
 	@sh -n scripts/dev/agent-preflight.sh
 	@sh -n scripts/dev/pr-readiness-check.sh
+	@sh -n scripts/dev/validation-summary.sh
+	@sh -n scripts/dev/test-summary-validation.sh
 	@sh -n scripts/dev/test-dotnet.sh
 	@sh -n scripts/dev/github-projects.sh
 	@sh -n scripts/dev/test-github-projects.sh
@@ -122,6 +147,9 @@ scripts-check:
 
 github-projects-script-test:
 	@sh scripts/dev/test-github-projects.sh
+
+summary-validation-script-test:
+	@sh scripts/dev/test-summary-validation.sh
 
 github-project-check:
 	@sh scripts/dev/github-projects.sh check-auth

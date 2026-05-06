@@ -7,7 +7,7 @@
 | Automation-doc change | `make validate-automation` and `make docs-check` | `make validate`, then read `AGENTS.md`, task workflow, and automation docs for consistency | no | no | cheap |
 | Automation process docs only | `make docs-check` and `git diff --check` | `make validate` before PR when command docs, scripts, or Makefile targets also changed | no | no | cheap |
 | Standards change | `make docs-check` and the relevant focused validation target | `make validate` and review affected automation docs and task workflow | no | no | cheap |
-| Tooling change | `make validate` and `make check-tools` when host tools are expected | `make print-install-tools` review | no | no | cheap |
+| Tooling change | `make validate-summary` and `make check-tools` when host tools are expected | `make validate`, then `make print-install-tools` review | no | no | cheap |
 | GitHub tracker change | GitHub plugin inspection, `make github-project-summary`, and `make github-project-active` | targeted GitHub plugin issue/PR inspection, `make github-project-hierarchy` only when parent/child navigation changed | no | no | cheap |
 | .NET code change | focused `make test-dotnet-*` target for the touched component | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
 | Generic command runner change | `make test-dotnet-command-runner` | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
@@ -26,7 +26,7 @@ Agents must report validation commands and outcomes before claiming completion.
 
 Use changed paths to pick the cheapest sufficient validation:
 
-- `Makefile`, `package.json`, or `scripts/dev/*`: run `make validate`.
+- `Makefile`, `package.json`, or `scripts/dev/*`: run `make validate-summary`.
 - `web/*`: run `make test-ui`.
 - `docs/automation/*`: run `make docs-check` and `git diff --check`.
 - `src/MediaIngest.Worker.CommandRunner/*` or
@@ -36,6 +36,11 @@ Use changed paths to pick the cheapest sufficient validation:
   the component, then `make validate` before PR.
 - Docker or Kubernetes files: use the Docker/Kubernetes rows above and avoid
   cloud validation unless explicitly approved.
+
+For broad commands such as `make validate`, `make test-dotnet`, and
+`make test-ui`, prefer the matching `*-summary` target during agent sessions.
+The summary wrapper writes the full log to `/tmp` and prints the command, exit
+code, key success or failure lines, and log path.
 
 Run `make pr-readiness-check` before reporting PR readiness to print the local
 changed-path summary, state-record status, and validation reminders.

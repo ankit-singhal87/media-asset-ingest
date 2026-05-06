@@ -14,6 +14,7 @@ State records are local coordination checkpoints. Do not commit them.
 - Linked issue or PR: `<URL or not-applicable>`
 - Story/task: `<USER-STORY/TASK/BUG or not-applicable>`
 - Ownership lane: `<lane>`
+- Goal: `<one sentence>`
 - Target files:
   - `<path>`
 - Forbidden files:
@@ -25,7 +26,11 @@ State records are local coordination checkpoints. Do not commit them.
 - Status: In Progress | Ready For Review | Ready For PR | PR Open | Merged | Blocked
 - Validation:
   - `<command>`: passed | failed | not-run
+- Changed files:
+  - `<path or none>`
 - Next resume point: `<single sentence>`
+- Blockers:
+  - `<none or details>`
 - Cleanup:
   - Worktree removed: yes | no | not-applicable
   - Local branch deleted: yes | no | not-applicable
