@@ -151,8 +151,11 @@
 
 ## Next
 
-- Plan the next runtime slice: live Azure Service Bus SDK receiving, richer
-  node log/timeline data sources, or deeper local container runtime validation.
+- Implement the workflow orchestrator graph discovery plan: TASK-5-3 adds the
+  standalone orchestrator service, TASK-5-4 adds the attribute-discovered
+  workflow definition catalog, TASK-8-5 generates `WorkflowGraphDto` from
+  orchestrator definitions, and TASK-8-6 renders orchestrator waits and command
+  dependencies in the UI.
 
 ## Update Rule
 

@@ -60,6 +60,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 
 - MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
   validation slice beyond static Compose checks.
+- MILESTONE-5 / USER-STORY-9 / USER-STORY-10 and MILESTONE-8 /
+  USER-STORY-12 through USER-STORY-15: implement the workflow orchestrator graph
+  discovery plan through TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service
