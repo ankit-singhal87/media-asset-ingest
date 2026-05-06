@@ -52,6 +52,15 @@ The installer does not log in to Azure or create paid cloud resources.
 make validate
 ```
 
+Agent sessions should prefer the summary form for broad validation:
+
+```bash
+make validate-summary
+```
+
+It writes the full log under `/tmp` and prints only the command, exit code, key
+success or failure lines, and log path.
+
 Validation currently checks documentation, shell script syntax, GitHub tracker
 helper wrappers, and the .NET solution smoke-test targets. Runtime-specific
 checks such as local Compose validation are exposed as focused Make targets and

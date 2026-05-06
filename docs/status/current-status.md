@@ -144,6 +144,10 @@
   with semantic topic, raw command body, application properties, and routed
   light/medium/heavy subscription name before local Dapr or in-memory publisher
   delegation.
+- Agent validation now has summary-only entrypoints that keep full logs under
+  `/tmp` while printing command, exit code, key success or failure lines, and
+  log path. Current task capsules live in ignored `.worktrees/state/` records
+  for compact resume context.
 
 ## Next
 

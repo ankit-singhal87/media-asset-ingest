@@ -77,7 +77,7 @@ else
   printf '%s\n' "$paths" | while IFS= read -r path; do
     case "$path" in
       Makefile|package.json|scripts/dev/*)
-        printf '%s\n' "- $path: make validate"
+        printf '%s\n' "- $path: make validate-summary"
         ;;
       web/*)
         printf '%s\n' "- $path: make test-ui"
@@ -102,7 +102,7 @@ printf '\n%s\n' "Required before PR:"
 printf '%s\n' "- explicit authorization to push and open PR"
 printf '%s\n' "- local commits are allowed after validation; prefer small scoped commits"
 printf '%s\n' "- intended staged scope only"
-printf '%s\n' "- make validate when command docs, scripts, Makefile targets, contracts, or tooling changed"
+printf '%s\n' "- make validate-summary when command docs, scripts, Makefile targets, contracts, or tooling changed"
 printf '%s\n' "- git diff --check and git diff --cached --check"
 printf '%s\n' "- updated .worktrees/state/<worktree-slug>.md"
 printf '%s\n' "- handoff from docs/automation/agent-handoff.md"

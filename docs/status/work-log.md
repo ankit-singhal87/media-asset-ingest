@@ -11,6 +11,10 @@ messages or paste command output unless it explains a decision.
   metadata before reaching the generic runner, then map handling outcomes to
   complete, abandon, or dead-letter decisions without Azure SDK dependencies or
   cloud validation.
+- Added summary-only validation mode for broad agent checks, including
+  `make validate-summary`, focused summary targets, a tested
+  `scripts/dev/validation-summary.sh` wrapper, and compact state/handoff
+  guidance for checkpoints, diff inspection, and subagent outputs.
 
 ## 2026-05-04
 

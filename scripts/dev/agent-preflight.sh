@@ -75,6 +75,7 @@ printf '%s\n' "- make scripts-check"
 printf '%s\n' "- make test-dotnet"
 printf '%s\n' "- make test-ui"
 printf '%s\n' "- make validate"
+printf '%s\n' "- make validate-summary"
 printf '%s\n' "- make pr-readiness-check"
 
 printf '\n%s\n' "Focused .NET validation:"

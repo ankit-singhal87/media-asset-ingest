@@ -18,9 +18,15 @@ Use:
 - `make print-install-optional-tools` to inspect optional install commands
   without running them.
 - `make test-dotnet` to build and smoke-test the .NET solution.
+- `make test-dotnet-summary` to build and smoke-test the .NET solution with
+  compact output and a full `/tmp` log during agent sessions.
 - `make test-dotnet-*` for focused .NET smoke tests during inner-loop work.
 - `make validate` for cheap repository validation.
+- `make validate-summary` for cheap repository validation with compact output
+  and a full `/tmp` log during agent sessions.
 - `make validate-docs` and `make validate-automation` for focused validation.
+- `make validate-docs-summary` and `make validate-automation-summary` for
+  focused validation with compact output and a full `/tmp` log.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
 - `make github-projects-script-test` to test legacy GitHub tracker helper
   wrappers without network access.
@@ -30,12 +36,17 @@ Use:
   needed.
 - `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
+- `npm run docs:check:summary` for docs placeholder checks with compact output.
 - `npm run docs:fix` for safe docs formatting fixes.
 - `npm run dotnet:test` for .NET solution validation through npm.
+- `npm run dotnet:test:summary` for .NET solution validation through npm with
+  compact output and a full `/tmp` log.
 - `npm run dotnet:test:<target>` for focused .NET smoke tests.
 - `npm run github-project:script-test` for legacy tracker helper wrapper tests.
 - `npm run tools:check` for host tool checks through npm.
 - `npm run tools:print-install:optional` for optional install command review.
+- `npm run validate:summary` for repo validation through npm with compact
+  output and a full `/tmp` log.
 
 ## Tooling Strategy
 

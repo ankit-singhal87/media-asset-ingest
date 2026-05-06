@@ -5,6 +5,7 @@
   "description": "Cloud-native media asset ingest backend planning and repository tooling.",
   "scripts": {
     "docs:check": "node scripts/dev/check-docs.mjs",
+    "docs:check:summary": "sh scripts/dev/validation-summary.sh npm run docs:check",
     "docs:fix": "node scripts/dev/check-docs.mjs --fix",
     "dotnet:test:contracts": "sh scripts/dev/test-dotnet.sh contracts",
     "dotnet:test:foundation": "sh scripts/dev/test-dotnet.sh foundation",
@@ -16,6 +17,7 @@
     "dotnet:test:watcher": "sh scripts/dev/test-dotnet.sh watcher",
     "dotnet:test:workflow": "sh scripts/dev/test-dotnet.sh workflow",
     "dotnet:test": "sh scripts/dev/test-dotnet.sh",
+    "dotnet:test:summary": "sh scripts/dev/validation-summary.sh npm run dotnet:test",
     "github-project:active": "sh scripts/dev/github-projects.sh active",
     "github-project:audit-fields": "sh scripts/dev/github-projects.sh audit-fields",
     "github-project:check": "sh scripts/dev/github-projects.sh check-auth",
@@ -23,11 +25,14 @@
     "github-project:issue-body-lint": "sh scripts/dev/github-projects.sh lint-issue-bodies",
     "github-project:script-test": "sh scripts/dev/test-github-projects.sh",
     "github-project:summary": "sh scripts/dev/github-projects.sh summary",
+    "summary-validation:test": "sh scripts/dev/test-summary-validation.sh",
     "pr:readiness": "sh scripts/dev/pr-readiness-check.sh",
     "tools:install:optional": "sh scripts/dev/install-optional-tools.sh",
     "tools:print-install:optional": "sh scripts/dev/install-optional-tools.sh --print-only",
     "tools:check": "sh scripts/dev/check-tools.sh",
-    "ui:test": "node web/ingest-control-plane/node_modules/vitest/vitest.mjs run --root web/ingest-control-plane"
+    "ui:test": "node web/ingest-control-plane/node_modules/vitest/vitest.mjs run --root web/ingest-control-plane",
+    "ui:test:summary": "sh scripts/dev/validation-summary.sh npm run ui:test",
+    "validate:summary": "sh scripts/dev/validation-summary.sh make validate"
   },
   "devDependencies": {}
 }
