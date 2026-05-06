@@ -1,8 +1,9 @@
-.PHONY: help agent-preflight check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
+.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-docs validate-automation test-dotnet test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui docs-check docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint
 
 help:
 	@printf '%s\n' "Available targets:"
 	@printf '%s\n' "  make agent-preflight     Print local agent startup context"
+	@printf '%s\n' "  make pr-readiness-check  Print dry PR readiness checklist"
 	@printf '%s\n' "  make check-tools         Verify required Linux development tools"
 	@printf '%s\n' "  make install-tools       Install supported Linux development tools"
 	@printf '%s\n' "  make install-optional-tools Install optional local runtime/cloud CLIs"
@@ -17,6 +18,7 @@ help:
 	@printf '%s\n' "  make validate-automation Run automation script validation only"
 	@printf '%s\n' "  make test-dotnet         Build and smoke-test the .NET solution"
 	@printf '%s\n' "  make test-dotnet-*       Run a focused .NET smoke target"
+	@printf '%s\n' "  make test-ui             Run React control-plane Vitest tests"
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
 	@printf '%s\n' "  make docs-fix            Apply safe docs formatting fixes"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
@@ -30,6 +32,9 @@ help:
 
 agent-preflight:
 	@sh scripts/dev/agent-preflight.sh
+
+pr-readiness-check:
+	@sh scripts/dev/pr-readiness-check.sh
 
 check-tools:
 	@sh scripts/dev/check-tools.sh
@@ -94,6 +99,9 @@ test-dotnet-observability:
 test-dotnet-command-runner:
 	@sh scripts/dev/test-dotnet.sh command-runner
 
+test-ui:
+	@npm run ui:test
+
 docs-check:
 	@npm run docs:check
 
@@ -105,6 +113,7 @@ scripts-check:
 	@sh -n scripts/dev/install-tools.sh
 	@sh -n scripts/dev/install-optional-tools.sh
 	@sh -n scripts/dev/agent-preflight.sh
+	@sh -n scripts/dev/pr-readiness-check.sh
 	@sh -n scripts/dev/test-dotnet.sh
 	@sh -n scripts/dev/github-projects.sh
 	@sh -n scripts/dev/test-github-projects.sh

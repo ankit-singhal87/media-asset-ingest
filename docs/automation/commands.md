@@ -1,5 +1,28 @@
 # Commands
 
+## Output Discipline
+
+Prefer narrow commands and summarized evidence. Use `git diff --name-only`,
+`git diff --stat`, targeted `sed`, and focused `rg` before full diffs or broad
+logs.
+
+When reporting results, include command names, pass/fail outcome, and the small
+piece of output that proves the claim. Avoid pasting full logs unless a failure
+requires it.
+
+## Shared Mount Notes
+
+This local repository is often used from a shared mount. Use these workarounds
+only when the mount behavior requires them:
+
+- Add `-c core.filemode=false` to Git inspection commands when executable-bit
+  noise hides the real content diff.
+- Add a command-local `-c safe.directory=<absolute-worktree-path>` when Git
+  rejects a worktree with dubious ownership. Prefer command-local overrides over
+  changing global Git config.
+- Use `npm ci --no-bin-links --prefix web/ingest-control-plane` when installing
+  UI dependencies on mounts that do not support npm `.bin` symlink creation.
+
 | Command | Purpose | Cost | Docker | Cloud |
 | --- | --- | --- | --- | --- |
 | `git status --short` | Check working tree state. | cheap | no | no |
@@ -8,6 +31,7 @@
 | `find docs -maxdepth 3 -type f -print` | List documentation files. | cheap | no | no |
 | `make help` | List canonical project commands. | cheap | no | no |
 | `make agent-preflight` | Print local startup context, worktrees, tool status, and validation targets. | cheap | no | no |
+| `make pr-readiness-check` | Print a local dry PR readiness checklist, staged/unstaged paths, state records, and suggested validation. | cheap | no | no |
 | `make check-tools` | Verify required Linux development tools and report optional tools. | cheap | no | no |
 | `make install-tools` | Install supported Linux host tools after local confirmation. | moderate | no | no |
 | `make install-optional-tools` | Install optional host runtime and cloud CLIs after local confirmation. | moderate | no | no |
@@ -37,6 +61,7 @@
 | `make test-dotnet-workflow` | Run the workflow smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-observability` | Run the observability smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-command-runner` | Run the generic command runner smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
+| `make test-ui` | Run the React control-plane Vitest tests. | cheap | no | no |
 | `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |
 | `make github-projects-script-test` | Test GitHub tracker helper wrappers without network. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |
@@ -49,6 +74,8 @@
 | `npm run docs:fix` | Apply safe docs formatting fixes. | cheap | no | no |
 | `npm run dotnet:test` | Build and smoke-test the .NET solution through npm. | moderate | yes when host `dotnet` is unavailable | no |
 | `npm run dotnet:test:<target>` | Run a focused .NET smoke test target. | cheap | yes when host `dotnet` is unavailable | no |
+| `npm run ui:test` | Run the React control-plane Vitest tests from the repo root. | cheap | no | no |
+| `npm run pr:readiness` | Print the local dry PR readiness checklist through npm. | cheap | no | no |
 | `npm run github-project:check` | Verify GitHub CLI auth and project access through npm. | cheap | no | no |
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
 | `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |

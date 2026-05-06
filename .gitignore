@@ -2,6 +2,8 @@
 .worktrees/
 .cache/
 .terminals/
+.idea/
+docs/superpowers/
 /input/
 /output/
 
