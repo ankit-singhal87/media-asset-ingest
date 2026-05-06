@@ -5,6 +5,11 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-06
 
+- Added local planning docs for the workflow orchestrator graph discovery
+  slice: TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6 now cover the standalone
+  orchestrator service, attribute-discovered workflow definition catalog,
+  orchestrator-backed `WorkflowGraphDto` generation, and UI rendering for waits
+  plus command dependencies.
 - Added a local Azure-shaped command-runner consumption boundary for
   USER-STORY-7 and USER-STORY-16: broker-shaped command messages now validate
   semantic topic, subscription, `executionClass`, and required envelope-shape

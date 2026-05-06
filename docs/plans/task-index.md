@@ -31,6 +31,10 @@ coordination trail unless a local task file was created or renamed.
 | TASK-6-1 | #34 | Add command execution foundation | Essence | `docs/plans/tasks/TASK-6-1-specialized-agent-skeletons.md` | Completed |
 | TASK-7-1 | #37 | Add observability correlation foundation | Beacon | `docs/plans/tasks/TASK-7-1-observability-correlation.md` | Completed |
 | TASK-8-1 | #33 | Scaffold React workflow control plane | Canvas | `docs/plans/tasks/TASK-8-1-react-control-plane.md` | Completed |
+| TASK-5-3 | #107 | Add workflow orchestrator service | Pulse | `docs/plans/tasks/TASK-5-3-workflow-orchestrator-service.md` | Planned |
+| TASK-5-4 | #108 | Add attribute-discovered workflow definition catalog | Pulse | `docs/plans/tasks/TASK-5-4-workflow-definition-catalog.md` | Planned |
+| TASK-8-5 | #109 | Generate workflow graph DTOs from orchestrator definitions | Canvas | `docs/plans/tasks/TASK-8-5-orchestrator-workflow-graph-projection.md` | Planned |
+| TASK-8-6 | #110 | Show orchestrator wait states and command dependencies in UI | Canvas | `docs/plans/tasks/TASK-8-6-orchestrator-wait-command-ui.md` | Planned |
 
 ## Update Rule
 
