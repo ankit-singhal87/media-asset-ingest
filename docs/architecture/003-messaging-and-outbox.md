@@ -69,6 +69,19 @@ This boundary is local runtime plumbing only. It does not provision Azure
 Service Bus topics, create subscriptions, run paid cloud validation, or add Azure
 SDK dependencies.
 
+On the runner side, command consumption is represented by a local Azure-shaped
+consumer boundary before live Azure SDK receiving exists. The command-runner
+consumer accepts a broker-shaped message containing the semantic topic,
+subscription name, raw command body, message id, and application properties. It
+validates that topic and `executionClass` metadata match the static
+`CommandBusTopology`, verifies the `MediaCommandEnvelope` shape and route match
+the broker metadata, and maps runner outcomes to complete, abandon, or
+dead-letter decisions that a future Service Bus host can apply.
+
+This keeps runner consumption semantics covered locally without provisioning
+Azure Service Bus, handling secrets, adding Azure SDK dependencies, or running
+paid cloud validation.
+
 ## Responsibility Split
 
 - Domain/application logic decides which command should be sent and which
