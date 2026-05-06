@@ -23,9 +23,11 @@
     "github-project:issue-body-lint": "sh scripts/dev/github-projects.sh lint-issue-bodies",
     "github-project:script-test": "sh scripts/dev/test-github-projects.sh",
     "github-project:summary": "sh scripts/dev/github-projects.sh summary",
+    "pr:readiness": "sh scripts/dev/pr-readiness-check.sh",
     "tools:install:optional": "sh scripts/dev/install-optional-tools.sh",
     "tools:print-install:optional": "sh scripts/dev/install-optional-tools.sh --print-only",
-    "tools:check": "sh scripts/dev/check-tools.sh"
+    "tools:check": "sh scripts/dev/check-tools.sh",
+    "ui:test": "node web/ingest-control-plane/node_modules/vitest/vitest.mjs run --root web/ingest-control-plane"
   },
   "devDependencies": {}
 }
