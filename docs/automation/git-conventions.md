@@ -19,6 +19,20 @@ BUG-1-fix-manifest-watch-race
 USER-STORY-16-link-and-commit-standards
 ```
 
+## When An Identifier Is Required
+
+Use the lowest available task, bug, or story identifier for substantial
+implementation, bug fixing, tooling behavior, or PR-bound documentation work.
+
+Tiny local-only hygiene can proceed without creating a GitHub issue when it is
+not being committed or opened as a PR. If the change becomes PR-bound, use the
+lowest available identifier in the branch, commit subject, and PR title.
+
+Story-level branch names are acceptable for standards, planning, automation, or
+tooling work when no lower-level task or bug issue exists yet. Do not invent a
+task ID locally; create or identify one first when task-level tracking is
+needed.
+
 ## Commit Messages
 
 Start commit subjects with the same lowest-level identifier used by the branch.
@@ -54,6 +68,9 @@ Reference parent stories or epics with `Refs` unless they are truly completed by
 the PR.
 
 ## Before Committing
+
+Local commits are allowed for agent work and should be small, coherent
+checkpoints. Push and PR creation still require explicit authorization.
 
 Run safe docs fixes and validation before committing documentation changes:
 

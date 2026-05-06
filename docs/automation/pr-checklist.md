@@ -45,8 +45,53 @@ The PR body must include:
 After creating the PR, update the issue or simple Project status only when that
 status is meaningful for visibility.
 
+## PR Readiness Gate
+
+Implementation complete does not automatically mean push or PR creation is
+authorized. Local commits are allowed after validation and should be small,
+coherent checkpoints.
+
+Before committing, pushing, or opening a PR:
+
+- Confirm the user, task, or plan explicitly authorizes push and PR creation.
+- Confirm the branch is up to date with the target branch or conflict-free.
+- Review staged and unstaged paths separately and keep the staged set limited to
+  the intended local commit or PR scope.
+- Run `make validate` when command docs, scripts, Makefile targets, runtime
+  contracts, or tooling behavior changed.
+- Run `git diff --check` and `git diff --cached --check` when staged changes
+  exist.
+- Update `.worktrees/state/<worktree-slug>.md` with branch status, validation
+  evidence, and whether the PR is not created, open, or merged.
+- Run `make pr-readiness-check` and resolve any unexpected staged paths,
+  missing state records, or validation reminders.
+- Prepare the handoff from `docs/automation/agent-handoff.md`.
+
+Prefer multiple small local commits over one large commit when a branch contains
+separable process, tooling, documentation, or implementation checkpoints.
+
 ## Merge Notes
 
 - CI may be disabled for this repository.
 - Cloud validation requires explicit approval.
 - Squash merge is preferred for documentation and planning branches.
+
+## Post-Merge Agent Cleanup
+
+After a PR is merged and the target branch is fast-forwarded locally:
+
+- Remove the completed local worktree with `git worktree remove <path>` once no
+  uncommitted work remains there.
+- Delete the merged local feature branch after removing its worktree when it is
+  no longer needed.
+- Delete the ignored `.worktrees/state/<worktree-slug>.md` record for completed
+  work so future agents do not treat it as active.
+- Prune stale worktree metadata with `git worktree prune` if `git worktree list`
+  shows missing or stale entries.
+- Leave remote branch deletion to the repository owner or the GitHub PR merge
+  settings unless the user explicitly asks for remote branch cleanup.
+
+Report the cleanup result in the `cleanup` block from
+`docs/automation/agent-handoff.md`. If cleanup is skipped or blocked, state the
+reason and leave the `.worktrees/state/<worktree-slug>.md` record updated rather
+than stale.

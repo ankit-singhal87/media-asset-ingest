@@ -16,6 +16,15 @@ ownership:
   primaryLane: <lane>
   supportingLanes:
     - <lane>
+workflow:
+  superpowers:
+    skillsUsed:
+      - <skill name or none>
+    subagentsUsed: yes | no
+    reason: <why subagents were used or skipped>
+  context:
+    checkpointWritten: yes | no
+    nextResumePoint: <short summary or not-applicable>
 filesChanged:
   - <path>
 docsUpdated:
@@ -41,6 +50,14 @@ pr:
   authorized: yes | no
   url: <url or none>
   state: not-created | open | merged | blocked
+cleanup:
+  worktreePath: <path or not-applicable>
+  stateRecord: <path or not-applicable>
+  targetBranchFastForwarded: yes | no | not-applicable
+  worktreeRemoved: yes | no | not-applicable
+  localBranchDeleted: yes | no | not-applicable
+  remoteBranchDeleted: yes | no | not-applicable
+  notes: <short notes>
 ```
 
 ## Escalation Reasons
@@ -54,6 +71,9 @@ Use `status: escalation-needed` when:
 - architecture or contract decisions conflict
 - validation fails for an unclear reason
 - another agent is working in the same file scope
+- context is approaching the agreed budget and no durable checkpoint exists
+- compaction risk is high and the next safe action is to write a handoff
+- subagent authorization is missing for clearly independent work
 
 ## PR Handoff
 

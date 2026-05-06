@@ -44,8 +44,9 @@ direction.
   is only a simple status board when remote tracker access is available.
 - Start branch names, commit subjects, and PR titles with the lowest-level
   available work identifier: task ID, bug ID, then story ID.
-- Commits, pushes, and PR creation happen only when the user asks or when a task
-  explicitly grants automatic PR creation after validation.
+- Local commits are allowed after relevant validation and should be small,
+  scoped checkpoints. Pushes and PR creation happen only when the user asks or
+  when a task explicitly grants automatic PR creation after validation.
 
 ## Architecture Principles
 
