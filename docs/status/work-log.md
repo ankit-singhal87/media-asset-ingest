@@ -13,6 +13,10 @@ messages or paste command output unless it explains a decision.
   package ingest topology with attributes, validates duplicate and invalid
   metadata during reflection discovery, and extends node kinds for waits,
   command dispatch, command completion, and finalization.
+- Added TASK-8-5 orchestrator graph projection: the API graph endpoint now uses
+  orchestrator definition metadata plus business status and command outbox
+  overlay instead of API-local static topology construction, while preserving
+  not-found behavior for unknown workflow instances.
 - Added local planning docs for the workflow orchestrator graph discovery
   slice: TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6 now cover the standalone
   orchestrator service, attribute-discovered workflow definition catalog,

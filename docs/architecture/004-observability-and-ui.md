@@ -52,6 +52,13 @@ Orchestrator workflow definitions are the durable source for static graph
 topology; API projections overlay business status and command work-item
 instances on top of that topology.
 
+The API remains the UI facade for `GET /api/workflows/{workflowInstanceId}/graph`.
+It does not own static package workflow topology. Instead, it calls the
+orchestrator-backed graph projector and overlays local business status plus
+persisted command outbox envelopes as dynamic work-item nodes between command
+dispatch and command-completion wait points. Unknown workflow instance IDs keep
+returning not found.
+
 Node states:
 
 - pending: grey

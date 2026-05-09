@@ -12,5 +12,6 @@
     <ProjectReference Include="../MediaIngest.Worker.Outbox/MediaIngest.Worker.Outbox.csproj" />
     <ProjectReference Include="../MediaIngest.Worker.Watcher/MediaIngest.Worker.Watcher.csproj" />
     <ProjectReference Include="../MediaIngest.Workflow/MediaIngest.Workflow.csproj" />
+    <ProjectReference Include="../MediaIngest.Workflow.Orchestrator/MediaIngest.Workflow.Orchestrator.csproj" />
   </ItemGroup>
 </Project>

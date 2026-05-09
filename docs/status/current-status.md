@@ -147,6 +147,9 @@
   orchestrator boundary, including package ingest topology metadata for waits,
   command dispatch/completion, child workflows, and finalization plus catalog
   validation for duplicate nodes, invalid edges, and missing metadata.
+- TASK-8-5 added an orchestrator-backed workflow graph projector and wired the
+  API workflow graph facade to project package graphs from catalog metadata
+  overlaid with business package status and dynamic command work-item nodes.
 - TASK-4-4 defined the Service Bus command-bus adapter boundary in the outbox
   worker. Command publish requests now map to a broker-oriented message shape
   with semantic topic, raw command body, application properties, and routed
@@ -159,9 +162,8 @@
 
 ## Next
 
-- Continue the workflow orchestrator graph discovery stack: TASK-8-5 generates
-  `WorkflowGraphDto` from orchestrator definitions, and TASK-8-6 renders
-  orchestrator waits and command dependencies in the UI.
+- Continue the workflow orchestrator graph discovery stack with TASK-8-6:
+  render orchestrator waits and command dependencies in the UI.
 
 ## Update Rule
 
