@@ -4,9 +4,6 @@
 
 - Acceptance themes are implemented or explicitly deferred.
 - Tests or validation cover the story behavior.
-- Linked GitHub issues are completed or deferred with rationale when they exist.
-- GitHub Project status reflects the final story state only when the story is on
-  the lightweight board.
 - `docs/product/user-stories.md` status is updated.
 - `docs/product/milestones.md` mapping remains accurate.
 - No open bugs block the story.
@@ -19,8 +16,6 @@
 - Minimal validation passes.
 - Required docs are updated.
 - Handoff result is prepared.
-- GitHub issue state is updated when remote tracking is used; simple Project
-  status changes only when story-level board visibility changes.
 - `docs/plans/task-index.md` is updated when local task files change.
 
 ## Bug Fix Done
@@ -29,8 +24,6 @@
 - Observed and expected behavior are documented.
 - Regression test fails before the fix and passes after, unless exception is approved.
 - Linked stories/tasks are updated if meaning changes.
-- GitHub bug issue state is updated when remote tracking is used; simple Project
-  status changes only when story-level board visibility changes.
 - `docs/bugs/index.md` is updated when local bug files change.
 - Validation evidence is recorded.
 
@@ -38,9 +31,6 @@
 
 - All milestone tasks are completed or deferred.
 - Linked stories reflect current status.
-- GitHub milestone/issues reflect current status when remote tracking is used;
-  simple Project status changes only when milestone/story board visibility
-  changes.
 - Validation evidence is recorded.
 - Status/work log are updated.
 - Known bugs are filed and non-blocking.
@@ -50,8 +40,6 @@
 - ADR is added or updated when a durable decision changes.
 - Architecture docs reflect the decision.
 - Product stories and plans are updated if scope changes.
-- GitHub issues are updated if roadmap scope changes; simple Project status
-  changes only when story-level board visibility changes.
 - Validation confirms docs have no unfinished placeholders.
 
 ## Tooling Change Done
@@ -62,14 +50,3 @@
 - `scripts/dev/install-tools.sh` is updated when install guidance changes.
 - `docs/automation/commands.md` and `validation.md` are updated.
 - `make validate` passes.
-
-## GitHub Tracker Change Done
-
-- Issue state and simple Project status are updated when needed.
-- Issue bodies stay focused on problem, outcome, and implementation notes.
-- `make github-project-summary` passes when Project visibility changed.
-- `make github-project-active` reflects the intended active board state when
-  active story visibility changed.
-- Detailed field audits, task metadata fields, worktree/branch fields,
-  validation fields, dependency helpers, and relationship linting are legacy
-  checks unless a future task explicitly revives them.

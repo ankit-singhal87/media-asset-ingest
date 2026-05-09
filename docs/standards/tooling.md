@@ -28,13 +28,6 @@ Use:
 - `make validate-docs-summary` and `make validate-automation-summary` for
   focused validation with compact output and a full `/tmp` log.
 - `make docs-fix` to apply safe docs formatting fixes before committing.
-- `make github-projects-script-test` to test legacy GitHub tracker helper
-  wrappers without network access.
-- `make github-project-check` to verify GitHub CLI auth and Project access.
-- `make github-project-summary` to summarize tracker counts.
-- `make github-project-hierarchy` to inspect parent/child issue hierarchy when
-  needed.
-- `make github-project-active` to list active tracker items.
 - `npm run docs:check` for docs placeholder checks.
 - `npm run docs:check:summary` for docs placeholder checks with compact output.
 - `npm run docs:fix` for safe docs formatting fixes.
@@ -42,7 +35,6 @@ Use:
 - `npm run dotnet:test:summary` for .NET solution validation through npm with
   compact output and a full `/tmp` log.
 - `npm run dotnet:test:<target>` for focused .NET smoke tests.
-- `npm run github-project:script-test` for legacy tracker helper wrapper tests.
 - `npm run tools:check` for host tool checks through npm.
 - `npm run tools:print-install:optional` for optional install command review.
 - `npm run validate:summary` for repo validation through npm with compact

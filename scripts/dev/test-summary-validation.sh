@@ -25,7 +25,7 @@ cat >"$fake_bin/fake-success" <<'FAKE_SUCCESS'
 set -eu
 
 printf '%s\n' "Starting validation"
-printf '%s\n' "GitHub Projects helper tests passed."
+printf '%s\n' "Automation helper tests passed."
 printf '%s\n' "Test Run Successful."
 exit 0
 FAKE_SUCCESS
@@ -54,7 +54,7 @@ PATH="$fake_bin:$PATH" sh scripts/dev/validation-summary.sh fake-success >"$succ
 grep -F "command: fake-success" "$success_summary" >/dev/null
 grep -F "exit code: 0" "$success_summary" >/dev/null
 grep -F "success lines:" "$success_summary" >/dev/null
-grep -F "GitHub Projects helper tests passed." "$success_summary" >/dev/null
+grep -F "Automation helper tests passed." "$success_summary" >/dev/null
 grep -F "Test Run Successful." "$success_summary" >/dev/null
 grep -E "^log: /tmp/media-asset-ingest-validation-[^ ]+\\.log$" "$success_summary" >/dev/null
 

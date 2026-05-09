@@ -7,8 +7,7 @@ that can run in separate worktrees. The current demo contract stays unchanged:
 ## Coordination Rules
 
 - Use `.terminals/` only for local, gitignored helper scripts.
-- Keep durable state in GitHub issues and PRs, plus `docs/plans` only when
-  product or implementation context should be committed.
+- Keep durable state in repo docs.
 - Keep live worktree coordination in ignored `.worktrees/state/<worktree-slug>.md`
   files.
 - Each track owns only its listed target files.

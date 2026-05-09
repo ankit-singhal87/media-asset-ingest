@@ -8,12 +8,6 @@ Planned
 
 - USER-STORY-<number>
 
-## GitHub Tracker
-
-- Milestone: MILESTONE-<number>
-- Epic issue: #<number>
-- Project: Media Asset Ingest Roadmap
-
 ## Goal
 
 <one paragraph describing what this milestone delivers>
@@ -52,9 +46,9 @@ Rationale:
 
 ## Task Breakdown
 
-| Task ID | GitHub issue | Title | Stories | Primary lane | Target files | Local status |
+| Task ID | Title | Stories | Primary lane | Target files | Local status |
 | --- | --- | --- | --- | --- | --- |
-| TASK-<milestone>-1 | #<number> | <title> | USER-STORY-<number> | <lane> | `<path>` | Planned |
+| TASK-<milestone>-1 | <title> | USER-STORY-<number> | <lane> | `<path>` | Planned |
 
 ## Validation Strategy
 
@@ -70,13 +64,6 @@ Stronger validation:
 <command>
 ```
 
-GitHub tracker validation:
-
-```bash
-make github-project-summary
-make github-project-hierarchy
-```
-
 ## Documentation Updates Required
 
 - `docs/status/current-status.md`
@@ -85,7 +72,6 @@ make github-project-hierarchy
 - `docs/product/user-stories.md`
 - `docs/product/backlog.md`
 - `docs/plans/task-index.md`
-- GitHub issue state and simple Project status
 - <other docs>
 
 ## Stop Conditions
@@ -99,7 +85,6 @@ make github-project-hierarchy
 
 - All planned tasks are complete or explicitly deferred.
 - Linked user stories reflect current status.
-- GitHub Project and issue relationships reflect current status.
 - Validation evidence is recorded.
 - Required documentation updates are complete.
 - Known bugs are filed in `docs/bugs`.

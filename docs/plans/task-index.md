@@ -1,8 +1,7 @@
 # Task Index
 
-Use this index as a local mirror for implementation task files created from
-milestone plans. GitHub issues and PRs are durable remote tracking; the GitHub
-Project is only a lightweight status board.
+Use this index for implementation task files created from milestone plans.
+Repo docs are the durable source for task status.
 
 ## Status Values
 
@@ -14,11 +13,10 @@ Project is only a lightweight status board.
 
 ## Tasks
 
-This index is a legacy local mirror for task files that exist under
-`docs/plans/tasks/`. It is not an exhaustive ledger of every post-8-1 GitHub
-task or merged PR: later short-lived task branches used GitHub issues, PRs,
-status docs, work logs, and ignored `.worktrees/state/` records as the durable
-coordination trail unless a local task file was created or renamed.
+This index covers task files that exist under `docs/plans/tasks/`. It is not an
+exhaustive ledger of every short-lived branch or PR; status docs, work logs, and
+ignored `.worktrees/state/` records carry active coordination unless a local
+task file was created or renamed.
 
 | Task ID | GitHub issue | Title | Primary lane | Task file | Local status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -40,5 +38,4 @@ coordination trail unless a local task file was created or renamed.
 ## Update Rule
 
 Agents must update this index when local task files are created, renamed, or
-deleted. Update GitHub issues, native relationships, PRs, or simple Project
-status only when remote tracker state changes.
+deleted.

@@ -26,10 +26,8 @@
   UI infrastructure details.
 - Update status, backlog, milestone, standards, tooling, and automation docs
   when a task changes their meaning.
-- Update GitHub issues when issue, milestone, task, bug, dependency, or PR state
-  changes. Update simple Project status only when story-level board visibility
+- Update repo docs when milestone, task, bug, dependency, or status state
   changes. Keep worktree state in ignored local `.worktrees/state/` files.
-- Do not duplicate GitHub-native relationships in issue descriptions.
 - Update `README.md` quickstart when setup, tools, commands, validation, or
   local runtime behavior changes.
 - If a new required developer tool is introduced, update tooling standards,
