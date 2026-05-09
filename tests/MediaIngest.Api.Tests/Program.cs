@@ -239,6 +239,31 @@ try
 
     using var missingGraphResponse = await apiHost.HttpClient.GetAsync("/api/workflows/missing-workflow/graph");
     AssertEqual(System.Net.HttpStatusCode.NotFound, missingGraphResponse.StatusCode, "missing graph endpoint status");
+    AssertEqual("application/problem+json", missingGraphResponse.Content.Headers.ContentType?.MediaType, "missing graph problem details content type");
+    using var missingGraphProblemJson = JsonDocument.Parse(await missingGraphResponse.Content.ReadAsStringAsync());
+    AssertEqual(404, missingGraphProblemJson.RootElement.GetProperty("status").GetInt32(), "missing graph problem details status");
+    AssertEqual("Workflow graph not found", missingGraphProblemJson.RootElement.GetProperty("title").GetString(), "missing graph problem details title");
+    AssertTrue(missingGraphProblemJson.RootElement.TryGetProperty("traceId", out _), "missing graph problem details trace id");
+
+    var missingPostgresConnectionRejected = false;
+
+    try
+    {
+        await using var _ = await IngestApiApplication.StartAsync(
+            Path.Combine(repoRoot, "postgres-input"),
+            Path.Combine(repoRoot, "postgres-output"),
+            new Dictionary<string, string?>
+            {
+                ["Persistence:Provider"] = "Postgres",
+                ["Persistence:CreateSchemaOnStartup"] = "true"
+            });
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("Persistence:ConnectionString", StringComparison.Ordinal))
+    {
+        missingPostgresConnectionRejected = true;
+    }
+
+    AssertTrue(missingPostgresConnectionRejected, "postgres provider requires explicit connection string");
 
     var stateCountAfterFailure = conflictRuntime.Store.PackageStates.Count;
     var messageCountAfterFailure = conflictRuntime.Store.OutboxMessages.Count;

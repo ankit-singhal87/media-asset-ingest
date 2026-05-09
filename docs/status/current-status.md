@@ -4,14 +4,15 @@
 
 - Phase: local implementation foundation.
 - Current branch: `main`.
-- Current focus: local `main` contains the first implementation foundations
-  across watcher, persistence/outbox, workflow, command routing, observability,
-  a local generic command runner foundation, and the React control plane. The
-  local ingest demo now waits for a zero-byte `done.marker` before terminal
-  success, routes command publish metadata for local outbox dispatch, lets the
-  UI select among multiple package workflow graphs, renders interactive Mermaid
-  graph nodes, and carries static Kubernetes/Dapr readiness assets for the
-  intended container runtime.
+- Current focus: local `main` contains the first reviewable durable ingest
+  slice across watcher, raw Npgsql/PostgreSQL persistence, transactional
+  outbox, workflow graph projection, command routing, observability, runnable
+  worker host processes, and the React control plane. Docker Compose now starts
+  API, UI, PostgreSQL, outbox worker, and light/medium/heavy command-runner
+  host containers. The local runtime smoke verifies API/UI readiness, manifest
+  output, workflow command-node evidence, persisted PostgreSQL package state,
+  and dispatched command outbox rows without Azure resources or real Dapr
+  Workflow hosting.
 
 ## Completed
 
@@ -167,11 +168,18 @@
   repo docs, issues, PRs, commits, and status files are authoritative; detailed
   Project fields, task-card backfills, validation fields, dependency helpers,
   and relationship linting are legacy unless explicitly revived.
+- The reviewable local durable ingest slice now uses raw Npgsql-backed
+  PostgreSQL persistence in Compose, guarded local startup schema creation,
+  Problem Details for not-found and conflict API responses, static OpenAPI
+  documentation, runnable outbox and command-runner host processes, and a
+  reviewer guide with honest local/cloud boundaries.
 
 ## Next
 
 - Plan the later dependency-approved task for real Dapr Workflow SDK hosting
   and workflow/activity registration in the orchestrator boundary.
+- Plan the later Azure Service Bus SDK worker integration after the local
+  command-bus boundary and host processes are reviewed.
 
 ## Update Rule
 

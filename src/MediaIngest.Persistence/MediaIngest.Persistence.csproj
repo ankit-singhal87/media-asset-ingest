@@ -3,4 +3,7 @@
     <RootNamespace>MediaIngest.Persistence</RootNamespace>
     <AssemblyName>MediaIngest.Persistence</AssemblyName>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.2" />
+  </ItemGroup>
 </Project>

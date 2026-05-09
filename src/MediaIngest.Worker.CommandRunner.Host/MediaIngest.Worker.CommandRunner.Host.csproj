@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MediaIngest.Worker.CommandRunner.Host</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.CommandRunner.Host</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
+    <ProjectReference Include="../MediaIngest.Worker.CommandRunner/MediaIngest.Worker.CommandRunner.csproj" />
+  </ItemGroup>
+</Project>

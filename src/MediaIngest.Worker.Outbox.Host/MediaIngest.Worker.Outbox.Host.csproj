@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MediaIngest.Worker.Outbox.Host</RootNamespace>
+    <AssemblyName>MediaIngest.Worker.Outbox.Host</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
+    <ProjectReference Include="../MediaIngest.Worker.Outbox/MediaIngest.Worker.Outbox.csproj" />
+  </ItemGroup>
+</Project>

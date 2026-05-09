@@ -37,10 +37,10 @@ only when the mount behavior requires them:
 | `make install-optional-tools` | Install optional host runtime and cloud CLIs after local confirmation. | moderate | no | no |
 | `make print-install-tools` | Print installation commands without running them. | cheap | no | no |
 | `make print-install-optional-tools` | Print optional host tool installation commands without running them. | cheap | no | no |
-| `make up` | Start the local API, UI, and PostgreSQL Docker Compose runtime with image builds. | moderate | yes | no |
+| `make up` | Start the local API, UI, PostgreSQL, outbox worker, and command-runner Docker Compose runtime with image builds. | moderate | yes | no |
 | `make down` | Stop the local Docker Compose runtime. | cheap | yes | no |
 | `make local-compose-check` | Validate `deploy/docker/compose.yaml` with `docker compose config` without starting containers. | cheap | yes | no |
-| `make local-runtime-smoke` | Start the local Compose API, UI, and PostgreSQL runtime, wait for API/UI HTTP responses, run the local ingest smoke script, and stop the stack. | moderate | yes | no |
+| `make local-runtime-smoke` | Start the local Compose API, UI, PostgreSQL, outbox worker, and command-runner runtime, wait for API/UI HTTP responses, run the local ingest smoke script, query PostgreSQL durable state/outbox evidence, and stop the stack. | moderate | yes | no |
 | `make validate` | Run cheap repository validation. | cheap | no | no |
 | `make validate-summary` | Run `make validate`, capture the full log under `/tmp`, and print only the command, exit code, key success or failure lines, and log path. Prefer this before broad validation in agent sessions. | cheap | no | no |
 | `make validate-docs` | Run documentation validation only. | cheap | no | no |
@@ -52,9 +52,9 @@ only when the mount behavior requires them:
 | `cd web/ingest-control-plane && npm run dev` | Start the React control plane with Vite `/api` proxying to the local API. | cheap | no | no |
 | `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Print the local manifest ingest E2E smoke plan without changing files or calling the API. Use `SMOKE_EXPECT_COPIED_FILES=manifest` to plan manifest-only copied output assertions with command-node evidence. | cheap | no | no |
 | `sh scripts/dev/local-e2e-smoke.sh` | Post local ingest start, create a smoke package, assert copied output files, and verify the workflow graph exposes routed command nodes. Requires the API to be running locally. Use `SMOKE_EXPECT_COPIED_FILES=manifest` when the runtime should assert only the copied manifest pair plus command-node evidence. | cheap | no | no |
-| `sh scripts/dev/local-compose-check.sh --dry-run` | Print the API/UI/PostgreSQL Compose validation plan without changing files or starting containers. | cheap | no | no |
+| `sh scripts/dev/local-compose-check.sh --dry-run` | Print the API/UI/PostgreSQL/outbox/command-runner Compose validation plan without changing files or starting containers. | cheap | no | no |
 | `sh scripts/dev/local-compose-check.sh` | Run `docker compose -f deploy/docker/compose.yaml config` and report resolved local services. | cheap | yes | no |
-| `sh scripts/dev/local-compose-check.sh --runtime-smoke` | Start the local Compose runtime with project name `media-asset-ingest-local`, wait for API/UI HTTP responses, run `scripts/dev/local-e2e-smoke.sh` with manifest-output assertions and command-node evidence, and stop the stack. Override `LOCAL_COMPOSE_API_PORT`, `LOCAL_COMPOSE_UI_PORT`, or `LOCAL_COMPOSE_POSTGRES_PORT` when default local ports are busy; the script exports the current UID/GID for host-writable smoke output. | moderate | yes | no |
+| `sh scripts/dev/local-compose-check.sh --runtime-smoke` | Start the local Compose runtime with project name `media-asset-ingest-local`, wait for API/UI HTTP responses, run `scripts/dev/local-e2e-smoke.sh` with manifest-output assertions and command-node evidence, query PostgreSQL for persisted package state and dispatched command outbox rows, and stop the stack. Override `LOCAL_COMPOSE_API_PORT`, `LOCAL_COMPOSE_UI_PORT`, `LOCAL_COMPOSE_POSTGRES_PORT`, or `SMOKE_PACKAGE_ID` when needed; the script exports the current UID/GID for host-writable smoke output. | moderate | yes | no |
 | `sh scripts/dev/local-compose-check.sh --runtime-smoke --dry-run` | Print the local Compose runtime smoke plan without requiring Docker, changing files, starting containers, or calling local HTTP endpoints. | cheap | no | no |
 | `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-summary` | Run .NET solution validation with compact summary output and a full `/tmp` log. | moderate | yes when host `dotnet` is unavailable | no |

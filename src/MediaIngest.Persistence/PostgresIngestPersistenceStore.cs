@@ -1,11 +1,20 @@
 using System.Data;
 using System.Data.Common;
+using Npgsql;
 
 namespace MediaIngest.Persistence;
 
 public sealed class PostgresIngestPersistenceStore(
     Func<CancellationToken, ValueTask<DbConnection>> openConnection) : IIngestPersistenceStore
 {
+    public static PostgresIngestPersistenceStore Create(string connectionString)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+
+        return new PostgresIngestPersistenceStore(
+            _ => ValueTask.FromResult<DbConnection>(new NpgsqlConnection(connectionString)));
+    }
+
     public async Task CreateSchemaAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -83,7 +92,7 @@ public sealed class PostgresIngestPersistenceStore(
                     @message_id,
                     @destination,
                     @message_type,
-                    @payload_json,
+                    @payload_json::jsonb,
                     @correlation_id,
                     @created_at,
                     @dispatched_at,
@@ -232,6 +241,73 @@ public sealed class PostgresIngestPersistenceStore(
             WorkflowInstanceId: reader.GetString(1),
             Status: reader.GetString(2),
             UpdatedAt: ReadDateTimeOffset(reader, 3));
+    }
+
+    public async Task<IReadOnlyList<IngestPackageState>> ListPackageStatesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                package_id,
+                workflow_instance_id,
+                status,
+                updated_at
+            FROM ingest_package_states
+            ORDER BY package_id;
+            """;
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var states = new List<IngestPackageState>();
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            states.Add(new IngestPackageState(
+                PackageId: reader.GetString(0),
+                WorkflowInstanceId: reader.GetString(1),
+                Status: reader.GetString(2),
+                UpdatedAt: ReadDateTimeOffset(reader, 3)));
+        }
+
+        return states;
+    }
+
+    public async Task<IReadOnlyList<OutboxMessage>> ListOutboxMessagesAsync(
+        string correlationId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+        {
+            throw new ArgumentException("Correlation id is required.", nameof(correlationId));
+        }
+
+        await using var connection = await openConnection(cancellationToken);
+        await OpenIfNeededAsync(connection, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT
+                message_id,
+                destination,
+                message_type,
+                payload_json,
+                correlation_id,
+                created_at,
+                dispatched_at,
+                dispatch_claim_expires_at
+            FROM outbox_messages
+            WHERE correlation_id = @correlation_id
+            ORDER BY created_at, message_id;
+            """;
+        AddParameter(command, "@correlation_id", correlationId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        return await ReadOutboxMessagesAsync(reader, cancellationToken);
     }
 
     public async Task<IReadOnlyList<OutboxMessage>> GetPendingOutboxMessagesAsync(CancellationToken cancellationToken = default)

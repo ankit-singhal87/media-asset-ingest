@@ -1,0 +1,242 @@
+openapi: 3.1.0
+info:
+  title: Media Asset Ingest Local Control Plane API
+  version: 0.1.0
+  description: >
+    Current local review API for starting the ingest watcher, reading package
+    status, listing workflows, and inspecting workflow graph/node details.
+servers:
+  - url: http://127.0.0.1:5000
+paths:
+  /api/ingest/start:
+    post:
+      summary: Start local ingest scanning
+      responses:
+        "202":
+          description: Ingest scan accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestStartResponse"
+        "409":
+          description: A ready package could not be started because local output already exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/ingest/status:
+    get:
+      summary: List current package ingest states
+      responses:
+        "200":
+          description: Current package status list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestStatusResponse"
+  /api/workflows:
+    get:
+      summary: List package workflow instances
+      responses:
+        "200":
+          description: Current workflow list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowListResponse"
+  /api/workflows/{workflowInstanceId}/graph:
+    get:
+      summary: Get a workflow graph
+      parameters:
+        - $ref: "#/components/parameters/WorkflowInstanceId"
+      responses:
+        "200":
+          description: Workflow graph.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowGraph"
+        "404":
+          description: Workflow graph not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/workflows/{workflowInstanceId}/nodes/{nodeId}:
+    get:
+      summary: Get workflow node diagnostics
+      parameters:
+        - $ref: "#/components/parameters/WorkflowInstanceId"
+        - name: nodeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Node timeline and diagnostic logs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowNodeDetails"
+        "404":
+          description: Workflow node details not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+components:
+  parameters:
+    WorkflowInstanceId:
+      name: workflowInstanceId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    IngestStartResponse:
+      type: object
+      required: [startedPackages]
+      properties:
+        startedPackages:
+          type: array
+          items:
+            type: object
+            required: [packageId, workflowInstanceId]
+            properties:
+              packageId:
+                type: string
+              workflowInstanceId:
+                type: string
+    IngestStatusResponse:
+      type: object
+      required: [packages]
+      properties:
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/PackageStatus"
+    PackageStatus:
+      type: object
+      required: [packageId, workflowInstanceId, status, updatedAt]
+      properties:
+        packageId:
+          type: string
+        workflowInstanceId:
+          type: string
+        status:
+          type: string
+          enum: [Started, Succeeded, Failed]
+        updatedAt:
+          type: string
+          format: date-time
+    WorkflowListResponse:
+      type: object
+      required: [workflows]
+      properties:
+        workflows:
+          type: array
+          items:
+            $ref: "#/components/schemas/PackageStatus"
+    WorkflowGraph:
+      type: object
+      required: [workflowInstanceId, workflowName, packageId, nodes, edges]
+      properties:
+        workflowInstanceId:
+          type: string
+        workflowName:
+          type: string
+        packageId:
+          type: string
+        parentWorkflowInstanceId:
+          type: [string, "null"]
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEdge"
+    WorkflowNode:
+      type: object
+      required: [nodeId, displayName, kind, status]
+      properties:
+        nodeId:
+          type: string
+        displayName:
+          type: string
+        kind:
+          type: integer
+        status:
+          type: integer
+        childWorkflowInstanceId:
+          type: [string, "null"]
+    WorkflowEdge:
+      type: object
+      required: [sourceNodeId, targetNodeId]
+      properties:
+        sourceNodeId:
+          type: string
+        targetNodeId:
+          type: string
+    WorkflowNodeDetails:
+      type: object
+      required: [workflowInstanceId, nodeId, timeline, logs]
+      properties:
+        workflowInstanceId:
+          type: string
+        nodeId:
+          type: string
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowTimelineEntry"
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowNodeLogEntry"
+    WorkflowTimelineEntry:
+      type: object
+      required: [occurredAt, status, message, correlationId]
+      properties:
+        occurredAt:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        message:
+          type: string
+        correlationId:
+          type: string
+    WorkflowNodeLogEntry:
+      type: object
+      required: [occurredAt, level, message, correlationId]
+      properties:
+        occurredAt:
+          type: string
+          format: date-time
+        level:
+          type: string
+        message:
+          type: string
+        correlationId:
+          type: string
+        traceId:
+          type: [string, "null"]
+        spanId:
+          type: [string, "null"]
+    ProblemDetails:
+      type: object
+      required: [title, status, traceId]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        traceId:
+          type: string

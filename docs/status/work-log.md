@@ -5,6 +5,11 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-09
 
+- Added the reviewable local durable ingest slice: Compose now runs API, UI,
+  PostgreSQL, outbox worker, and light/medium/heavy command-runner hosts; the
+  API selects raw Npgsql PostgreSQL persistence in Compose with guarded schema
+  creation; OpenAPI, Problem Details errors, reviewer guide, and runtime smoke
+  PostgreSQL state/outbox checks document the local review path.
 - Reduced GitHub Project guidance to a lightweight story-level visibility board:
   repo docs, GitHub issues, PRs, commits, and status files remain the durable
   record, while detailed Project fields, task-card backfills, validation fields,

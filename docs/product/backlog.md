@@ -69,13 +69,19 @@ epic/story granularity; detailed implementation tasks belong in plans.
   command dispatch, command completion, finalization, child workflow, and
   dynamic command work nodes in the React Mermaid workflow graph without adding
   live push.
+- MILESTONE-2/4/6/8 / USER-STORY-16: add the reviewable local durable ingest
+  slice with raw Npgsql-backed PostgreSQL persistence in Compose, guarded local
+  schema creation, runnable outbox and command-runner host containers, static
+  OpenAPI documentation, Problem Details API errors, reviewer guide, and
+  runtime smoke evidence for durable package state plus dispatched command
+  outbox rows.
 
 ## Ready For Planning
 
-- MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
-  validation slice beyond static Compose checks.
 - MILESTONE-5 / USER-STORY-9: plan the later dependency-approved task for real
   Dapr Workflow SDK hosting and workflow/activity registration.
+- MILESTONE-6 / USER-STORY-7: plan Azure Service Bus SDK worker integration
+  after the local command-bus host and contract boundary are reviewed.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service

@@ -8,6 +8,12 @@ public interface IIngestPersistenceStore
         string packageId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<IngestPackageState>> ListPackageStatesAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<OutboxMessage>> ListOutboxMessagesAsync(
+        string correlationId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<OutboxMessage>> GetPendingOutboxMessagesAsync(CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<OutboxMessage>> ClaimPendingOutboxMessagesAsync(

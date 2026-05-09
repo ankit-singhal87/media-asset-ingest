@@ -43,6 +43,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Workflow.Orchestrator", "src\MediaIngest.Workflow.Orchestrator\MediaIngest.Workflow.Orchestrator.csproj", "{BEE9C200-DB47-4575-8D21-9290024CBF18}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.Outbox.Host", "src\MediaIngest.Worker.Outbox.Host\MediaIngest.Worker.Outbox.Host.csproj", "{ED4C668F-4551-4689-B032-53E0C85B3B24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaIngest.Worker.CommandRunner.Host", "src\MediaIngest.Worker.CommandRunner.Host\MediaIngest.Worker.CommandRunner.Host.csproj", "{2A96F249-E32C-458F-B438-84EA19E22680}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -281,11 +285,37 @@ Global
 		{BEE9C200-DB47-4575-8D21-9290024CBF18}.Release|x64.Build.0 = Release|Any CPU
 		{BEE9C200-DB47-4575-8D21-9290024CBF18}.Release|x86.ActiveCfg = Release|Any CPU
 		{BEE9C200-DB47-4575-8D21-9290024CBF18}.Release|x86.Build.0 = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|x64.Build.0 = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Debug|x86.Build.0 = Debug|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|x64.ActiveCfg = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|x64.Build.0 = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|x86.ActiveCfg = Release|Any CPU
+		{ED4C668F-4551-4689-B032-53E0C85B3B24}.Release|x86.Build.0 = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Debug|x86.Build.0 = Debug|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|x64.Build.0 = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A96F249-E32C-458F-B438-84EA19E22680}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BEE9C200-DB47-4575-8D21-9290024CBF18} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{ED4C668F-4551-4689-B032-53E0C85B3B24} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{2A96F249-E32C-458F-B438-84EA19E22680} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

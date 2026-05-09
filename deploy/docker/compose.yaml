@@ -7,6 +7,9 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Ingest__InputPath: /mnt/ingest/input
       Ingest__OutputPath: /mnt/ingest/output
+      Persistence__Provider: Postgres
+      Persistence__ConnectionString: Host=postgres;Port=5432;Database=media_ingest;Username=postgres
+      Persistence__CreateSchemaOnStartup: "true"
     user: "${LOCAL_COMPOSE_UID:-1000}:${LOCAL_COMPOSE_GID:-1000}"
     ports:
       - "${LOCAL_COMPOSE_API_PORT:-5000}:8080"
@@ -16,6 +19,90 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  outbox-worker:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/dotnet-worker.Dockerfile
+      args:
+        PROJECT_PATH: src/MediaIngest.Worker.Outbox.Host/MediaIngest.Worker.Outbox.Host.csproj
+        DLL_NAME: MediaIngest.Worker.Outbox.Host.dll
+    environment:
+      Persistence__ConnectionString: Host=postgres;Port=5432;Database=media_ingest;Username=postgres
+      Worker__IntervalMilliseconds: "1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /app/MediaIngest.Worker.Outbox.Host.dll"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  command-runner-light:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/dotnet-worker.Dockerfile
+      args:
+        PROJECT_PATH: src/MediaIngest.Worker.CommandRunner.Host/MediaIngest.Worker.CommandRunner.Host.csproj
+        DLL_NAME: MediaIngest.Worker.CommandRunner.Host.dll
+    environment:
+      Worker__ExecutionClass: light
+      Worker__IntervalMilliseconds: "1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      outbox-worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /app/MediaIngest.Worker.CommandRunner.Host.dll"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  command-runner-medium:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/dotnet-worker.Dockerfile
+      args:
+        PROJECT_PATH: src/MediaIngest.Worker.CommandRunner.Host/MediaIngest.Worker.CommandRunner.Host.csproj
+        DLL_NAME: MediaIngest.Worker.CommandRunner.Host.dll
+    environment:
+      Worker__ExecutionClass: medium
+      Worker__IntervalMilliseconds: "1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      outbox-worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /app/MediaIngest.Worker.CommandRunner.Host.dll"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  command-runner-heavy:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/dotnet-worker.Dockerfile
+      args:
+        PROJECT_PATH: src/MediaIngest.Worker.CommandRunner.Host/MediaIngest.Worker.CommandRunner.Host.csproj
+        DLL_NAME: MediaIngest.Worker.CommandRunner.Host.dll
+    environment:
+      Worker__ExecutionClass: heavy
+      Worker__IntervalMilliseconds: "1000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      outbox-worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /app/MediaIngest.Worker.CommandRunner.Host.dll"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   ui:
     build:
