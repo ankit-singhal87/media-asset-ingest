@@ -1,5 +1,6 @@
 using MediaIngest.Workflow;
 using MediaIngest.Contracts.Workflow;
+using MediaIngest.Workflow.Orchestrator;
 
 var request = new PackageIngestRequest(
     PackageId: "package-001",
@@ -40,6 +41,8 @@ var startGraph = PackageWorkflowGraphProjection.FromWorkflowStart(start);
 AssertEqual("package-package-001", startGraph.WorkflowInstanceId, "start graph workflow instance id");
 AssertEqual(WorkflowNodeStatus.Queued, startGraph.Nodes[0].Status, "start graph package status");
 AssertEqual("package-package-001/scan-package", startGraph.Nodes[1].ChildWorkflowInstanceId, "start graph scan child workflow instance id");
+
+AssertEqual("MediaIngest.Workflow.Orchestrator", WorkflowOrchestratorAssembly.MarkerName, "orchestrator boundary marker name");
 
 var lifecycle = PackageWorkflowLifecycle.Observe(request);
 AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");

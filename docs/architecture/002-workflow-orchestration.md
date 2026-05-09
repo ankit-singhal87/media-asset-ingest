@@ -10,6 +10,12 @@ Use message-centric orchestration. Dapr coordinates lifecycle decisions, waits,
 timers, child workflows, and finalization. Azure Service Bus command topics
 distribute actual work to independent command runners.
 
+`MediaIngest.Workflow.Orchestrator` is the standalone bounded-context assembly
+for orchestrator-owned workflow code. The current slice exposes the boundary
+marker used by later catalog discovery work. Real Dapr Workflow SDK hosting and
+workflow/activity registration remain deferred until a dependency-approved
+task adds the runtime package references.
+
 ## Root Workflow
 
 The root workflow is `PackageIngestWorkflow`. It owns the package lifecycle:

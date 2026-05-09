@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>MediaIngest.Workflow.Orchestrator</RootNamespace>
+    <AssemblyName>MediaIngest.Workflow.Orchestrator</AssemblyName>
+  </PropertyGroup>
+</Project>

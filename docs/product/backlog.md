@@ -55,14 +55,18 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-5 / USER-STORY-10: expand nested workflow behavior contracts so
   prepared child workflow work has stable child identifiers, parent workflow
   references, and graph projection from package workflow start state.
+- MILESTONE-5 / USER-STORY-9 / USER-STORY-10: add the standalone workflow
+  orchestrator bounded-context assembly and public marker for future catalog
+  discovery, while deferring real Dapr Workflow SDK registration to a later
+  dependency-approved task.
 
 ## Ready For Planning
 
 - MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
   validation slice beyond static Compose checks.
 - MILESTONE-5 / USER-STORY-9 / USER-STORY-10 and MILESTONE-8 /
-  USER-STORY-12 through USER-STORY-15: implement the workflow orchestrator graph
-  discovery plan through TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6.
+  USER-STORY-12 through USER-STORY-15: continue the workflow orchestrator graph
+  discovery stack with TASK-5-4, TASK-8-5, and TASK-8-6.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service

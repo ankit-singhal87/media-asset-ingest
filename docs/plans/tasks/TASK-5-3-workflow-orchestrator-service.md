@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+In Progress
 
 ## Linked Work
 
@@ -57,10 +57,10 @@ Read before editing:
 ## BDD Scenario
 
 ```gherkin
-Scenario: Orchestrator hosts package workflow registrations
+Scenario: Orchestrator exposes the workflow bounded-context boundary
   Given the workflow orchestrator service starts
-  When it configures workflow hosting
-  Then the package ingest workflow and activities are registered in the orchestrator boundary
+  When other backend components need to discover orchestrator-owned workflow code
+  Then the orchestrator assembly exposes a stable public boundary marker
   And Dapr workflow runtime state remains separate from business PostgreSQL state
 ```
 
@@ -72,7 +72,7 @@ RED:
 make test-dotnet-workflow-summary
 ```
 
-Expected before implementation: workflow tests fail because no orchestrator service registration boundary exists.
+Expected before implementation: workflow tests fail because no orchestrator service boundary assembly exists.
 
 GREEN:
 
@@ -80,7 +80,7 @@ GREEN:
 make test-dotnet-workflow-summary
 ```
 
-Expected after implementation: workflow tests pass with orchestrator service registration coverage.
+Expected after implementation: workflow tests pass with orchestrator service boundary coverage.
 
 REFACTOR:
 
@@ -89,12 +89,16 @@ REFACTOR:
 
 ## Implementation Notes
 
-- Create `MediaIngest.Workflow.Orchestrator` as a standalone bounded-context service for workflow hosting.
+- Create `MediaIngest.Workflow.Orchestrator` as a standalone bounded-context
+  service boundary for workflow hosting.
 - The service owns workflow definitions, instance orchestration entrypoints, and graph-projection endpoints or application services.
 - Dapr provides durable workflow execution, state, timers, external events, and lifecycle management.
 - Keep PostgreSQL business status, timeline, and audit state separate from Dapr runtime state.
 - Start with package ingest, but keep naming and service boundaries generic enough for multiple workflow definitions.
 - Stop and ask before adding or upgrading Dapr Workflow SDK dependencies.
+- This task intentionally stops at the service boundary and public assembly
+  marker. Real Dapr Workflow SDK registration is deferred to a later
+  dependency-approved task.
 - Do not provision Azure resources, create paid cloud assets, or introduce secrets.
 
 ## Validation
@@ -128,7 +132,7 @@ make validate-summary
 - [ ] BDD scenario confirmed or updated.
 - [ ] Failing test observed before production code, unless exception documented.
 - [ ] Orchestrator service added within target files.
-- [ ] Workflow hosting registration boundary covered by tests.
+- [ ] Workflow boundary marker covered by tests.
 - [ ] Dapr runtime state and PostgreSQL business state boundaries documented.
 - [ ] Validation command run and evidence recorded.
 - [ ] Required docs updated.
