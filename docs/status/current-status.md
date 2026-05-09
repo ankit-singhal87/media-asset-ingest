@@ -139,6 +139,10 @@
   now carries stable child workflow instance IDs and parent workflow references,
   and workflow graph projection can render queued child workflow nodes directly
   from a package workflow start.
+- TASK-5-3 added the standalone `MediaIngest.Workflow.Orchestrator`
+  bounded-context assembly and public marker for future catalog discovery.
+  Real Dapr Workflow SDK hosting remains deferred to a later
+  dependency-approved task.
 - TASK-4-4 defined the Service Bus command-bus adapter boundary in the outbox
   worker. Command publish requests now map to a broker-oriented message shape
   with semantic topic, raw command body, application properties, and routed
@@ -151,11 +155,10 @@
 
 ## Next
 
-- Implement the workflow orchestrator graph discovery plan: TASK-5-3 adds the
-  standalone orchestrator service, TASK-5-4 adds the attribute-discovered
-  workflow definition catalog, TASK-8-5 generates `WorkflowGraphDto` from
-  orchestrator definitions, and TASK-8-6 renders orchestrator waits and command
-  dependencies in the UI.
+- Continue the workflow orchestrator graph discovery stack: TASK-5-4 adds the
+  attribute-discovered workflow definition catalog, TASK-8-5 generates
+  `WorkflowGraphDto` from orchestrator definitions, and TASK-8-6 renders
+  orchestrator waits and command dependencies in the UI.
 
 ## Update Rule
 

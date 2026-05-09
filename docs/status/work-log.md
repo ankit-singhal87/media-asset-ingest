@@ -5,6 +5,10 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-06
 
+- Added TASK-5-3 workflow orchestrator boundary: the new
+  `MediaIngest.Workflow.Orchestrator` assembly exposes a public marker for
+  later definition catalog discovery, with real Dapr Workflow SDK registration
+  deferred to a dependency-approved task.
 - Added local planning docs for the workflow orchestrator graph discovery
   slice: TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6 now cover the standalone
   orchestrator service, attribute-discovered workflow definition catalog,

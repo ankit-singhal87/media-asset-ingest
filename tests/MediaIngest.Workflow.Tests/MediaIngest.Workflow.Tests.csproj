@@ -11,5 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/MediaIngest.Workflow/MediaIngest.Workflow.csproj" />
+    <ProjectReference Include="../../src/MediaIngest.Workflow.Orchestrator/MediaIngest.Workflow.Orchestrator.csproj" />
   </ItemGroup>
 </Project>
