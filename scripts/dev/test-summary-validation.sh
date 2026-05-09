@@ -12,7 +12,7 @@ cat >"$fake_bin/fake-validation" <<'FAKE_VALIDATION'
 set -eu
 
 printf '%s\n' "Starting validation"
-printf '%s\n' "PASS FoundationSmoke"
+printf '%s\n' "PASS ContractSmoke"
 printf '%s\n' "FAIL MediaIngest.Tests.CommandRunnerRoutesHeavyWork"
 printf '%s\n' "Error Message: expected heavy runner route"
 printf '%s\n' "Failed MediaIngest.Tests.ManifestRequiredBeforePackageStart"

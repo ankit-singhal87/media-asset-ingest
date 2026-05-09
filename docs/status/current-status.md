@@ -47,7 +47,7 @@
   `make test-dotnet` validation entrypoint.
 - TASK-2-2 defined initial shared workflow graph, node detail, status, and
   workflow name contracts for backend, workflow, and UI slices.
-- `make test-dotnet` now runs both foundation and contract smoke-test projects.
+- `make test-dotnet` now runs the active .NET smoke-test projects.
 - TASK-3-1 added the ingest watcher scanner foundation.
 - TASK-4-1 added the persistence and outbox foundation.
 - TASK-5-1 added the Dapr workflow skeleton.

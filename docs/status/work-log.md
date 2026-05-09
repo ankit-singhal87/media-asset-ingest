@@ -19,6 +19,9 @@ messages or paste command output unless it explains a decision.
   API-local DTO/services, watcher observation-loop helpers, persistence schema
   SQL, the orchestrator package definition type, and workflow lifecycle
   projection types that are only exercised by tests.
+- Removed the unused `MediaIngest.Foundation` scaffold project, its smoke test,
+  and the related focused validation targets now that real solution slices cover
+  the .NET build path.
 
 ## 2026-05-06
 

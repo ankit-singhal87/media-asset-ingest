@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-foundation-summary test-dotnet-contracts test-dotnet-contracts-summary test-dotnet-watcher test-dotnet-watcher-summary test-dotnet-api test-dotnet-api-summary test-dotnet-essence test-dotnet-essence-summary test-dotnet-persistence test-dotnet-persistence-summary test-dotnet-outbox test-dotnet-outbox-summary test-dotnet-workflow test-dotnet-workflow-summary test-dotnet-observability test-dotnet-observability-summary test-dotnet-command-runner test-dotnet-command-runner-summary test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check summary-validation-script-test local-compose-check-script-test
+.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-contracts test-dotnet-contracts-summary test-dotnet-watcher test-dotnet-watcher-summary test-dotnet-api test-dotnet-api-summary test-dotnet-essence test-dotnet-essence-summary test-dotnet-persistence test-dotnet-persistence-summary test-dotnet-outbox test-dotnet-outbox-summary test-dotnet-workflow test-dotnet-workflow-summary test-dotnet-observability test-dotnet-observability-summary test-dotnet-command-runner test-dotnet-command-runner-summary test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check summary-validation-script-test local-compose-check-script-test
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -81,12 +81,6 @@ test-dotnet:
 
 test-dotnet-summary:
 	@sh scripts/dev/validation-summary.sh make test-dotnet
-
-test-dotnet-foundation:
-	@sh scripts/dev/test-dotnet.sh foundation
-
-test-dotnet-foundation-summary:
-	@sh scripts/dev/validation-summary.sh make test-dotnet-foundation
 
 test-dotnet-contracts:
 	@sh scripts/dev/test-dotnet.sh contracts

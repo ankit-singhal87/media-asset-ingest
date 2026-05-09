@@ -8,7 +8,6 @@
     "docs:check:summary": "sh scripts/dev/validation-summary.sh npm run docs:check",
     "docs:fix": "node scripts/dev/check-docs.mjs --fix",
     "dotnet:test:contracts": "sh scripts/dev/test-dotnet.sh contracts",
-    "dotnet:test:foundation": "sh scripts/dev/test-dotnet.sh foundation",
     "dotnet:test:api": "sh scripts/dev/test-dotnet.sh api",
     "dotnet:test:command-runner": "sh scripts/dev/test-dotnet.sh command-runner",
     "dotnet:test:essence": "sh scripts/dev/test-dotnet.sh essence",
