@@ -11,8 +11,9 @@
   API, UI, PostgreSQL, outbox worker, and light/medium/heavy command-runner
   host containers. The local runtime smoke verifies API/UI readiness, manifest
   output, workflow command-node evidence, persisted PostgreSQL package state,
-  and dispatched command outbox rows without Azure resources or real Dapr
-  Workflow hosting.
+  dispatched command outbox rows grouped by execution class, and local
+  command-runner service startup boundaries without Azure resources or real
+  Dapr Workflow hosting.
 
 ## Completed
 

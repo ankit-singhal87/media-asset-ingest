@@ -103,14 +103,16 @@ make local-runtime-smoke
 That target starts the API, UI, PostgreSQL, outbox worker, and command-runner
 Compose stack, waits for local API and UI HTTP responses, runs the scripted
 manifest ingest smoke against the containerized API, queries PostgreSQL for
-durable package and dispatched command outbox rows, and stops the stack. The
-smoke expects the copied manifest pair plus workflow command-node evidence for
-media, sidecar, and metadata files. It uses only local containers, repo-root
-`input/` and `output/` bind mounts, local HTTP endpoints, and PostgreSQL inside
-Compose. Override `LOCAL_COMPOSE_API_PORT`, `LOCAL_COMPOSE_UI_PORT`, or
-`LOCAL_COMPOSE_POSTGRES_PORT` if another local process already owns the default
-ports. The smoke script runs the API container with the current host UID/GID so
-bind-mounted smoke output remains writable by the host user.
+durable package state, dispatched command outbox rows, grouped
+`executionClass` command evidence, and command-runner service startup logs, and
+stops the stack. The smoke expects the copied manifest pair plus workflow
+command-node evidence for media, sidecar, and metadata files. It uses only
+local containers, repo-root `input/` and `output/` bind mounts, local HTTP
+endpoints, and PostgreSQL inside Compose. Override `LOCAL_COMPOSE_API_PORT`,
+`LOCAL_COMPOSE_UI_PORT`, or `LOCAL_COMPOSE_POSTGRES_PORT` if another local
+process already owns the default ports. The smoke script runs the API container
+with the current host UID/GID so bind-mounted smoke output remains writable by
+the host user.
 
 ## Local Manifest Ingest Demo
 

@@ -50,6 +50,13 @@ messages or paste command output unless it explains a decision.
   `scripts/dev/validation-summary.sh` wrapper, and compact state/handoff
   guidance for checkpoints, diff inspection, and subagent outputs.
 
+## 2026-05-09
+
+- Added TASK-2-4 Docker-first command dispatch runtime evidence:
+  `make local-runtime-smoke` now verifies light/medium/heavy command-runner
+  service startup boundaries, checks runner `executionClass` logs, and reports
+  dispatched command outbox rows grouped by execution class from PostgreSQL.
+
 ## 2026-05-04
 
 - Added TASK-4-4 Service Bus command-bus adapter boundary for outbox command
