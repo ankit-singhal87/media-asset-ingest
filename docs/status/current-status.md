@@ -67,6 +67,9 @@
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
   validation targets, an agent preflight command, and a repo-local ignored
   Docker .NET cache for faster repeated validation.
+- The canonical solution file is now `MediaIngest.slnx`. The essence project
+  and essence tests are included in solution-level validation, and focused
+  `.NET` summary targets exist for component-level agent validation.
 - README and automation docs document the current local manifest ingest flow:
   run the API host on the fixed development port, run the UI with `/api`
   proxied to that API, press **Start ingest** to begin watching, then add

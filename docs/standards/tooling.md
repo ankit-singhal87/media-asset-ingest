@@ -21,6 +21,8 @@ Use:
 - `make test-dotnet-summary` to build and smoke-test the .NET solution with
   compact output and a full `/tmp` log during agent sessions.
 - `make test-dotnet-*` for focused .NET smoke tests during inner-loop work.
+- `make test-dotnet-*-summary` for focused .NET smoke tests with compact output
+  during agent sessions.
 - `make validate` for cheap repository validation.
 - `make validate-summary` for cheap repository validation with compact output
   and a full `/tmp` log during agent sessions.

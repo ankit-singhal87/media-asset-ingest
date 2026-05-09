@@ -10,19 +10,6 @@ When reporting results, include command names, pass/fail outcome, and the small
 piece of output that proves the claim. Avoid pasting full logs unless a failure
 requires it.
 
-## Shared Mount Notes
-
-This local repository is often used from a shared mount. Use these workarounds
-only when the mount behavior requires them:
-
-- Add `-c core.filemode=false` to Git inspection commands when executable-bit
-  noise hides the real content diff.
-- Add a command-local `-c safe.directory=<absolute-worktree-path>` when Git
-  rejects a worktree with dubious ownership. Prefer command-local overrides over
-  changing global Git config.
-- Use `npm ci --no-bin-links --prefix web/ingest-control-plane` when installing
-  UI dependencies on mounts that do not support npm `.bin` symlink creation.
-
 | Command | Purpose | Cost | Docker | Cloud |
 | --- | --- | --- | --- | --- |
 | `git status --short` | Check working tree state. | cheap | no | no |
@@ -61,11 +48,13 @@ only when the mount behavior requires them:
 | `make test-dotnet-foundation` | Run the foundation smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-contracts` | Run the contracts smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-watcher` | Run the ingest watcher smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
+| `make test-dotnet-essence` | Run the essence checksum and classification smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-persistence` | Run the persistence smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-outbox` | Run the outbox worker smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-workflow` | Run the workflow smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-observability` | Run the observability smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-command-runner` | Run the generic command runner smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
+| `make test-dotnet-<target>-summary` | Run a focused .NET smoke target with compact summary output and a full `/tmp` log. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-ui` | Run the React control-plane Vitest tests. | cheap | no | no |
 | `make test-ui-summary` | Run UI tests with compact summary output and a full `/tmp` log. | cheap | no | no |
 | `make docs-fix` | Apply safe documentation formatting fixes before committing. | cheap | no | no |

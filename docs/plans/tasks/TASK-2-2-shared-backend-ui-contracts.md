@@ -35,7 +35,7 @@ Agents may edit only these files unless they escalate:
 
 - `src/MediaIngest.Contracts`
 - `tests/MediaIngest.Contracts.Tests`
-- `MediaIngest.sln`
+- `MediaIngest.slnx`
 - `scripts/dev/test-dotnet.sh`
 - `docs/architecture`
 - `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md`

@@ -254,7 +254,7 @@ public sealed class IngestApiApplication : IAsyncDisposable
 
         while (current is not null)
         {
-            if (File.Exists(Path.Combine(current.FullName, "MediaIngest.sln")))
+            if (File.Exists(Path.Combine(current.FullName, "MediaIngest.slnx")))
             {
                 return current.FullName;
             }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-solution="MediaIngest.sln"
+solution="MediaIngest.slnx"
 sdk_image="${DOTNET_SDK_IMAGE:-mcr.microsoft.com/dotnet/sdk:10.0}"
 repo_cache_dir="${DOTNET_REPO_CACHE_DIR:-.cache/dotnet}"
 
@@ -9,13 +9,14 @@ foundation_tests="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Test
 contracts_tests="tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj"
 watcher_tests="tests/MediaIngest.Worker.Watcher.Tests/MediaIngest.Worker.Watcher.Tests.csproj"
 api_tests="tests/MediaIngest.Api.Tests/MediaIngest.Api.Tests.csproj"
+essence_tests="tests/MediaIngest.Essence.Tests/MediaIngest.Essence.Tests.csproj"
 persistence_tests="tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.Tests.csproj"
 outbox_tests="tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Tests.csproj"
 workflow_tests="tests/MediaIngest.Workflow.Tests/MediaIngest.Workflow.Tests.csproj"
 observability_tests="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj"
 command_runner_tests="tests/MediaIngest.Worker.CommandRunner.Tests/MediaIngest.Worker.CommandRunner.Tests.csproj"
 
-all_test_projects="$foundation_tests $contracts_tests $watcher_tests $api_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests $command_runner_tests"
+all_test_projects="$foundation_tests $contracts_tests $watcher_tests $api_tests $essence_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests $command_runner_tests"
 test_projects=""
 scope="selected"
 
@@ -45,6 +46,9 @@ else
       api)
         append_project "$api_tests"
         ;;
+      essence)
+        append_project "$essence_tests"
+        ;;
       persistence)
         append_project "$persistence_tests"
         ;;
@@ -62,7 +66,7 @@ else
         ;;
       *)
         printf 'Unknown .NET test target: %s\n' "$target"
-        printf '%s\n' "Supported targets: all foundation contracts watcher api persistence outbox workflow observability command-runner"
+        printf '%s\n' "Supported targets: all foundation contracts watcher api essence persistence outbox workflow observability command-runner"
         exit 2
         ;;
     esac

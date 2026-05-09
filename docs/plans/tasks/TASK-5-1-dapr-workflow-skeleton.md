@@ -34,7 +34,7 @@ Agents may edit only these files unless they escalate:
 - `src/MediaIngest.Workflow`
 - `tests/MediaIngest.Workflow.Tests`
 - `deploy/dapr`
-- `MediaIngest.sln`
+- `MediaIngest.slnx`
 - `scripts/dev/test-dotnet.sh`
 - `docs/plans/task-index.md`
 - `docs/status/work-log.md`

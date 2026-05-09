@@ -12,10 +12,8 @@
 - Keep detailed ephemeral planning in ignored `.worktrees/state/` records. Commit only compact durable plans under `docs/plans`; do not use ignored or generated planning artifacts as durable repo docs.
 - Use repo-relative paths in committed docs, scripts, handoffs, and local state
   records. Do not write workstation-specific absolute paths, home-directory
-  shortcuts, or hypervisor/shared-folder paths unless the task is explicitly
-  documenting a local environment problem. Absolute paths are acceptable only
-  for external runtime locations such as temporary validation logs or documented
-  container mount points.
+  shortcuts. Absolute paths are acceptable only for external runtime locations
+  such as temporary validation logs or documented container mount points.
 - Preserve useful existing docs; move or summarize only when clearly misplaced, stale, duplicate, or unsafe.
 - Prefer durable business state over log scraping for UI behavior.
 - Use `workflowInstanceId`, `packageId`, `fileId`, `workItemId`, and `nodeId`

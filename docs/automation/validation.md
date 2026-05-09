@@ -9,6 +9,7 @@
 | Standards change | `make docs-check` and the relevant focused validation target | `make validate` and review affected automation docs and task workflow | no | no | cheap |
 | Tooling change | `make validate-summary` and `make check-tools` when host tools are expected | `make validate`, then `make print-install-tools` review | no | no | cheap |
 | .NET code change | focused `make test-dotnet-*` target for the touched component | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
+| Essence checksum or classification change | `make test-dotnet-essence` | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | cheap |
 | Generic command runner change | `make test-dotnet-command-runner` | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
 | React control-plane change | `make test-ui` | `make test-ui` plus `make validate` before PR when backend contracts also changed | no | no | cheap |
 | Local ingest smoke script change | `sh -n scripts/dev/local-e2e-smoke.sh` and `sh scripts/dev/local-e2e-smoke.sh --dry-run` | Run `dotnet run --project src/MediaIngest.Api --urls http://127.0.0.1:5000`, then `sh scripts/dev/local-e2e-smoke.sh` from another terminal to verify output files plus workflow command nodes | no | no | cheap |
@@ -31,6 +32,8 @@ Use changed paths to pick the cheapest sufficient validation:
 - `src/MediaIngest.Worker.CommandRunner/*` or
   `tests/MediaIngest.Worker.CommandRunner.Tests/*`: run
   `make test-dotnet-command-runner`.
+- `src/MediaIngest.Essence/*` or `tests/MediaIngest.Essence.Tests/*`: run
+  `make test-dotnet-essence`.
 - Other `src/*` or `tests/*`: run the focused `make test-dotnet-*` target for
   the component, then `make validate` before PR.
 - Docker or Kubernetes files: use the Docker/Kubernetes rows above and avoid

@@ -31,7 +31,7 @@ Supporting lanes:
 
 Agents may edit only these files unless they escalate:
 
-- `MediaIngest.sln`
+- `MediaIngest.slnx`
 - `src/Directory.Build.props`
 - `src/MediaIngest.*`
 - `tests/MediaIngest.*`
