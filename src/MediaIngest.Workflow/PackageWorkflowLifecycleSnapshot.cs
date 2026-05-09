@@ -1,6 +1,6 @@
 namespace MediaIngest.Workflow;
 
-public sealed record PackageWorkflowLifecycleSnapshot(
+internal sealed record PackageWorkflowLifecycleSnapshot(
     string PackageId,
     string PackagePath,
     string CorrelationId,

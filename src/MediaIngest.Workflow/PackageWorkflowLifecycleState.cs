@@ -1,6 +1,6 @@
 namespace MediaIngest.Workflow;
 
-public enum PackageWorkflowLifecycleState
+internal enum PackageWorkflowLifecycleState
 {
     Observed,
     Ready,

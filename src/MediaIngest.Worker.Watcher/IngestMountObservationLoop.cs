@@ -1,6 +1,6 @@
 namespace MediaIngest.Worker.Watcher;
 
-public sealed class IngestMountObservationLoop
+internal sealed class IngestMountObservationLoop
 {
     private readonly IngestMountObservationLoopOptions options;
     private readonly IIngestPackageCandidateSink sink;

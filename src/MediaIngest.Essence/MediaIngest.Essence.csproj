@@ -3,4 +3,8 @@
     <RootNamespace>MediaIngest.Essence</RootNamespace>
     <AssemblyName>MediaIngest.Essence</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MediaIngest.Essence.Tests" />
+  </ItemGroup>
 </Project>

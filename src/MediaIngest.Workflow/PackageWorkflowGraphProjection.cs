@@ -2,7 +2,7 @@ using MediaIngest.Contracts.Workflow;
 
 namespace MediaIngest.Workflow;
 
-public static class PackageWorkflowGraphProjection
+internal static class PackageWorkflowGraphProjection
 {
     public static WorkflowGraphDto FromLifecycle(PackageWorkflowLifecycle lifecycle)
     {

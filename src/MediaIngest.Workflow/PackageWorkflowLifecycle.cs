@@ -1,6 +1,6 @@
 namespace MediaIngest.Workflow;
 
-public sealed class PackageWorkflowLifecycle
+internal sealed class PackageWorkflowLifecycle
 {
     private readonly List<PackageWorkflowLifecycleSnapshot> events;
     private readonly PackageIngestRequest request;

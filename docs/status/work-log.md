@@ -15,6 +15,10 @@ messages or paste command output unless it explains a decision.
   PostgreSQL state/outbox checks document the local review path.
 - Removed remote board guidance and kept repo docs as the durable source for
   product state, plans, milestones, bugs, and status.
+- Reduced .NET public surface by adding test friend assemblies and internalizing
+  API-local DTO/services, watcher observation-loop helpers, persistence schema
+  SQL, the orchestrator package definition type, and workflow lifecycle
+  projection types that are only exercised by tests.
 
 ## 2026-05-06
 

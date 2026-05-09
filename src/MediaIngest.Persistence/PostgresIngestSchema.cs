@@ -1,6 +1,6 @@
 namespace MediaIngest.Persistence;
 
-public static class PostgresIngestSchema
+internal static class PostgresIngestSchema
 {
     public const string SchemaSql = """
         CREATE TABLE IF NOT EXISTS ingest_package_states (

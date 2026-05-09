@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MediaIngest.Workflow.Tests" />
     <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
   </ItemGroup>
 </Project>

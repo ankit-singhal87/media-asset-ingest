@@ -1,6 +1,6 @@
 namespace MediaIngest.Worker.Watcher;
 
-public interface IIngestPackageCandidateSink
+internal interface IIngestPackageCandidateSink
 {
     ValueTask ObserveAsync(IngestPackageCandidate candidate, CancellationToken cancellationToken);
 }
