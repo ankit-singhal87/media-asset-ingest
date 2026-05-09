@@ -150,6 +150,10 @@
 - TASK-8-5 added an orchestrator-backed workflow graph projector and wired the
   API workflow graph facade to project package graphs from catalog metadata
   overlaid with business package status and dynamic command work-item nodes.
+- TASK-8-6 updated the React Mermaid workflow graph model and tests so wait,
+  command dispatch, command completion, finalization, child workflow, and
+  dynamic command work nodes render from orchestrator-generated DTOs while
+  preserving node details, child workflow drilldown, and back navigation.
 - TASK-4-4 defined the Service Bus command-bus adapter boundary in the outbox
   worker. Command publish requests now map to a broker-oriented message shape
   with semantic topic, raw command body, application properties, and routed
@@ -162,8 +166,8 @@
 
 ## Next
 
-- Continue the workflow orchestrator graph discovery stack with TASK-8-6:
-  render orchestrator waits and command dependencies in the UI.
+- Plan the later dependency-approved task for real Dapr Workflow SDK hosting
+  and workflow/activity registration in the orchestrator boundary.
 
 ## Update Rule
 

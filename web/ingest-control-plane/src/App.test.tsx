@@ -67,7 +67,7 @@ describe("workflow graph control plane", () => {
       screen.getByRole("heading", { name: /workflow control plane/i })
     ).toBeInTheDocument();
     expect(screen.getByText(/package PKG-2026-05-03-001/i)).toBeInTheDocument();
-    expect(screen.getByText(/5 of 7 nodes progressed/i)).toBeInTheDocument();
+    expect(screen.getByText(/6 of 11 nodes progressed/i)).toBeInTheDocument();
 
     const graph = await screen.findByRole("img", { name: /workflow diagram/i });
 
@@ -78,16 +78,20 @@ describe("workflow graph control plane", () => {
     expect(graph.innerHTML).toContain("Manifest detected");
     expect(graph.innerHTML).toContain("Classify package");
     expect(graph.innerHTML).toContain("Proxy workflow");
+    expect(graph.innerHTML).toContain("Dispatch processing work");
     expect(graph.innerHTML).toContain("Audio essence");
+    expect(graph.innerHTML).toContain("Wait for command completion");
+    expect(graph.innerHTML).toContain("Complete processing commands");
+    expect(graph.innerHTML).toContain("Finalize package");
     expect(
       screen.getByRole("combobox", { name: /inspect workflow diagram node/i })
     ).toBeInTheDocument();
 
-    expect(screen.getByText(/pending: 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/pending: 2/i)).toBeInTheDocument();
     expect(screen.getByText(/running: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/failed: 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/waiting: 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/queued: 0/i)).toBeInTheDocument();
+    expect(screen.getByText(/waiting: 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/queued: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/skipped: 0/i)).toBeInTheDocument();
     expect(screen.getByText(/cancelled: 0/i)).toBeInTheDocument();
     expect(screen.getByText(/no packages reported yet/i)).toBeInTheDocument();

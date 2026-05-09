@@ -65,14 +65,17 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-8 / USER-STORY-12 / USER-STORY-14 / USER-STORY-15: generate API
   workflow graph DTOs from orchestrator-owned topology metadata, with dynamic
   command work-item nodes overlaid from persisted command outbox envelopes.
+- MILESTONE-8 / USER-STORY-12 through USER-STORY-15: render orchestrator wait,
+  command dispatch, command completion, finalization, child workflow, and
+  dynamic command work nodes in the React Mermaid workflow graph without adding
+  live push.
 
 ## Ready For Planning
 
 - MILESTONE-2 / USER-STORY-16: plan the next Docker-first local runtime
   validation slice beyond static Compose checks.
-- MILESTONE-5 / USER-STORY-9 / USER-STORY-10 and MILESTONE-8 /
-  USER-STORY-12 through USER-STORY-15: continue the workflow orchestrator graph
-  discovery stack with TASK-8-6.
+- MILESTONE-5 / USER-STORY-9: plan the later dependency-approved task for real
+  Dapr Workflow SDK hosting and workflow/activity registration.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service
