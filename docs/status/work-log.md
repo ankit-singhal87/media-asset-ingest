@@ -17,6 +17,10 @@ messages or paste command output unless it explains a decision.
   orchestrator definition metadata plus business status and command outbox
   overlay instead of API-local static topology construction, while preserving
   not-found behavior for unknown workflow instances.
+- Added TASK-8-6 UI graph rendering support for orchestrator waits, command
+  dispatch, command completion, finalization, child workflow, and dynamic
+  command work nodes in the existing Mermaid-only workflow diagram without
+  adding SignalR or live push.
 - Added local planning docs for the workflow orchestrator graph discovery
   slice: TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6 now cover the standalone
   orchestrator service, attribute-discovered workflow definition catalog,

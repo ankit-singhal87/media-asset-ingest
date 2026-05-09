@@ -63,6 +63,88 @@ describe("workflow graph mermaid syntax", () => {
     );
   });
 
+  it("renders orchestrator waits, command dependency nodes, and finalization", () => {
+    const diagram = buildMermaidFlowchart({
+      workflowInstanceId: "package-asset-001",
+      workflowName: "PackageIngestWorkflow",
+      packageId: "asset-001",
+      nodes: [
+        {
+          nodeId: "dispatch-processing",
+          displayName: "Dispatch processing work",
+          kind: "CommandDispatch",
+          status: "Succeeded",
+          workflowInstanceId: "package-asset-001",
+          packageId: "asset-001"
+        },
+        {
+          nodeId: "command-media-source-mov",
+          displayName: "CreateProxy source.mov",
+          kind: "WorkItem",
+          status: "Succeeded",
+          workflowInstanceId: "package-asset-001",
+          packageId: "asset-001",
+          workItemId: "command-asset-001-media-source-mov"
+        },
+        {
+          nodeId: "wait-command-completion",
+          displayName: "Wait for command completion",
+          kind: "Wait",
+          status: "Waiting",
+          workflowInstanceId: "package-asset-001",
+          packageId: "asset-001"
+        },
+        {
+          nodeId: "complete-processing",
+          displayName: "Complete processing commands",
+          kind: "CommandCompletion",
+          status: "Queued",
+          workflowInstanceId: "package-asset-001",
+          packageId: "asset-001"
+        },
+        {
+          nodeId: "finalize-package",
+          displayName: "Finalize package",
+          kind: "Finalization",
+          status: "Pending",
+          workflowInstanceId: "package-asset-001",
+          packageId: "asset-001"
+        }
+      ],
+      edges: [
+        {
+          edgeId: "dispatch-command",
+          sourceNodeId: "dispatch-processing",
+          targetNodeId: "command-media-source-mov"
+        },
+        {
+          edgeId: "command-wait",
+          sourceNodeId: "command-media-source-mov",
+          targetNodeId: "wait-command-completion"
+        },
+        {
+          edgeId: "wait-complete",
+          sourceNodeId: "wait-command-completion",
+          targetNodeId: "complete-processing"
+        },
+        {
+          edgeId: "complete-finalize",
+          sourceNodeId: "complete-processing",
+          targetNodeId: "finalize-package"
+        }
+      ]
+    });
+
+    expect(diagram).toContain('dispatch_processing["Dispatch processing work"]:::succeeded');
+    expect(diagram).toContain('wait_command_completion["Wait for command completion"]:::waiting');
+    expect(diagram).toContain('complete_processing["Complete processing commands"]:::queued');
+    expect(diagram).toContain('finalize_package["Finalize package"]:::pending');
+    expect(diagram).toContain("dispatch_processing --> command_media_source_mov");
+    expect(diagram).toContain("command_media_source_mov --> wait_command_completion");
+    expect(diagram).toContain("wait_command_completion --> complete_processing");
+    expect(diagram).toContain("complete_processing --> finalize_package");
+  });
+
   it("exposes the stable Mermaid node identifier used for SVG interaction", () => {
     expect(toMermaidNodeId("scan.package/1")).toBe("scan_package_1");
     expect(toMermaidNodeId("2026-start")).toBe("node_2026_start");

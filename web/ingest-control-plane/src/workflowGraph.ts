@@ -12,7 +12,11 @@ export type WorkflowNodeKind =
   | "WorkflowStep"
   | "Activity"
   | "ChildWorkflow"
-  | "WorkItem";
+  | "WorkItem"
+  | "Wait"
+  | "CommandDispatch"
+  | "CommandCompletion"
+  | "Finalization";
 
 export type WorkflowNode = {
   nodeId: string;
@@ -128,6 +132,14 @@ export const mockedWorkflowGraph: WorkflowGraph = {
       childWorkflowInstanceId: "wf-proxy-2026-05-03-001"
     },
     {
+      nodeId: "dispatch",
+      displayName: "Dispatch processing work",
+      kind: "CommandDispatch",
+      status: "Succeeded",
+      workflowInstanceId: "wf-pkg-2026-05-03-001",
+      packageId: "PKG-2026-05-03-001"
+    },
+    {
       nodeId: "audio",
       displayName: "Audio essence",
       kind: "WorkItem",
@@ -144,6 +156,30 @@ export const mockedWorkflowGraph: WorkflowGraph = {
       workflowInstanceId: "wf-pkg-2026-05-03-001",
       packageId: "PKG-2026-05-03-001",
       workItemId: "work-subtitle-en"
+    },
+    {
+      nodeId: "wait-commands",
+      displayName: "Wait for command completion",
+      kind: "Wait",
+      status: "Waiting",
+      workflowInstanceId: "wf-pkg-2026-05-03-001",
+      packageId: "PKG-2026-05-03-001"
+    },
+    {
+      nodeId: "complete-commands",
+      displayName: "Complete processing commands",
+      kind: "CommandCompletion",
+      status: "Queued",
+      workflowInstanceId: "wf-pkg-2026-05-03-001",
+      packageId: "PKG-2026-05-03-001"
+    },
+    {
+      nodeId: "finalize",
+      displayName: "Finalize package",
+      kind: "Finalization",
+      status: "Pending",
+      workflowInstanceId: "wf-pkg-2026-05-03-001",
+      packageId: "PKG-2026-05-03-001"
     }
   ],
   edges: [
@@ -151,8 +187,15 @@ export const mockedWorkflowGraph: WorkflowGraph = {
     { edgeId: "scan-classify", sourceNodeId: "scan", targetNodeId: "classify" },
     { edgeId: "classify-video", sourceNodeId: "classify", targetNodeId: "video" },
     { edgeId: "classify-proxy", sourceNodeId: "classify", targetNodeId: "proxy" },
+    { edgeId: "proxy-dispatch", sourceNodeId: "proxy", targetNodeId: "dispatch" },
+    { edgeId: "dispatch-video", sourceNodeId: "dispatch", targetNodeId: "video" },
     { edgeId: "classify-audio", sourceNodeId: "classify", targetNodeId: "audio" },
-    { edgeId: "classify-subtitle", sourceNodeId: "classify", targetNodeId: "subtitle" }
+    { edgeId: "classify-subtitle", sourceNodeId: "classify", targetNodeId: "subtitle" },
+    { edgeId: "video-wait", sourceNodeId: "video", targetNodeId: "wait-commands" },
+    { edgeId: "audio-wait", sourceNodeId: "audio", targetNodeId: "wait-commands" },
+    { edgeId: "subtitle-wait", sourceNodeId: "subtitle", targetNodeId: "wait-commands" },
+    { edgeId: "wait-complete", sourceNodeId: "wait-commands", targetNodeId: "complete-commands" },
+    { edgeId: "complete-finalize", sourceNodeId: "complete-commands", targetNodeId: "finalize" }
   ]
 };
 

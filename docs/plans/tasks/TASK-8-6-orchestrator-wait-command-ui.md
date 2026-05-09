@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+In Progress
 
 ## Linked Work
 
@@ -36,9 +36,9 @@ Supporting lanes:
 Agents may edit only these files unless they escalate:
 
 - `web/ingest-control-plane`
-- `src/MediaIngest.Contracts/Workflow`
-- `src/MediaIngest.Api`
-- `tests/MediaIngest.Api.Tests`
+- `web/ingest-control-plane/src/workflowGraph.ts`
+- `web/ingest-control-plane/src/workflowGraph.test.ts`
+- `web/ingest-control-plane/src/App.test.tsx`
 - `docs/architecture/004-observability-and-ui.md`
 - `docs/status/work-log.md`
 
@@ -95,6 +95,10 @@ REFACTOR:
 - Preserve child workflow drilldown and parent back navigation.
 - Add contract changes only if existing `WorkflowNodeKind` or `WorkflowNodeStatus` cannot express waits or command dependency sections; keep changes backward-compatible for existing graph DTOs.
 - Do not add SignalR or live push in this slice; polling remains sufficient.
+- The shared backend contract changes landed in TASK-5-4. This slice updates
+  the React type union, Mermaid rendering tests, and default graph fixture so
+  the UI accepts the new DTO node kinds directly instead of reconstructing
+  topology locally.
 
 ## Validation
 
