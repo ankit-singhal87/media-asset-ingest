@@ -4,6 +4,8 @@ Use one ignored local state record per active worktree:
 `.worktrees/state/<worktree-slug>.md`.
 
 State records are local coordination checkpoints. Do not commit them.
+Use repo-relative paths in state records; avoid workstation-specific absolute
+paths, home-directory shortcuts, and hypervisor/shared-folder paths.
 
 ```markdown
 # <worktree-slug>

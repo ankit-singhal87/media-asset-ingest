@@ -89,6 +89,6 @@ needs inspection, but it is not required for every task.
 
 ## CLI Notes
 
-The GitHub CLI stores the token in `~/.config/gh/hosts.yml` because the local
-credential store is not available in this environment. Do not commit or print
-that file.
+The GitHub CLI stores the token in the user's home-directory host config because
+the local credential store is not available in this environment. Do not commit
+or print that file.

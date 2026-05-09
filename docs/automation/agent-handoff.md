@@ -1,6 +1,9 @@
 # Agent Handoff
 
 Every implementation, review, or bug-fix agent should return a concise handoff.
+Use repo-relative paths in handoffs. Do not include workstation-specific
+absolute paths unless reporting an environment-specific failure where the exact
+path is evidence.
 
 ## Required Handoff Format
 
