@@ -44,6 +44,29 @@ AssertEqual("package-package-001/scan-package", startGraph.Nodes[1].ChildWorkflo
 
 AssertEqual("MediaIngest.Workflow.Orchestrator", WorkflowOrchestratorAssembly.MarkerName, "orchestrator boundary marker name");
 
+var catalog = WorkflowDefinitionCatalog.Discover(typeof(PackageIngestWorkflowDefinition).Assembly);
+var packageDefinition = catalog.GetRequired(WorkflowContractNames.PackageIngestWorkflow);
+AssertEqual(WorkflowContractNames.PackageIngestWorkflow, packageDefinition.WorkflowName, "catalog package workflow name");
+AssertEqual("Package ingest workflow", packageDefinition.DisplayName, "catalog package display name");
+AssertEqual(12, packageDefinition.Nodes.Count, "catalog package node count");
+AssertTrue(packageDefinition.Nodes.Any(node => node.NodeId == "scan-package" && node.Kind == WorkflowNodeKind.ChildWorkflow && node.ChildWorkflowName == WorkflowContractNames.PackageScanWorkflow), "catalog scan child workflow node");
+AssertTrue(packageDefinition.Nodes.Any(node => node.NodeId == "wait-command-completion" && node.Kind == WorkflowNodeKind.Wait), "catalog command wait node");
+AssertTrue(packageDefinition.Nodes.Any(node => node.NodeId == "dispatch-processing" && node.Kind == WorkflowNodeKind.CommandDispatch), "catalog dispatch node");
+AssertTrue(packageDefinition.Nodes.Any(node => node.NodeId == "complete-processing" && node.Kind == WorkflowNodeKind.CommandCompletion), "catalog completion node");
+AssertTrue(packageDefinition.Nodes.Any(node => node.NodeId == "finalize-package" && node.Kind == WorkflowNodeKind.Finalization), "catalog finalization node");
+AssertEqual(11, packageDefinition.Edges.Count, "catalog package edge count");
+AssertEqual("package-start", packageDefinition.Edges[0].SourceNodeId, "catalog first edge source");
+AssertEqual("scan-package", packageDefinition.Edges[0].TargetNodeId, "catalog first edge target");
+AssertThrows<WorkflowDefinitionCatalogException>(
+    () => WorkflowDefinitionCatalog.FromTypes(typeof(DuplicateNodeWorkflow)),
+    "duplicate catalog node id");
+AssertThrows<WorkflowDefinitionCatalogException>(
+    () => WorkflowDefinitionCatalog.FromTypes(typeof(InvalidEdgeWorkflow)),
+    "invalid catalog edge");
+AssertThrows<WorkflowDefinitionCatalogException>(
+    () => WorkflowDefinitionCatalog.FromTypes(typeof(MissingDisplayNameWorkflow)),
+    "missing catalog display name");
+
 var lifecycle = PackageWorkflowLifecycle.Observe(request);
 AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");
 AssertEqual("package-001", lifecycle.Current.PackageId, "observed package id");
@@ -190,6 +213,14 @@ static void AssertThrows<TException>(Action action, string name)
     throw new InvalidOperationException($"{name}: expected {typeof(TException).Name}.");
 }
 
+static void AssertTrue(bool condition, string name)
+{
+    if (!condition)
+    {
+        throw new InvalidOperationException(name);
+    }
+}
+
 static void AssertAll<T>(IEnumerable<T> values, Func<T, bool> predicate, string name)
 {
     var index = 0;
@@ -203,3 +234,17 @@ static void AssertAll<T>(IEnumerable<T> values, Func<T, bool> predicate, string 
         index++;
     }
 }
+
+[WorkflowDefinition("DuplicateNodeWorkflow", "Duplicate node workflow")]
+[WorkflowNode("start", "Start", WorkflowNodeKind.WorkflowStep)]
+[WorkflowNode("start", "Duplicate start", WorkflowNodeKind.Activity)]
+internal sealed class DuplicateNodeWorkflow;
+
+[WorkflowDefinition("InvalidEdgeWorkflow", "Invalid edge workflow")]
+[WorkflowNode("start", "Start", WorkflowNodeKind.WorkflowStep)]
+[WorkflowEdge("start", "missing")]
+internal sealed class InvalidEdgeWorkflow;
+
+[WorkflowDefinition("MissingDisplayNameWorkflow", "")]
+[WorkflowNode("start", "Start", WorkflowNodeKind.WorkflowStep)]
+internal sealed class MissingDisplayNameWorkflow;

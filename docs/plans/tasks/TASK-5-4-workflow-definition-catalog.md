@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+In Progress
 
 ## Linked Work
 
@@ -34,8 +34,9 @@ Supporting lanes:
 Agents may edit only these files unless they escalate:
 
 - `src/MediaIngest.Workflow.Orchestrator`
-- `src/MediaIngest.Workflow`
+- `src/MediaIngest.Contracts/Workflow/WorkflowNodeKind.cs`
 - `tests/MediaIngest.Workflow.Tests`
+- `tests/MediaIngest.Contracts.Tests`
 - `docs/architecture/002-workflow-orchestration.md`
 - `docs/architecture/004-observability-and-ui.md`
 - `docs/status/work-log.md`
@@ -92,6 +93,10 @@ REFACTOR:
 - Avoid workflow method-body analysis in this slice.
 - Keep the definition source as compiled code plus attributes, not DB-authored workflows.
 - Keep the first definition package ingest, but do not hard-code catalog internals to package-only concepts.
+- Extend the shared `WorkflowNodeKind` contract with `Wait`,
+  `CommandDispatch`, `CommandCompletion`, and `Finalization` so downstream API
+  and UI graph projections can render orchestrator-defined waits and command
+  dependency points without private enum mappings.
 
 ## Validation
 
@@ -99,6 +104,7 @@ Minimal validation:
 
 ```bash
 make test-dotnet-workflow-summary
+make test-dotnet-contracts
 git diff --check
 ```
 

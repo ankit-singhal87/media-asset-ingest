@@ -145,7 +145,11 @@ AssertEnumValues<WorkflowNodeKind>(
         (WorkflowNodeKind.WorkflowStep, 0, "WorkflowStep"),
         (WorkflowNodeKind.Activity, 1, "Activity"),
         (WorkflowNodeKind.ChildWorkflow, 2, "ChildWorkflow"),
-        (WorkflowNodeKind.WorkItem, 3, "WorkItem")
+        (WorkflowNodeKind.WorkItem, 3, "WorkItem"),
+        (WorkflowNodeKind.Wait, 4, "Wait"),
+        (WorkflowNodeKind.CommandDispatch, 5, "CommandDispatch"),
+        (WorkflowNodeKind.CommandCompletion, 6, "CommandCompletion"),
+        (WorkflowNodeKind.Finalization, 7, "Finalization")
     ],
     "workflow node kind values");
 AssertEqual(WorkflowNodeStatus.Running, graph.Nodes[1].Status, "node status");

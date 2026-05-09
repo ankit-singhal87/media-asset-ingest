@@ -143,6 +143,10 @@
   bounded-context assembly and public marker for future catalog discovery.
   Real Dapr Workflow SDK hosting remains deferred to a later
   dependency-approved task.
+- TASK-5-4 added the attribute-discovered workflow definition catalog in the
+  orchestrator boundary, including package ingest topology metadata for waits,
+  command dispatch/completion, child workflows, and finalization plus catalog
+  validation for duplicate nodes, invalid edges, and missing metadata.
 - TASK-4-4 defined the Service Bus command-bus adapter boundary in the outbox
   worker. Command publish requests now map to a broker-oriented message shape
   with semantic topic, raw command body, application properties, and routed
@@ -155,8 +159,7 @@
 
 ## Next
 
-- Continue the workflow orchestrator graph discovery stack: TASK-5-4 adds the
-  attribute-discovered workflow definition catalog, TASK-8-5 generates
+- Continue the workflow orchestrator graph discovery stack: TASK-8-5 generates
   `WorkflowGraphDto` from orchestrator definitions, and TASK-8-6 renders
   orchestrator waits and command dependencies in the UI.
 
