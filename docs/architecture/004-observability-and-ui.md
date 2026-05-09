@@ -38,7 +38,8 @@ metadata or trace state, but they should not rename these fields.
 ## Workflow UI
 
 The UI renders a graph model, not a generated bitmap. Nodes represent workflow
-steps, child workflows, or work items. Edges represent execution flow and
+steps, child workflows, work items, waits, command dispatch points, command
+completion points, or finalization points. Edges represent execution flow and
 dependencies.
 
 Shared backend/UI contracts live in `MediaIngest.Contracts.Workflow`.
@@ -47,6 +48,9 @@ optional parent workflow instance, graph nodes, and graph edges. `WorkflowNodeDt
 uses stable node IDs, display names, node kinds, business statuses, workflow and
 package correlation, optional work item IDs, and optional child workflow
 instance IDs for drilldown. `WorkflowEdgeDto` links source and target node IDs.
+Orchestrator workflow definitions are the durable source for static graph
+topology; API projections overlay business status and command work-item
+instances on top of that topology.
 
 Node states:
 

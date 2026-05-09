@@ -16,6 +16,15 @@ marker used by later catalog discovery work. Real Dapr Workflow SDK hosting and
 workflow/activity registration remain deferred until a dependency-approved
 task adds the runtime package references.
 
+Workflow topology is code-first metadata in the orchestrator assembly. Workflow
+definition attributes declare stable workflow names and display names; node and
+edge attributes declare graph topology, child workflow references, wait points,
+command dispatch points, command completion points, and finalization. Startup
+catalog discovery uses reflection over known orchestrator assemblies and fails
+fast when required metadata is missing, node IDs are duplicated, definition IDs
+are duplicated, or edges reference unknown nodes. The catalog describes topology
+only; it does not analyze method bodies or store database-authored workflows.
+
 ## Root Workflow
 
 The root workflow is `PackageIngestWorkflow`. It owns the package lifecycle:
@@ -54,6 +63,11 @@ workflow instance ID, and parent workflow instance ID before runtime execution.
 The stable child ID format is `<parent-workflow-instance-id>/<child-node-id>`.
 Graph projections must use these prepared references when they are available so
 operator drilldown matches the identifiers used to start child workflows.
+
+The package ingest topology currently contains stable nodes for package start,
+package scan, file classification, essence-group processing, proxy creation,
+command dispatch, command work, command-completion wait, command completion,
+reconciliation, done-marker wait, and finalization.
 
 ## Parallelism
 

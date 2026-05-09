@@ -9,6 +9,10 @@ messages or paste command output unless it explains a decision.
   `MediaIngest.Workflow.Orchestrator` assembly exposes a public marker for
   later definition catalog discovery, with real Dapr Workflow SDK registration
   deferred to a dependency-approved task.
+- Added TASK-5-4 workflow definition catalog: orchestrator code now declares
+  package ingest topology with attributes, validates duplicate and invalid
+  metadata during reflection discovery, and extends node kinds for waits,
+  command dispatch, command completion, and finalization.
 - Added local planning docs for the workflow orchestrator graph discovery
   slice: TASK-5-3, TASK-5-4, TASK-8-5, and TASK-8-6 now cover the standalone
   orchestrator service, attribute-discovered workflow definition catalog,

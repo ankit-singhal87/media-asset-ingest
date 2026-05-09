@@ -3,4 +3,8 @@
     <RootNamespace>MediaIngest.Workflow.Orchestrator</RootNamespace>
     <AssemblyName>MediaIngest.Workflow.Orchestrator</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
+  </ItemGroup>
 </Project>

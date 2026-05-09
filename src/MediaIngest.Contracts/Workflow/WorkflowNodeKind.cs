@@ -5,5 +5,9 @@ public enum WorkflowNodeKind
     WorkflowStep,
     Activity,
     ChildWorkflow,
-    WorkItem
+    WorkItem,
+    Wait,
+    CommandDispatch,
+    CommandCompletion,
+    Finalization
 }
