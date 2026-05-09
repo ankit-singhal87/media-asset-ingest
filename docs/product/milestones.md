@@ -65,9 +65,11 @@ Components:
 
 - `src`
 - `deploy/docker`
-- `docker-compose.yml`
+- `deploy/docker/compose.yaml`
 - `Makefile`
 - `scripts/dev`
+- `docs/api`
+- `docs/review`
 
 ## MILESTONE-3: Ingest Package Lifecycle
 
@@ -131,6 +133,7 @@ Ownership lanes:
 Components:
 
 - `src/MediaIngest.Worker.Outbox`
+- `src/MediaIngest.Worker.Outbox.Host`
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Persistence`
 - `deploy/dapr`
@@ -195,6 +198,8 @@ Components:
 
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Observability`
+- `src/MediaIngest.Worker.CommandRunner`
+- `src/MediaIngest.Worker.CommandRunner.Host`
 
 ## MILESTONE-7: Observability
 

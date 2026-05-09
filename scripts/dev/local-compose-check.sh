@@ -16,6 +16,7 @@ timeout_seconds="${LOCAL_COMPOSE_TIMEOUT_SECONDS:-60}"
 interval_seconds="${LOCAL_COMPOSE_INTERVAL_SECONDS:-2}"
 project_name="${LOCAL_COMPOSE_PROJECT_NAME:-media-asset-ingest-local}"
 keep_running="${LOCAL_COMPOSE_KEEP_RUNNING:-0}"
+smoke_package_id="${SMOKE_PACKAGE_ID:-asset-smoke-$(date +%Y%m%d%H%M%S)}"
 dry_run=0
 runtime_smoke=0
 runtime_started=0
@@ -38,6 +39,7 @@ Environment overrides:
   LOCAL_COMPOSE_API_PORT          API host port. Default: 5000
   LOCAL_COMPOSE_UI_PORT           UI host port. Default: 5173
   LOCAL_COMPOSE_POSTGRES_PORT     PostgreSQL host port. Default: 5432
+  SMOKE_PACKAGE_ID                Package ID for runtime smoke. Default: timestamped asset-smoke-*
   LOCAL_COMPOSE_UID               API container user ID. Default: current user
   LOCAL_COMPOSE_GID               API container group ID. Default: current group
   LOCAL_COMPOSE_TIMEOUT_SECONDS   HTTP wait timeout. Default: 60
@@ -65,12 +67,18 @@ Runtime services:
   postgres
     Uses postgres:17-alpine with local trust auth, exposes host port
     $postgres_port, and stores data in a named volume.
+  outbox-worker
+    Runs the executable outbox worker host against PostgreSQL and validates
+    local command-bus message shape without Azure SDK integration.
+  command-runner-light, command-runner-medium, command-runner-heavy
+    Run executable command-runner host processes for the local review runtime.
 
 Runtime validation:
   docker compose -p $project_name -f deploy/docker/compose.yaml up --build -d
   wait for $api_url/api/ingest/status
   wait for $ui_url
   SMOKE_EXPECT_COPIED_FILES=manifest MEDIA_INGEST_API_URL=$api_url sh scripts/dev/local-e2e-smoke.sh
+  query PostgreSQL for persisted package state and dispatched command outbox rows
   docker compose -p $project_name -f deploy/docker/compose.yaml down
 
 Boundary:
@@ -96,6 +104,10 @@ Resolved local services:
   postgres
     Uses postgres:17-alpine with local trust auth, exposes 127.0.0.1:5432,
     and stores data in the postgres-data named volume.
+  outbox-worker
+    Builds deploy/docker/dotnet-worker.Dockerfile for the outbox host.
+  command-runner-light, command-runner-medium, command-runner-heavy
+    Build deploy/docker/dotnet-worker.Dockerfile for each execution class.
 
 Default validation:
   docker compose -f deploy/docker/compose.yaml config
@@ -146,6 +158,13 @@ validate_settings() {
   case "$ui_url" in
     '')
       printf '%s\n' "LOCAL_COMPOSE_UI_URL must not be empty." >&2
+      exit 2
+      ;;
+  esac
+
+  case "$smoke_package_id" in
+    ''|*[!A-Za-z0-9._-]*)
+      printf 'SMOKE_PACKAGE_ID must contain only letters, numbers, dots, underscores, and hyphens: %s\n' "$smoke_package_id" >&2
       exit 2
       ;;
   esac
@@ -254,9 +273,31 @@ run_runtime_smoke() {
   wait_for_http "UI" "$ui_url"
 
   printf '%s\n' "Running local ingest smoke against Compose API..."
-  SMOKE_EXPECT_COPIED_FILES=manifest MEDIA_INGEST_API_URL="$api_url" sh scripts/dev/local-e2e-smoke.sh
+  SMOKE_PACKAGE_ID="$smoke_package_id" SMOKE_EXPECT_COPIED_FILES=manifest MEDIA_INGEST_API_URL="$api_url" sh scripts/dev/local-e2e-smoke.sh
+
+  printf '%s\n' "Checking PostgreSQL durable package state..."
+  package_status=$(compose exec -T postgres psql -U postgres -d media_ingest -tAc \
+    "select status from ingest_package_states where package_id = '$smoke_package_id';")
+  if [ "$package_status" != "Started" ] && [ "$package_status" != "Succeeded" ]; then
+    printf 'Expected durable package state for %s, got: %s\n' "$smoke_package_id" "$package_status" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "Checking PostgreSQL outbox command evidence..."
+  command_outbox_count=$(compose exec -T postgres psql -U postgres -d media_ingest -tAc \
+    "select count(*) from outbox_messages where correlation_id = 'correlation-$smoke_package_id' and message_type = 'MediaCommandEnvelope';")
+  dispatched_command_count=$(compose exec -T postgres psql -U postgres -d media_ingest -tAc \
+    "select count(*) from outbox_messages where correlation_id = 'correlation-$smoke_package_id' and message_type = 'MediaCommandEnvelope' and dispatched_at is not null;")
+  if [ "$command_outbox_count" -lt 4 ] || [ "$dispatched_command_count" -lt 4 ]; then
+    printf 'Expected at least 4 dispatched command outbox rows, got total=%s dispatched=%s\n' \
+      "$command_outbox_count" "$dispatched_command_count" >&2
+    exit 1
+  fi
 
   printf '%s\n' "Local Compose runtime smoke passed."
+  printf '  package_state: %s\n' "$package_status"
+  printf '  command_outbox_rows: %s\n' "$command_outbox_count"
+  printf '  dispatched_command_outbox_rows: %s\n' "$dispatched_command_count"
 }
 
 while [ "$#" -gt 0 ]; do

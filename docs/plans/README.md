@@ -10,6 +10,7 @@ Planning artifacts turn product stories into executable implementation work.
 - `docs/plans/parallel-system-components.md` - current parallel
   system-component track plan.
 - `docs/plans/milestones/` - milestone-level implementation plans.
+- `docs/plans/slices/` - cross-milestone review slice plans.
 - `docs/plans/tasks/` - small task files created from milestone plans.
 - `docs/bugs/` - defect reports and bug-fix tracking.
 - `docs/plans/templates/` - copyable plan and task templates.

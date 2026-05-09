@@ -16,7 +16,7 @@ public sealed class IngestRuntimeService(
     ManifestReadinessGate readinessGate,
     PackageWorkflowStarter workflowStarter,
     WorkflowGraphProjector workflowGraphProjector,
-    InMemoryIngestPersistenceStore store,
+    IIngestPersistenceStore store,
     OutboxDispatcher outboxDispatcher) : IAsyncDisposable
 {
     private static readonly TimeSpan WatchInterval = TimeSpan.FromMilliseconds(100);
@@ -83,7 +83,7 @@ public sealed class IngestRuntimeService(
             foreach (var candidate in candidates.Where(readinessGate.IsReady))
             {
                 var packageId = Path.GetFileName(candidate.PackagePath);
-                var latestState = GetLatestPackageState(packageId);
+                var latestState = await store.GetPackageStateAsync(packageId, cancellationToken);
 
                 if (terminalPackageIds.Contains(packageId) || IsTerminal(latestState?.Status))
                 {
@@ -277,7 +277,9 @@ public sealed class IngestRuntimeService(
         }
         catch (LocalManifestTransferConflictException)
         {
-            var messageId = GetPendingLocalTransferMessageId(workflowStart.PackageId);
+            var messageId = await GetPendingLocalTransferMessageIdAsync(
+                workflowStart.PackageId,
+                cancellationToken);
 
             if (messageId is null)
             {
@@ -314,9 +316,13 @@ public sealed class IngestRuntimeService(
         }
     }
 
-    private string? GetPendingLocalTransferMessageId(string packageId)
+    private async Task<string?> GetPendingLocalTransferMessageIdAsync(
+        string packageId,
+        CancellationToken cancellationToken)
     {
-        return store.OutboxMessages
+        var messages = await store.ListOutboxMessagesAsync($"correlation-{packageId}", cancellationToken);
+
+        return messages
             .Where(message =>
                 message.MessageType == nameof(LocalManifestTransferRequest)
                 && string.Equals(message.CorrelationId, $"correlation-{packageId}", StringComparison.Ordinal)
@@ -327,23 +333,16 @@ public sealed class IngestRuntimeService(
             .FirstOrDefault();
     }
 
-    private IngestPackageState? GetLatestPackageState(string packageId)
-    {
-        return store.PackageStates
-            .Where(packageState => string.Equals(packageState.PackageId, packageId, StringComparison.Ordinal))
-            .OrderBy(packageState => packageState.UpdatedAt)
-            .LastOrDefault();
-    }
-
     private static bool IsTerminal(string? status)
     {
         return string.Equals(status, "Succeeded", StringComparison.Ordinal)
             || string.Equals(status, "Failed", StringComparison.Ordinal);
     }
 
-    public IngestStatusResponse GetStatus()
+    public async Task<IngestStatusResponse> GetStatusAsync(CancellationToken cancellationToken = default)
     {
-        var packages = store.PackageStates
+        var packageStates = await store.ListPackageStatesAsync(cancellationToken);
+        var packages = packageStates
             .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
             .Select(group => group.Last())
             .OrderBy(packageState => packageState.PackageId, StringComparer.Ordinal)
@@ -357,9 +356,15 @@ public sealed class IngestRuntimeService(
         return new IngestStatusResponse(packages);
     }
 
-    public WorkflowListResponse ListWorkflows()
+    public IngestStatusResponse GetStatus()
     {
-        var workflows = store.PackageStates
+        return GetStatusAsync().GetAwaiter().GetResult();
+    }
+
+    public async Task<WorkflowListResponse> ListWorkflowsAsync(CancellationToken cancellationToken = default)
+    {
+        var packageStates = await store.ListPackageStatesAsync(cancellationToken);
+        var workflows = packageStates
             .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
             .Select(group => group.Last())
             .OrderBy(packageState => packageState.PackageId, StringComparer.Ordinal)
@@ -373,14 +378,22 @@ public sealed class IngestRuntimeService(
         return new WorkflowListResponse(workflows);
     }
 
-    public WorkflowGraphDto? GetWorkflowGraph(string workflowInstanceId)
+    public WorkflowListResponse ListWorkflows()
+    {
+        return ListWorkflowsAsync().GetAwaiter().GetResult();
+    }
+
+    public async Task<WorkflowGraphDto?> GetWorkflowGraphAsync(
+        string workflowInstanceId,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(workflowInstanceId))
         {
             return null;
         }
 
-        var packageState = store.PackageStates
+        var packageStates = await store.ListPackageStatesAsync(cancellationToken);
+        var packageState = packageStates
             .GroupBy(packageState => packageState.PackageId, StringComparer.Ordinal)
             .Select(group => group.Last())
             .SingleOrDefault(packageState =>
@@ -394,17 +407,27 @@ public sealed class IngestRuntimeService(
                 PackageId: packageState.PackageId,
                 Status: MapPackageStatus(packageState.Status),
                 ParentWorkflowInstanceId: null,
-                CommandWorkItems: GetMediaCommandWorkItems(packageState.PackageId).ToArray()));
+                CommandWorkItems: (await GetMediaCommandWorkItemsAsync(
+                    packageState.PackageId,
+                    cancellationToken)).ToArray()));
     }
 
-    public WorkflowNodeDetailsDto? GetWorkflowNodeDetails(string workflowInstanceId, string nodeId)
+    public WorkflowGraphDto? GetWorkflowGraph(string workflowInstanceId)
+    {
+        return GetWorkflowGraphAsync(workflowInstanceId).GetAwaiter().GetResult();
+    }
+
+    public async Task<WorkflowNodeDetailsDto?> GetWorkflowNodeDetailsAsync(
+        string workflowInstanceId,
+        string nodeId,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(workflowInstanceId) || string.IsNullOrWhiteSpace(nodeId))
         {
             return null;
         }
 
-        var graph = GetWorkflowGraph(workflowInstanceId);
+        var graph = await GetWorkflowGraphAsync(workflowInstanceId, cancellationToken);
         var node = graph?.Nodes.SingleOrDefault(candidate =>
             string.Equals(candidate.NodeId, nodeId, StringComparison.Ordinal));
 
@@ -413,12 +436,11 @@ public sealed class IngestRuntimeService(
             return null;
         }
 
-        var timeline = store.TimelineRecords
-            .Where(record =>
-                string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
-                string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
-            .OrderBy(record => record.OccurredAt)
-            .ThenBy(record => record.EventId, StringComparer.Ordinal)
+        var timelineRecords = await store.GetWorkflowNodeTimelineAsync(
+            workflowInstanceId,
+            nodeId,
+            cancellationToken);
+        var timeline = timelineRecords
             .Select(record => new WorkflowTimelineEntryDto(
                 OccurredAt: record.OccurredAt,
                 Status: MapTimelineStatus(record.Status),
@@ -426,12 +448,11 @@ public sealed class IngestRuntimeService(
                 CorrelationId: record.CorrelationId))
             .ToArray();
 
-        var logs = store.NodeDiagnosticLogs
-            .Where(record =>
-                string.Equals(record.WorkflowInstanceId, workflowInstanceId, StringComparison.Ordinal) &&
-                string.Equals(record.NodeId, nodeId, StringComparison.Ordinal))
-            .OrderBy(record => record.OccurredAt)
-            .ThenBy(record => record.LogId, StringComparer.Ordinal)
+        var logRecords = await store.GetWorkflowNodeLogsAsync(
+            workflowInstanceId,
+            nodeId,
+            cancellationToken);
+        var logs = logRecords
             .Select(record => new WorkflowNodeLogEntryDto(
                 OccurredAt: record.OccurredAt,
                 Level: record.Level,
@@ -446,6 +467,11 @@ public sealed class IngestRuntimeService(
             NodeId: node.NodeId,
             Timeline: timeline,
             Logs: logs);
+    }
+
+    public WorkflowNodeDetailsDto? GetWorkflowNodeDetails(string workflowInstanceId, string nodeId)
+    {
+        return GetWorkflowNodeDetailsAsync(workflowInstanceId, nodeId).GetAwaiter().GetResult();
     }
 
     public async ValueTask DisposeAsync()
@@ -554,11 +580,14 @@ public sealed class IngestRuntimeService(
         return $"{commandName} {packageRelativePath}";
     }
 
-    private IEnumerable<WorkflowCommandWorkItem> GetMediaCommandWorkItems(string packageId)
+    private async Task<IReadOnlyList<WorkflowCommandWorkItem>> GetMediaCommandWorkItemsAsync(
+        string packageId,
+        CancellationToken cancellationToken)
     {
         var correlationId = $"correlation-{packageId}";
+        var messages = await store.ListOutboxMessagesAsync(correlationId, cancellationToken);
 
-        return store.OutboxMessages
+        return messages
             .Where(message =>
                 message.MessageType == nameof(MediaCommandEnvelope)
                 && string.Equals(message.CorrelationId, correlationId, StringComparison.Ordinal))
@@ -569,7 +598,8 @@ public sealed class IngestRuntimeService(
             .Select(command => new WorkflowCommandWorkItem(
                 NodeId: $"command-{SanitizeIdentifier(GetPackageRelativeCommandPath(command, packageId))}",
                 DisplayName: CreateCommandDisplayName(command),
-                WorkItemId: command.CommandId));
+                WorkItemId: command.CommandId))
+            .ToArray();
     }
 
     private static WorkflowNodeStatus MapPackageStatus(string status)

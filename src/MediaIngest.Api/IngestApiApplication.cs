@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -28,15 +29,21 @@ public sealed class IngestApiApplication : IAsyncDisposable
     public static async Task<IngestApiApplication> StartAsync(
         string inputPath,
         string outputPath,
+        IReadOnlyDictionary<string, string?>? configuration = null,
         CancellationToken cancellationToken = default)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
+        if (configuration is not null)
+        {
+            builder.Configuration.AddInMemoryCollection(configuration);
+        }
 
-        ConfigureServices(builder.Services, inputPath, outputPath);
+        ConfigureServices(builder.Services, builder.Configuration, inputPath, outputPath);
 
         var app = builder.Build();
         MapEndpoints(app);
+        await CreateSchemaOnStartupAsync(app.Services, builder.Configuration, cancellationToken);
 
         await app.StartAsync(cancellationToken);
 
@@ -62,10 +69,13 @@ public sealed class IngestApiApplication : IAsyncDisposable
         var outputPath = builder.Configuration["Ingest:OutputPath"]
             ?? Path.Combine(repoRoot, "output");
 
-        ConfigureServices(builder.Services, inputPath, outputPath);
+        ConfigureServices(builder.Services, builder.Configuration, inputPath, outputPath);
 
         var app = builder.Build();
         MapEndpoints(app);
+        CreateSchemaOnStartupAsync(app.Services, builder.Configuration, cancellationToken)
+            .GetAwaiter()
+            .GetResult();
 
         return app.RunAsync(cancellationToken);
     }
@@ -76,7 +86,11 @@ public sealed class IngestApiApplication : IAsyncDisposable
         await webApplication.DisposeAsync();
     }
 
-    private static void ConfigureServices(IServiceCollection services, string inputPath, string outputPath)
+    private static void ConfigureServices(
+        IServiceCollection services,
+        IConfiguration configuration,
+        string inputPath,
+        string outputPath)
     {
         services.AddSingleton(new IngestRuntimePaths(
             Path.GetFullPath(inputPath),
@@ -85,12 +99,60 @@ public sealed class IngestApiApplication : IAsyncDisposable
         services.AddSingleton<ManifestReadinessGate>();
         services.AddSingleton<PackageWorkflowStarter>();
         services.AddSingleton(WorkflowGraphProjector.CreateDefault());
-        services.AddSingleton<InMemoryIngestPersistenceStore>();
-        services.AddSingleton<IIngestPersistenceStore>(serviceProvider =>
-            serviceProvider.GetRequiredService<InMemoryIngestPersistenceStore>());
+        ConfigurePersistence(services, configuration);
         services.AddSingleton<IOutboxMessagePublisher, LocalManifestTransferPublisher>();
         services.AddSingleton<OutboxDispatcher>();
         services.AddSingleton<IngestRuntimeService>();
+    }
+
+    private static void ConfigurePersistence(IServiceCollection services, IConfiguration configuration)
+    {
+        var provider = configuration["Persistence:Provider"];
+        if (string.IsNullOrWhiteSpace(provider) || string.Equals(provider, "InMemory", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<InMemoryIngestPersistenceStore>();
+            services.AddSingleton<IIngestPersistenceStore>(serviceProvider =>
+                serviceProvider.GetRequiredService<InMemoryIngestPersistenceStore>());
+            return;
+        }
+
+        if (string.Equals(provider, "Postgres", StringComparison.OrdinalIgnoreCase))
+        {
+            var connectionString = configuration["Persistence:ConnectionString"]
+                ?? configuration.GetConnectionString("MediaIngest");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Persistence:ConnectionString or ConnectionStrings:MediaIngest is required when Persistence:Provider is Postgres.");
+            }
+
+            services.AddSingleton<IIngestPersistenceStore>(_ =>
+                PostgresIngestPersistenceStore.Create(connectionString));
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Unsupported persistence provider '{provider}'. Use InMemory or Postgres.");
+    }
+
+    private static async Task CreateSchemaOnStartupAsync(
+        IServiceProvider services,
+        IConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        if (!bool.TryParse(configuration["Persistence:CreateSchemaOnStartup"], out var createSchemaOnStartup) ||
+            !createSchemaOnStartup)
+        {
+            return;
+        }
+
+        var store = services.GetRequiredService<IIngestPersistenceStore>();
+        if (store is not PostgresIngestPersistenceStore postgresStore)
+        {
+            return;
+        }
+
+        await postgresStore.CreateSchemaAsync(cancellationToken);
     }
 
     private static void MapEndpoints(WebApplication app)
@@ -104,46 +166,86 @@ public sealed class IngestApiApplication : IAsyncDisposable
 
     private static async Task<IResult> StartIngestAsync(
         IngestRuntimeService runtimeService,
+        HttpContext httpContext,
         CancellationToken cancellationToken)
     {
         var result = await runtimeService.StartAsync(cancellationToken);
 
         return result.HasConflict
-            ? Results.Conflict(result.Response)
+            ? Problem(
+                httpContext,
+                StatusCodes.Status409Conflict,
+                "Ingest start conflict",
+                "One or more ready packages could not be started because output already exists.")
             : Results.Accepted(value: result.Response);
     }
 
-    private static IngestStatusResponse GetStatus(IngestRuntimeService runtimeService)
+    private static Task<IngestStatusResponse> GetStatus(
+        IngestRuntimeService runtimeService,
+        CancellationToken cancellationToken)
     {
-        return runtimeService.GetStatus();
+        return runtimeService.GetStatusAsync(cancellationToken);
     }
 
-    private static WorkflowListResponse ListWorkflows(IngestRuntimeService runtimeService)
+    private static Task<WorkflowListResponse> ListWorkflows(
+        IngestRuntimeService runtimeService,
+        CancellationToken cancellationToken)
     {
-        return runtimeService.ListWorkflows();
+        return runtimeService.ListWorkflowsAsync(cancellationToken);
     }
 
-    private static IResult GetWorkflowGraph(
+    private static async Task<IResult> GetWorkflowGraph(
         string workflowInstanceId,
-        IngestRuntimeService runtimeService)
+        IngestRuntimeService runtimeService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
     {
-        var graph = runtimeService.GetWorkflowGraph(workflowInstanceId);
+        var graph = await runtimeService.GetWorkflowGraphAsync(workflowInstanceId, cancellationToken);
 
         return graph is null
-            ? Results.NotFound()
+            ? Problem(
+                httpContext,
+                StatusCodes.Status404NotFound,
+                "Workflow graph not found",
+                $"Workflow graph '{workflowInstanceId}' was not found.")
             : Results.Ok(graph);
     }
 
-    private static IResult GetWorkflowNodeDetails(
+    private static async Task<IResult> GetWorkflowNodeDetails(
         string workflowInstanceId,
         string nodeId,
-        IngestRuntimeService runtimeService)
+        IngestRuntimeService runtimeService,
+        HttpContext httpContext,
+        CancellationToken cancellationToken)
     {
-        var details = runtimeService.GetWorkflowNodeDetails(workflowInstanceId, nodeId);
+        var details = await runtimeService.GetWorkflowNodeDetailsAsync(
+            workflowInstanceId,
+            nodeId,
+            cancellationToken);
 
         return details is null
-            ? Results.NotFound()
+            ? Problem(
+                httpContext,
+                StatusCodes.Status404NotFound,
+                "Workflow node details not found",
+                $"Workflow node '{nodeId}' was not found in workflow '{workflowInstanceId}'.")
             : Results.Ok(details);
+    }
+
+    private static IResult Problem(
+        HttpContext httpContext,
+        int statusCode,
+        string title,
+        string detail)
+    {
+        return Results.Problem(
+            title: title,
+            detail: detail,
+            statusCode: statusCode,
+            extensions: new Dictionary<string, object?>
+            {
+                ["traceId"] = httpContext.TraceIdentifier
+            });
     }
 
     private static string FindRepoRoot()

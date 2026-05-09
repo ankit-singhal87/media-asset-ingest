@@ -125,6 +125,47 @@ public sealed class InMemoryIngestPersistenceStore : IIngestPersistenceStore
         return Task.FromResult(packageState);
     }
 
+    public Task<IReadOnlyList<IngestPackageState>> ListPackageStatesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IReadOnlyList<IngestPackageState> states;
+
+        lock (storeLock)
+        {
+            states = packageStates
+                .OrderBy(state => state.PackageId, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        return Task.FromResult(states);
+    }
+
+    public Task<IReadOnlyList<OutboxMessage>> ListOutboxMessagesAsync(
+        string correlationId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(correlationId))
+        {
+            throw new ArgumentException("Correlation id is required.", nameof(correlationId));
+        }
+
+        IReadOnlyList<OutboxMessage> messages;
+
+        lock (storeLock)
+        {
+            messages = outboxMessages
+                .Where(message => string.Equals(message.CorrelationId, correlationId, StringComparison.Ordinal))
+                .OrderBy(message => message.CreatedAt)
+                .ThenBy(message => message.MessageId, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        return Task.FromResult(messages);
+    }
+
     public Task<IReadOnlyList<BusinessTimelineRecord>> GetWorkflowNodeTimelineAsync(
         string workflowInstanceId,
         string nodeId,

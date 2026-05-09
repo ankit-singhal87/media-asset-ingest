@@ -74,7 +74,8 @@ Use Docker Compose for the current runnable local system:
 make up
 ```
 
-That target builds and starts the local API, UI, and PostgreSQL services with:
+That target builds and starts the local API, UI, PostgreSQL, outbox worker, and
+light/medium/heavy command-runner worker services with:
 
 ```bash
 docker compose -f deploy/docker/compose.yaml up --build
@@ -99,26 +100,29 @@ static Compose validation:
 make local-runtime-smoke
 ```
 
-That target starts the API, UI, and PostgreSQL Compose stack, waits for local
-API and UI HTTP responses, runs the scripted manifest ingest smoke against the
-containerized API, and stops the stack. The smoke expects the copied manifest
-pair plus workflow command-node evidence for media, sidecar, and metadata
-files. It uses only local containers, repo-root `input/` and `output/` bind
-mounts, and local HTTP endpoints. Override `LOCAL_COMPOSE_API_PORT`,
-`LOCAL_COMPOSE_UI_PORT`, or `LOCAL_COMPOSE_POSTGRES_PORT` if another local
-process already owns the default ports. The smoke script runs the API container
-with the current host UID/GID so bind-mounted smoke output remains writable by
-the host user.
+That target starts the API, UI, PostgreSQL, outbox worker, and command-runner
+Compose stack, waits for local API and UI HTTP responses, runs the scripted
+manifest ingest smoke against the containerized API, queries PostgreSQL for
+durable package and dispatched command outbox rows, and stops the stack. The
+smoke expects the copied manifest pair plus workflow command-node evidence for
+media, sidecar, and metadata files. It uses only local containers, repo-root
+`input/` and `output/` bind mounts, local HTTP endpoints, and PostgreSQL inside
+Compose. Override `LOCAL_COMPOSE_API_PORT`, `LOCAL_COMPOSE_UI_PORT`, or
+`LOCAL_COMPOSE_POSTGRES_PORT` if another local process already owns the default
+ports. The smoke script runs the API container with the current host UID/GID so
+bind-mounted smoke output remains writable by the host user.
 
 ## Local Manifest Ingest Demo
 
-This local workflow exercises the manifest start path through the API, React
-control plane, and repo-root runtime folders. It still runs in process for local
-development and does not use the real Dapr Workflow runtime, PostgreSQL, Azure
-Service Bus, or command runner services. Ready packages are scanned recursively;
-the manifest pair is copied to local output, and each non-metadata file becomes
-a locally accepted command envelope with a semantic topic and `executionClass`
-for the workflow graph demo.
+This host workflow exercises the manifest start path through the API, React
+control plane, and repo-root runtime folders. The direct `dotnet run` path uses
+in-memory persistence by default for focused local development. The Docker
+Compose path uses PostgreSQL through raw Npgsql and runs the review worker
+containers. Neither path uses the real Dapr Workflow runtime, Azure Service Bus,
+or paid cloud resources. Ready packages are scanned recursively; the manifest
+pair is copied to local output, and each non-metadata file becomes a locally
+accepted command envelope with a semantic topic and `executionClass` for the
+workflow graph demo.
 
 Start the local ingest API on a fixed development port:
 
@@ -173,6 +177,16 @@ To validate the smoke plan without starting the API or touching files:
 ```bash
 sh scripts/dev/local-e2e-smoke.sh --dry-run
 ```
+
+For the reviewable durable slice, prefer:
+
+```bash
+make local-runtime-smoke
+```
+
+Reviewer notes and source anchors live in
+[docs/review/local-durable-ingest-review-guide.md](docs/review/local-durable-ingest-review-guide.md).
+The current API contract lives in [docs/api/openapi.yaml](docs/api/openapi.yaml).
 
 ## Agent Tooling
 

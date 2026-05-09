@@ -35,8 +35,10 @@ await store.SaveAsync(new PersistenceBatch([updatedPackageState], []));
 
 var savedPackageState = await store.GetPackageStateAsync("package-001");
 var missingPackageState = await store.GetPackageStateAsync("missing-package");
+var listedPackageStates = await store.ListPackageStatesAsync();
 
 AssertEqual(1, store.PackageStates.Count, "package state upsert count");
+AssertSequenceEqual(["package-001"], listedPackageStates.Select(state => state.PackageId).ToArray(), "listed package state ids");
 AssertEqual("WorkDispatched", savedPackageState?.Status, "queried package state status");
 AssertEqual(updatedPackageState.UpdatedAt, savedPackageState?.UpdatedAt, "queried package state updated at");
 AssertEqual(null, missingPackageState, "missing package state");
@@ -64,9 +66,11 @@ var logRecord = new NodeDiagnosticLogRecord(
     SpanId: "span-001");
 
 await store.SaveAsync(new PersistenceBatch([], [command], [timelineRecord], [logRecord]));
+var listedOutboxMessages = await store.ListOutboxMessagesAsync("correlation-001");
 
 AssertEqual(1, store.OutboxMessages.Count, "duplicate outbox message id is idempotent");
 AssertEqual("message-001", store.OutboxMessages[0].MessageId, "idempotent outbox message id");
+AssertSequenceEqual(["message-001"], listedOutboxMessages.Select(message => message.MessageId).ToArray(), "listed outbox message ids");
 AssertEqual(1, store.TimelineRecords.Count, "saved timeline record count");
 AssertEqual(1, store.NodeDiagnosticLogs.Count, "saved node diagnostic log count");
 
