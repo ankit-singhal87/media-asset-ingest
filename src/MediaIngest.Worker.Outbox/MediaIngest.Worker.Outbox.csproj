@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MediaIngest.Worker.Outbox.Tests" />
     <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
     <ProjectReference Include="../MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
   </ItemGroup>

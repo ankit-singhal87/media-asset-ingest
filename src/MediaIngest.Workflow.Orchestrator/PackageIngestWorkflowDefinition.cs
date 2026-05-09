@@ -26,4 +26,4 @@ namespace MediaIngest.Workflow.Orchestrator;
 [WorkflowEdge("complete-processing", "reconcile-package")]
 [WorkflowEdge("reconcile-package", "wait-done-marker")]
 [WorkflowEdge("wait-done-marker", "finalize-package")]
-public sealed class PackageIngestWorkflowDefinition;
+internal sealed class PackageIngestWorkflowDefinition;

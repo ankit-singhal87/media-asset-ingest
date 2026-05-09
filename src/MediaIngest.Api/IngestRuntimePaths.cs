@@ -1,5 +1,5 @@
 namespace MediaIngest.Api;
 
-public sealed record IngestRuntimePaths(
+internal sealed record IngestRuntimePaths(
     string InputPath,
     string OutputPath);

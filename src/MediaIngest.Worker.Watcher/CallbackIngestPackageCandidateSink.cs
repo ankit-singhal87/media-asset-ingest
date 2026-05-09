@@ -1,6 +1,6 @@
 namespace MediaIngest.Worker.Watcher;
 
-public sealed class CallbackIngestPackageCandidateSink(
+internal sealed class CallbackIngestPackageCandidateSink(
     Func<IngestPackageCandidate, CancellationToken, ValueTask> observe)
     : IIngestPackageCandidateSink
 {

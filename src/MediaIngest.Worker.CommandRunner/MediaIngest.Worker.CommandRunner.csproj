@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MediaIngest.Worker.CommandRunner.Tests" />
     <ProjectReference Include="../MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
     <ProjectReference Include="../MediaIngest.Observability/MediaIngest.Observability.csproj" />
   </ItemGroup>

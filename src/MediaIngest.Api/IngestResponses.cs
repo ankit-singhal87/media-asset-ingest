@@ -1,29 +1,29 @@
 namespace MediaIngest.Api;
 
-public sealed record IngestStartResponse(
+internal sealed record IngestStartResponse(
     IReadOnlyList<StartedIngestPackageResponse> StartedPackages);
 
-public sealed record IngestStartResult(
+internal sealed record IngestStartResult(
     IngestStartResponse Response,
     bool HasConflict);
 
-public sealed record StartedIngestPackageResponse(
+internal sealed record StartedIngestPackageResponse(
     string PackageId,
     string WorkflowInstanceId);
 
-public sealed record IngestStatusResponse(
+internal sealed record IngestStatusResponse(
     IReadOnlyList<IngestPackageStatusResponse> Packages);
 
-public sealed record IngestPackageStatusResponse(
+internal sealed record IngestPackageStatusResponse(
     string PackageId,
     string WorkflowInstanceId,
     string Status,
     DateTimeOffset UpdatedAt);
 
-public sealed record WorkflowListResponse(
+internal sealed record WorkflowListResponse(
     IReadOnlyList<WorkflowListItemResponse> Workflows);
 
-public sealed record WorkflowListItemResponse(
+internal sealed record WorkflowListItemResponse(
     string WorkflowInstanceId,
     string PackageId,
     string Status,

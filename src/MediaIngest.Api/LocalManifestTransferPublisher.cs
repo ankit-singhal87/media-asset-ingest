@@ -5,7 +5,7 @@ using MediaIngest.Worker.Outbox;
 
 namespace MediaIngest.Api;
 
-public sealed class LocalManifestTransferPublisher : IOutboxMessagePublisher
+internal sealed class LocalManifestTransferPublisher : IOutboxMessagePublisher
 {
     private static readonly string[] ManifestFileNames =
     [

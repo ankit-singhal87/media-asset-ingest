@@ -1,6 +1,6 @@
 namespace MediaIngest.Api;
 
-public sealed class LocalManifestTransferConflictException(
+internal sealed class LocalManifestTransferConflictException(
     string packageId,
     string path)
     : InvalidOperationException($"Output file '{path}' already exists with different content for package '{packageId}'.")

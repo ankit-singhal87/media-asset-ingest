@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace MediaIngest.Api;
 
-public sealed class IngestApiApplication : IAsyncDisposable
+internal sealed class IngestApiApplication : IAsyncDisposable
 {
     private readonly WebApplication webApplication;
 

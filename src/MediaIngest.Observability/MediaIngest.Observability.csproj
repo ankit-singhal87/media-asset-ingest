@@ -3,4 +3,8 @@
     <RootNamespace>MediaIngest.Observability</RootNamespace>
     <AssemblyName>MediaIngest.Observability</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MediaIngest.Observability.Tests" />
+  </ItemGroup>
 </Project>

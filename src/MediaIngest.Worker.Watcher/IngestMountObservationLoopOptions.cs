@@ -1,6 +1,6 @@
 namespace MediaIngest.Worker.Watcher;
 
-public sealed record IngestMountObservationLoopOptions
+internal sealed record IngestMountObservationLoopOptions
 {
     public IngestMountObservationLoopOptions(string ingestMountPath, TimeSpan scanInterval)
     {

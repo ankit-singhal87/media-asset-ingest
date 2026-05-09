@@ -10,7 +10,7 @@ using MediaIngest.Workflow.Orchestrator;
 
 namespace MediaIngest.Api;
 
-public sealed class IngestRuntimeService(
+internal sealed class IngestRuntimeService(
     IngestRuntimePaths paths,
     IngestMountScanner scanner,
     ManifestReadinessGate readinessGate,
