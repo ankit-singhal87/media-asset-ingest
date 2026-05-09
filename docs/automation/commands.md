@@ -72,10 +72,10 @@ only when the mount behavior requires them:
 | `make github-projects-script-test` | Test GitHub tracker helper wrappers without network. | cheap | no | no |
 | `make github-project-check` | Verify GitHub CLI auth and project access. | cheap | no | no |
 | `make github-project-summary` | Print GitHub Project, issue, milestone, and item counts. | cheap | no | no |
-| `make github-project-hierarchy` | Print parent/child issue hierarchy when navigation needs inspection. | cheap | no | no |
-| `make github-project-active` | Print in-progress GitHub Project items. | cheap | no | no |
-| `make github-project-audit-fields` | Legacy helper for detailed Project fields; not required for lightweight tracking. | cheap | no | no |
-| `make github-issue-body-lint` | Check issue bodies avoid duplicated relationship metadata. | cheap | no | no |
+| `make github-project-active` | Print in-progress GitHub Project items for lightweight board visibility. | cheap | no | no |
+| `make github-project-hierarchy` | Legacy read-only helper for parent/child navigation when explicitly needed. | cheap | no | no |
+| `make github-project-audit-fields` | Legacy detailed Project field audit; do not use for normal lightweight tracking. | cheap | no | no |
+| `make github-issue-body-lint` | Legacy relationship metadata check; do not use for normal lightweight tracking. | cheap | no | no |
 | `npm run docs:check` | Check docs for unfinished placeholders. | cheap | no | no |
 | `npm run docs:check:summary` | Check docs with compact summary output and a full `/tmp` log. | cheap | no | no |
 | `npm run docs:fix` | Apply safe docs formatting fixes. | cheap | no | no |
@@ -88,10 +88,10 @@ only when the mount behavior requires them:
 | `npm run pr:readiness` | Print the local dry PR readiness checklist through npm. | cheap | no | no |
 | `npm run github-project:check` | Verify GitHub CLI auth and project access through npm. | cheap | no | no |
 | `npm run github-project:summary` | Print GitHub tracker counts through npm. | cheap | no | no |
-| `npm run github-project:hierarchy` | Print GitHub tracker hierarchy through npm. | cheap | no | no |
-| `npm run github-project:active` | Print in-progress GitHub tracker items through npm. | cheap | no | no |
-| `npm run github-project:audit-fields` | Legacy detailed Project field audit through npm; not required for lightweight tracking. | cheap | no | no |
-| `npm run github-project:issue-body-lint` | Check issue body relationship metadata through npm. | cheap | no | no |
+| `npm run github-project:active` | Print in-progress lightweight board items through npm. | cheap | no | no |
+| `npm run github-project:hierarchy` | Legacy hierarchy helper through npm when explicitly needed. | cheap | no | no |
+| `npm run github-project:audit-fields` | Legacy detailed Project field audit through npm; do not use for normal lightweight tracking. | cheap | no | no |
+| `npm run github-project:issue-body-lint` | Legacy relationship metadata check through npm; do not use for normal lightweight tracking. | cheap | no | no |
 | `npm run github-project:script-test` | Test GitHub tracker helper wrappers through npm. | cheap | no | no |
 | `npm run summary-validation:test` | Test the summary validation wrapper through npm. | cheap | no | no |
 | `npm run tools:check` | Verify required Linux development tools through npm. | cheap | no | no |
@@ -104,3 +104,8 @@ summary does not explain a failure.
 
 When a task adds a canonical command, update this file and
 `docs/automation/validation.md` when validation behavior changes.
+
+Normal GitHub Project workflow is limited to summary and active-story board
+visibility. Detailed Project field audits, task metadata updates, worktree or
+branch fields, validation fields, dependency helpers, and relationship linting
+are legacy compatibility surfaces unless a future task explicitly revives them.

@@ -37,7 +37,8 @@ scope and report staged and unstaged files separately.
 - [ ] Decide whether the task has 2+ independent lanes suitable for subagents.
 - [ ] If subagents are suitable and authorized, dispatch them before deep local work.
 - [ ] Set a context budget: plan a handoff/checkpoint before long logs, broad diffs, or compaction risk.
-- [ ] Read `docs/automation/github-projects.md`.
+- [ ] Read `docs/automation/github-projects.md` when issue, PR, milestone, or
+      simple Project status may change.
 - [ ] Identify ownership lane from `docs/automation/roles.md`.
 - [ ] Identify linked GitHub issue, user stories, and milestone.
 - [ ] Check the linked GitHub issue when remote context is needed.
@@ -56,7 +57,8 @@ scope and report staged and unstaged files separately.
 - [ ] Before `make validate`, `local-runtime-smoke`, Docker validation, or other long commands, update the state record, then run a summary validation command when available.
 - [ ] Close completed subagents after their findings are integrated.
 - [ ] Follow BDD/TDD for behavior changes.
-- [ ] Update GitHub issue or simple Project status only when tracker state changes.
+- [ ] Update GitHub issue or simple story-level Project status only when
+      tracker state changes.
 - [ ] Update task, story, milestone, status, and bug docs when durable repo context changes.
 - [ ] Record validation evidence.
 
@@ -66,7 +68,8 @@ scope and report staged and unstaged files separately.
 - [ ] Prefer `*-summary` validation targets for broad commands, and report the log path.
 - [ ] Run stronger validation if the change touches runtime, contracts, infra, or tooling.
 - [ ] Run `git diff --check`.
-- [ ] Run lightweight GitHub tracker validation when tracker state changed.
+- [ ] Run lightweight GitHub tracker validation when issue, PR, milestone, or
+      simple Project status changed.
 - [ ] Update required docs.
 - [ ] Review staged and unstaged paths separately.
 - [ ] Prefer small local commits after validation when the change is ready.

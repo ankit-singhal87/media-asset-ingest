@@ -8,7 +8,7 @@
 | Automation process docs only | `make docs-check` and `git diff --check` | `make validate` before PR when command docs, scripts, or Makefile targets also changed | no | no | cheap |
 | Standards change | `make docs-check` and the relevant focused validation target | `make validate` and review affected automation docs and task workflow | no | no | cheap |
 | Tooling change | `make validate-summary` and `make check-tools` when host tools are expected | `make validate`, then `make print-install-tools` review | no | no | cheap |
-| GitHub tracker change | GitHub plugin inspection, `make github-project-summary`, and `make github-project-active` | targeted GitHub plugin issue/PR inspection, `make github-project-hierarchy` only when parent/child navigation changed | no | no | cheap |
+| GitHub tracker change | GitHub plugin inspection plus `make github-project-summary` or `make github-project-active` when Project visibility changed | targeted GitHub plugin issue/PR inspection, `make github-project-hierarchy` only when parent/child navigation changed | no | no | cheap |
 | .NET code change | focused `make test-dotnet-*` target for the touched component | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
 | Generic command runner change | `make test-dotnet-command-runner` | `make test-dotnet`, then `make validate` before PR | yes when host `dotnet` is unavailable | no | moderate |
 | React control-plane change | `make test-ui` | `make test-ui` plus `make validate` before PR when backend contracts also changed | no | no | cheap |
@@ -44,3 +44,8 @@ code, key success or failure lines, and log path.
 
 Run `make pr-readiness-check` before reporting PR readiness to print the local
 changed-path summary, state-record status, and validation reminders.
+
+For Project-only visibility changes, prefer `make github-project-summary` and
+`make github-project-active`. Do not run legacy Project field audits,
+relationship linting, or dependency helper checks unless the task explicitly
+revives detailed tracker maintenance.

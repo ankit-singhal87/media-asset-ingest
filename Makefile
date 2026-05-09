@@ -29,11 +29,11 @@ help:
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
 	@printf '%s\n' "  make github-projects-script-test Test GitHub tracker helper wrappers"
 	@printf '%s\n' "  make github-project-check     Verify GitHub CLI auth and project access"
-	@printf '%s\n' "  make github-project-summary   Print GitHub tracker counts"
-	@printf '%s\n' "  make github-project-hierarchy Print epic/story hierarchy"
-	@printf '%s\n' "  make github-project-active    Print in-progress project items"
-	@printf '%s\n' "  make github-project-audit-fields Verify required Project fields"
-	@printf '%s\n' "  make github-issue-body-lint   Check issue bodies for duplicated relationships"
+	@printf '%s\n' "  make github-project-summary   Print lightweight tracker counts"
+	@printf '%s\n' "  make github-project-active    Print active story board items"
+	@printf '%s\n' "  make github-project-hierarchy Legacy hierarchy inspection"
+	@printf '%s\n' "  make github-project-audit-fields Legacy detailed field audit"
+	@printf '%s\n' "  make github-issue-body-lint   Legacy relationship metadata check"
 
 agent-preflight:
 	@sh scripts/dev/agent-preflight.sh
