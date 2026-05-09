@@ -5,6 +5,9 @@ messages or paste command output unless it explains a decision.
 
 ## 2026-05-09
 
+- Migrated the canonical .NET solution from legacy `MediaIngest.sln` to
+  `MediaIngest.slnx`, added the missing Essence project and tests to
+  solution-level validation, and added focused .NET summary targets.
 - Added the reviewable local durable ingest slice: Compose now runs API, UI,
   PostgreSQL, outbox worker, and light/medium/heavy command-runner hosts; the
   API selects raw Npgsql PostgreSQL persistence in Compose with guarded schema

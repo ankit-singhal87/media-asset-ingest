@@ -36,7 +36,7 @@ Agents may edit only these files unless they escalate:
 - `src/MediaIngest.Workflow.Orchestrator`
 - `src/MediaIngest.Workflow`
 - `tests/MediaIngest.Workflow.Tests`
-- `MediaIngest.sln`
+- `MediaIngest.slnx`
 - `deploy/dapr`
 - `deploy/k8s`
 - `docker-compose.yml`
