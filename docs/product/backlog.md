@@ -62,6 +62,9 @@ epic/story granularity; detailed implementation tasks belong in plans.
 - MILESTONE-5 / USER-STORY-9 / USER-STORY-10: add attribute-discovered
   orchestrator workflow topology metadata and validation for package ingest
   nodes, waits, command dispatch/completion, child workflows, and finalization.
+- MILESTONE-8 / USER-STORY-12 / USER-STORY-14 / USER-STORY-15: generate API
+  workflow graph DTOs from orchestrator-owned topology metadata, with dynamic
+  command work-item nodes overlaid from persisted command outbox envelopes.
 
 ## Ready For Planning
 
@@ -69,7 +72,7 @@ epic/story granularity; detailed implementation tasks belong in plans.
   validation slice beyond static Compose checks.
 - MILESTONE-5 / USER-STORY-9 / USER-STORY-10 and MILESTONE-8 /
   USER-STORY-12 through USER-STORY-15: continue the workflow orchestrator graph
-  discovery stack with TASK-8-5 and TASK-8-6.
+  discovery stack with TASK-8-6.
 ## Later
 
 - MILESTONE-6 / USER-STORY-7: connect generic command runners to Azure Service

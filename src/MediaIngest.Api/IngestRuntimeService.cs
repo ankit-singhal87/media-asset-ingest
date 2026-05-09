@@ -6,6 +6,7 @@ using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 using MediaIngest.Worker.Watcher;
 using MediaIngest.Workflow;
+using MediaIngest.Workflow.Orchestrator;
 
 namespace MediaIngest.Api;
 
@@ -14,6 +15,7 @@ public sealed class IngestRuntimeService(
     IngestMountScanner scanner,
     ManifestReadinessGate readinessGate,
     PackageWorkflowStarter workflowStarter,
+    WorkflowGraphProjector workflowGraphProjector,
     InMemoryIngestPersistenceStore store,
     OutboxDispatcher outboxDispatcher) : IAsyncDisposable
 {
@@ -386,10 +388,13 @@ public sealed class IngestRuntimeService(
 
         return packageState is null
             ? null
-            : CreateWorkflowGraph(
-                packageState.PackageId,
-                packageState.WorkflowInstanceId,
-                packageState.Status);
+            : workflowGraphProjector.ProjectInstance(new WorkflowGraphProjectionRequest(
+                WorkflowName: WorkflowContractNames.PackageIngestWorkflow,
+                WorkflowInstanceId: packageState.WorkflowInstanceId,
+                PackageId: packageState.PackageId,
+                Status: MapPackageStatus(packageState.Status),
+                ParentWorkflowInstanceId: null,
+                CommandWorkItems: GetMediaCommandWorkItems(packageState.PackageId).ToArray()));
     }
 
     public WorkflowNodeDetailsDto? GetWorkflowNodeDetails(string workflowInstanceId, string nodeId)
@@ -549,44 +554,7 @@ public sealed class IngestRuntimeService(
         return $"{commandName} {packageRelativePath}";
     }
 
-    private WorkflowGraphDto CreateWorkflowGraph(
-        string packageId,
-        string workflowInstanceId,
-        string status)
-    {
-        var workflowStatus = MapPackageStatus(status);
-        var nodes = new List<WorkflowNodeDto>
-        {
-            CreateWorkflowNode("package-start", "Package ingest", WorkflowNodeKind.WorkflowStep, workflowStatus, workflowInstanceId, packageId, null),
-            CreateWorkflowNode("scan-package", "Package scan", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "scan-package"),
-            CreateWorkflowNode("classify-files", "Classify discovered files", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "classify-files"),
-            CreateWorkflowNode("dispatch-processing", "Dispatch processing work", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "dispatch-processing")
-        };
-
-        nodes.AddRange(GetMediaCommandEnvelopes(packageId)
-            .OrderBy(command => command.InputPaths.SingleOrDefault() ?? command.CommandId, StringComparer.Ordinal)
-            .Select(command => CreateWorkflowNode(
-                $"command-{SanitizeIdentifier(GetPackageRelativeCommandPath(command, packageId))}",
-                CreateCommandDisplayName(command),
-                WorkflowNodeKind.WorkItem,
-                workflowStatus,
-                workflowInstanceId,
-                packageId,
-                command.CommandId)));
-
-        nodes.Add(CreateWorkflowNode("reconcile-package", "Reconcile package", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "reconcile-package"));
-        nodes.Add(CreateWorkflowNode("finalize-package", "Finalize package", WorkflowNodeKind.Activity, workflowStatus, workflowInstanceId, packageId, "finalize-package"));
-
-        return new WorkflowGraphDto(
-            WorkflowInstanceId: workflowInstanceId,
-            WorkflowName: WorkflowContractNames.PackageIngestWorkflow,
-            PackageId: packageId,
-            ParentWorkflowInstanceId: null,
-            Nodes: nodes,
-            Edges: CreateLinearEdges(nodes));
-    }
-
-    private IEnumerable<MediaCommandEnvelope> GetMediaCommandEnvelopes(string packageId)
+    private IEnumerable<WorkflowCommandWorkItem> GetMediaCommandWorkItems(string packageId)
     {
         var correlationId = $"correlation-{packageId}";
 
@@ -596,37 +564,12 @@ public sealed class IngestRuntimeService(
                 && string.Equals(message.CorrelationId, correlationId, StringComparison.Ordinal))
             .Select(message => JsonSerializer.Deserialize<MediaCommandEnvelope>(message.PayloadJson))
             .Where(command => command is not null)
-            .Cast<MediaCommandEnvelope>();
-    }
-
-    private static WorkflowNodeDto CreateWorkflowNode(
-        string nodeId,
-        string displayName,
-        WorkflowNodeKind kind,
-        WorkflowNodeStatus status,
-        string workflowInstanceId,
-        string packageId,
-        string? workItemId)
-    {
-        return new WorkflowNodeDto(
-            NodeId: nodeId,
-            DisplayName: displayName,
-            Kind: kind,
-            Status: status,
-            WorkflowInstanceId: workflowInstanceId,
-            PackageId: packageId,
-            WorkItemId: workItemId,
-            ChildWorkflowInstanceId: null);
-    }
-
-    private static WorkflowEdgeDto[] CreateLinearEdges(IReadOnlyList<WorkflowNodeDto> nodes)
-    {
-        return nodes
-            .Zip(nodes.Skip(1), (source, target) => new WorkflowEdgeDto(
-                EdgeId: $"{source.NodeId}-{target.NodeId}",
-                SourceNodeId: source.NodeId,
-                TargetNodeId: target.NodeId))
-            .ToArray();
+            .Cast<MediaCommandEnvelope>()
+            .OrderBy(command => command.InputPaths.SingleOrDefault() ?? command.CommandId, StringComparer.Ordinal)
+            .Select(command => new WorkflowCommandWorkItem(
+                NodeId: $"command-{SanitizeIdentifier(GetPackageRelativeCommandPath(command, packageId))}",
+                DisplayName: CreateCommandDisplayName(command),
+                WorkItemId: command.CommandId));
     }
 
     private static WorkflowNodeStatus MapPackageStatus(string status)

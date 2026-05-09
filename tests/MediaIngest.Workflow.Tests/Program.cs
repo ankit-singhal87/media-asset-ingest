@@ -67,6 +67,32 @@ AssertThrows<WorkflowDefinitionCatalogException>(
     () => WorkflowDefinitionCatalog.FromTypes(typeof(MissingDisplayNameWorkflow)),
     "missing catalog display name");
 
+var orchestratorProjection = new WorkflowGraphProjector(catalog);
+var definitionGraph = orchestratorProjection.ProjectDefinition(WorkflowContractNames.PackageIngestWorkflow);
+AssertEqual(WorkflowContractNames.PackageIngestWorkflow, definitionGraph.WorkflowName, "definition graph workflow name");
+AssertEqual(WorkflowNodeStatus.Pending, definitionGraph.Nodes[0].Status, "definition graph default node status");
+
+var instanceGraph = orchestratorProjection.ProjectInstance(new WorkflowGraphProjectionRequest(
+    WorkflowName: WorkflowContractNames.PackageIngestWorkflow,
+    WorkflowInstanceId: "package-package-001",
+    PackageId: "package-001",
+    Status: WorkflowNodeStatus.Succeeded,
+    ParentWorkflowInstanceId: null,
+    CommandWorkItems:
+    [
+        new WorkflowCommandWorkItem(
+            NodeId: "command-media-source-mov",
+            DisplayName: "CreateProxy source.mov",
+            WorkItemId: "command-package-001-media-source-mov")
+    ]));
+AssertEqual("package-package-001", instanceGraph.WorkflowInstanceId, "orchestrator graph workflow instance id");
+AssertEqual("package-001", instanceGraph.PackageId, "orchestrator graph package id");
+AssertEqual(12, instanceGraph.Nodes.Count, "orchestrator graph node count with command work");
+AssertEqual(11, instanceGraph.Edges.Count, "orchestrator graph edge count with command work");
+AssertTrue(instanceGraph.Nodes.Any(node => node.NodeId == "command-media-source-mov" && node.Kind == WorkflowNodeKind.WorkItem), "orchestrator command work node");
+AssertTrue(instanceGraph.Nodes.Any(node => node.NodeId == "wait-command-completion" && node.Status == WorkflowNodeStatus.Succeeded), "orchestrator wait node status");
+AssertEqual("package-package-001/scan-package", instanceGraph.Nodes.Single(node => node.NodeId == "scan-package").ChildWorkflowInstanceId, "orchestrator child workflow id");
+
 var lifecycle = PackageWorkflowLifecycle.Observe(request);
 AssertEqual(PackageWorkflowLifecycleState.Observed, lifecycle.Current.State, "observed lifecycle state");
 AssertEqual("package-001", lifecycle.Current.PackageId, "observed package id");

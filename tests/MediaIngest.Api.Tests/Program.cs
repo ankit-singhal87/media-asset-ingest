@@ -4,6 +4,7 @@ using MediaIngest.Persistence;
 using MediaIngest.Worker.Outbox;
 using MediaIngest.Worker.Watcher;
 using MediaIngest.Workflow;
+using MediaIngest.Workflow.Orchestrator;
 using System.Text.Json;
 
 var repoRoot = Path.Combine(Path.GetTempPath(), "media-ingest-api-tests", Guid.NewGuid().ToString("N"));
@@ -55,19 +56,25 @@ try
     AssertEqual("package-asset-001", graph.WorkflowInstanceId, "graph workflow instance id");
     AssertEqual("PackageIngestWorkflow", graph.WorkflowName, "graph workflow name");
     AssertEqual("asset-001", graph.PackageId, "graph package id");
-    AssertEqual(11, graph.Nodes.Count, "graph node count");
-    AssertEqual(10, graph.Edges.Count, "graph edge count");
+    AssertEqual(16, graph.Nodes.Count, "graph node count");
+    AssertEqual(19, graph.Edges.Count, "graph edge count");
     AssertEqual("package-start", graph.Nodes[0].NodeId, "graph first node id");
     AssertEqual("scan-package", graph.Nodes[1].NodeId, "graph scan node id");
     AssertEqual("classify-files", graph.Nodes[2].NodeId, "graph classify node id");
-    AssertEqual("dispatch-processing", graph.Nodes[3].NodeId, "graph dispatch node id");
+    AssertEqual("essence-group-processing", graph.Nodes[3].NodeId, "graph essence group node id");
+    AssertEqual("proxy-creation", graph.Nodes[4].NodeId, "graph proxy node id");
+    AssertEqual("dispatch-processing", graph.Nodes[5].NodeId, "graph dispatch node id");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-mix-wav"), "audio command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-late-mov"), "late video command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-media-source-mov"), "video command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-sidecars-caption-srt"), "text command graph node");
     AssertTrue(graph.Nodes.Any(node => node.NodeId == "command-notes-bin"), "other command graph node");
-    AssertEqual("reconcile-package", graph.Nodes[^2].NodeId, "graph reconcile node id");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "wait-command-completion" && node.Kind == MediaIngest.Contracts.Workflow.WorkflowNodeKind.Wait), "graph command wait node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "complete-processing" && node.Kind == MediaIngest.Contracts.Workflow.WorkflowNodeKind.CommandCompletion), "graph command completion node");
+    AssertTrue(graph.Nodes.Any(node => node.NodeId == "wait-done-marker" && node.Kind == MediaIngest.Contracts.Workflow.WorkflowNodeKind.Wait), "graph done marker wait node");
+    AssertEqual("reconcile-package", graph.Nodes[^3].NodeId, "graph reconcile node id");
     AssertEqual("finalize-package", graph.Nodes[^1].NodeId, "graph finalize node id");
+    AssertEqual("package-asset-001/scan-package", graph.Nodes.Single(node => node.NodeId == "scan-package").ChildWorkflowInstanceId, "graph scan child workflow id");
     AssertEqual("Succeeded", graph.Nodes[0].Status.ToString(), "graph first node status");
 
     var mediaCommandMessages = runtime.Store.OutboxMessages
@@ -263,6 +270,7 @@ static TestRuntime CreateRuntimeService(string inputPath, string outputPath)
         new IngestMountScanner(),
         new ManifestReadinessGate(),
         new PackageWorkflowStarter(),
+        WorkflowGraphProjector.CreateDefault(),
         store,
         new OutboxDispatcher(store, publisher));
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+In Progress
 
 ## Linked Work
 
@@ -101,6 +101,9 @@ REFACTOR:
 - The API should call the orchestrator service and forward or lightly overlay `WorkflowGraphDto`.
 - Remove or retire API-local hard-coded graph generation from `IngestRuntimeService`.
 - Preserve child workflow drilldown identifiers already represented by `childWorkflowInstanceId`.
+- In the local foundation, the overlay uses business package status and
+  persisted command outbox envelopes while real Dapr workflow runtime status
+  remains deferred with SDK hosting.
 
 ## Validation
 
@@ -109,6 +112,7 @@ Minimal validation:
 ```bash
 make test-dotnet-api-summary
 make test-dotnet-workflow-summary
+make test-dotnet-contracts
 git diff --check
 ```
 
