@@ -11,9 +11,9 @@ This directory contains the current container build and local compose assets.
   ingest input and output paths mounted as plain filesystem directories.
 
 The watcher, workflow, outbox, command-runner, persistence, observability, and
-essence projects are currently libraries or foundation slices rather than
-standalone runnable container services. Add service Dockerfiles when those
-projects gain executable hosts.
+essence projects are libraries or host-backed slices rather than standalone
+container services unless they have explicit executable hosts. Add service
+Dockerfiles when those projects gain new executable host boundaries.
 
 ## Boundary
 

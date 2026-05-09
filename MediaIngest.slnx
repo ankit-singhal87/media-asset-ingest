@@ -10,11 +10,17 @@
   <File Path="Makefile" />
   <File Path="README.md" />
   <File Path="package.json" />
+  <Folder Name="/Root/">
+    <File Path="AGENTS.md" />
+    <File Path="LICENSE" />
+    <File Path="Makefile" />
+    <File Path="package.json" />
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/MediaIngest.Api/MediaIngest.Api.csproj" />
     <Project Path="src/MediaIngest.Contracts/MediaIngest.Contracts.csproj" />
     <Project Path="src/MediaIngest.Essence/MediaIngest.Essence.csproj" />
-    <Project Path="src/MediaIngest.Foundation/MediaIngest.Foundation.csproj" />
     <Project Path="src/MediaIngest.Observability/MediaIngest.Observability.csproj" />
     <Project Path="src/MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
     <Project Path="src/MediaIngest.Worker.CommandRunner.Host/MediaIngest.Worker.CommandRunner.Host.csproj" />
@@ -29,7 +35,6 @@
     <Project Path="tests/MediaIngest.Api.Tests/MediaIngest.Api.Tests.csproj" />
     <Project Path="tests/MediaIngest.Contracts.Tests/MediaIngest.Contracts.Tests.csproj" />
     <Project Path="tests/MediaIngest.Essence.Tests/MediaIngest.Essence.Tests.csproj" />
-    <Project Path="tests/MediaIngest.Foundation.Tests/MediaIngest.Foundation.Tests.csproj" />
     <Project Path="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj" />
     <Project Path="tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.Tests.csproj" />
     <Project Path="tests/MediaIngest.Worker.CommandRunner.Tests/MediaIngest.Worker.CommandRunner.Tests.csproj" />
