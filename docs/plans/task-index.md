@@ -24,6 +24,7 @@ coordination trail unless a local task file was created or renamed.
 | --- | --- | --- | --- | --- | --- | --- |
 | TASK-2-1 | #30 | Create .NET solution skeleton | Forge | `docs/plans/tasks/TASK-2-1-create-dotnet-solution.md` | Completed |
 | TASK-2-2 | #32 | Define shared backend and UI contracts | Forge | `docs/plans/tasks/TASK-2-2-shared-backend-ui-contracts.md` | Completed |
+| TASK-2-4 | #105 | Deepen Docker-first runtime validation for command dispatch | Forge | `docs/plans/tasks/TASK-2-4-command-dispatch-runtime-validation.md` | Completed |
 | TASK-3-1 | #35 | Add ingest watcher and scanner foundation | Mount | `docs/plans/tasks/TASK-3-1-ingest-watcher-scanner.md` | Completed |
 | TASK-3-2 | none | Add integrated local ingest demo | Gauge | `docs/plans/tasks/TASK-3-2-integrated-local-ingest-demo.md` | Completed |
 | TASK-4-1 | #36 | Add persistence and outbox foundation | Vault | `docs/plans/tasks/TASK-4-1-persistence-outbox-foundation.md` | Completed |

@@ -77,8 +77,11 @@ Runtime validation:
   docker compose -p $project_name -f deploy/docker/compose.yaml up --build -d
   wait for $api_url/api/ingest/status
   wait for $ui_url
+  verify command-runner-light, command-runner-medium, and command-runner-heavy are running
+  verify each command-runner log exposes its configured executionClass
   SMOKE_EXPECT_COPIED_FILES=manifest MEDIA_INGEST_API_URL=$api_url sh scripts/dev/local-e2e-smoke.sh
   query PostgreSQL for persisted package state and dispatched command outbox rows
+  query PostgreSQL for dispatched command rows grouped by executionClass
   docker compose -p $project_name -f deploy/docker/compose.yaml down
 
 Boundary:
@@ -247,6 +250,27 @@ wait_for_http() {
   return 1
 }
 
+assert_compose_service_running() {
+  service="$1"
+
+  if ! compose ps --services --status running | grep -Fx "$service" >/dev/null; then
+    printf 'Expected Compose service to be running: %s\n' "$service" >&2
+    compose ps >&2
+    return 1
+  fi
+}
+
+assert_service_log_contains() {
+  service="$1"
+  expected="$2"
+
+  if ! compose logs --no-color "$service" | grep -F "$expected" >/dev/null; then
+    printf 'Expected %s logs to contain: %s\n' "$service" "$expected" >&2
+    compose logs --no-color "$service" >&2
+    return 1
+  fi
+}
+
 run_runtime_smoke() {
   cd "$repo_root"
   require_docker
@@ -272,6 +296,15 @@ run_runtime_smoke() {
   wait_for_http "API" "$api_url/api/ingest/status"
   wait_for_http "UI" "$ui_url"
 
+  printf '%s\n' "Checking command runner service boundaries..."
+  for service in command-runner-light command-runner-medium command-runner-heavy
+  do
+    assert_compose_service_running "$service"
+  done
+  assert_service_log_contains command-runner-light "executionClass=light"
+  assert_service_log_contains command-runner-medium "executionClass=medium"
+  assert_service_log_contains command-runner-heavy "executionClass=heavy"
+
   printf '%s\n' "Running local ingest smoke against Compose API..."
   SMOKE_PACKAGE_ID="$smoke_package_id" SMOKE_EXPECT_COPIED_FILES=manifest MEDIA_INGEST_API_URL="$api_url" sh scripts/dev/local-e2e-smoke.sh
 
@@ -293,11 +326,22 @@ run_runtime_smoke() {
       "$command_outbox_count" "$dispatched_command_count" >&2
     exit 1
   fi
+  command_execution_class_counts=$(compose exec -T postgres psql -U postgres -d media_ingest -tAc \
+    "select coalesce(payload_json ->> 'executionClass', payload_json ->> 'ExecutionClass') as execution_class, count(*) from outbox_messages where correlation_id = 'correlation-$smoke_package_id' and message_type = 'MediaCommandEnvelope' and dispatched_at is not null group by execution_class order by execution_class;")
+  dispatched_light_command_count=$(compose exec -T postgres psql -U postgres -d media_ingest -tAc \
+    "select count(*) from outbox_messages where correlation_id = 'correlation-$smoke_package_id' and message_type = 'MediaCommandEnvelope' and dispatched_at is not null and coalesce(payload_json ->> 'executionClass', payload_json ->> 'ExecutionClass') = 'light';")
+  if [ "$dispatched_light_command_count" -lt 4 ]; then
+    printf 'Expected at least 4 dispatched light command rows, got %s\n' "$dispatched_light_command_count" >&2
+    printf '%s\n' "$command_execution_class_counts" >&2
+    exit 1
+  fi
 
   printf '%s\n' "Local Compose runtime smoke passed."
   printf '  package_state: %s\n' "$package_status"
   printf '  command_outbox_rows: %s\n' "$command_outbox_count"
   printf '  dispatched_command_outbox_rows: %s\n' "$dispatched_command_count"
+  printf '%s\n' "  dispatched_command_execution_classes:"
+  printf '%s\n' "$command_execution_class_counts" | sed 's/^/    /'
 }
 
 while [ "$#" -gt 0 ]; do

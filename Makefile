@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint summary-validation-script-test
+.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint summary-validation-script-test local-compose-check-script-test
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -78,7 +78,7 @@ validate-docs: docs-check
 validate-docs-summary:
 	@sh scripts/dev/validation-summary.sh make validate-docs
 
-validate-automation: scripts-check github-projects-script-test summary-validation-script-test
+validate-automation: scripts-check github-projects-script-test summary-validation-script-test local-compose-check-script-test
 
 validate-automation-summary:
 	@sh scripts/dev/validation-summary.sh make validate-automation
@@ -139,6 +139,7 @@ scripts-check:
 	@sh -n scripts/dev/pr-readiness-check.sh
 	@sh -n scripts/dev/validation-summary.sh
 	@sh -n scripts/dev/test-summary-validation.sh
+	@sh -n scripts/dev/test-local-compose-check.sh
 	@sh -n scripts/dev/test-dotnet.sh
 	@sh -n scripts/dev/github-projects.sh
 	@sh -n scripts/dev/test-github-projects.sh
@@ -150,6 +151,9 @@ github-projects-script-test:
 
 summary-validation-script-test:
 	@sh scripts/dev/test-summary-validation.sh
+
+local-compose-check-script-test:
+	@sh scripts/dev/test-local-compose-check.sh
 
 github-project-check:
 	@sh scripts/dev/github-projects.sh check-auth

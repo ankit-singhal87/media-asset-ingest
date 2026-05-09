@@ -121,8 +121,10 @@ sh scripts/dev/local-compose-check.sh --dry-run
 ```
 
 For a Docker-first runtime smoke that starts the local API, UI, and PostgreSQL
-Compose stack, waits for API and UI HTTP responses, runs the scripted local
-ingest smoke against the containerized API, and then stops the stack:
+Compose stack, waits for API and UI HTTP responses, verifies the runnable
+light/medium/heavy command-runner service boundaries, runs the scripted local
+ingest smoke against the containerized API, queries command dispatch evidence,
+and then stops the stack:
 
 ```bash
 make local-runtime-smoke
@@ -150,6 +152,13 @@ The Compose runtime smoke runs `local-e2e-smoke.sh` with
 manifest pair and represents media, sidecar, and metadata files as command
 nodes. Full copied-file assertions remain available for smoke environments that
 provide command-runner output behavior.
+
+Command-runner evidence is intentionally local and boundary-level. The smoke
+asserts that all three runner host containers are running, that each startup log
+exposes its configured `executionClass`, and that dispatched command outbox rows
+are persisted in PostgreSQL with execution-class routing metadata. The current
+local runner hosts do not consume real Azure Service Bus messages or execute
+media commands during this smoke.
 
 For a no-Docker runtime-smoke plan:
 
