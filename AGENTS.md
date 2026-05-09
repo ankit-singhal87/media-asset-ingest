@@ -29,9 +29,9 @@ direction.
 - Follow [docs/automation/parallelization.md](docs/automation/parallelization.md) when dispatching parallel agents.
 - Use [docs/automation/agent-handoff.md](docs/automation/agent-handoff.md) for task handoff results.
 - Use [docs/automation/conflict-protocol.md](docs/automation/conflict-protocol.md) when scope, architecture, validation, or parallel work conflicts arise.
-- Use [docs/automation/github-projects.md](docs/automation/github-projects.md) when changing GitHub issues, milestones, projects, bugs, or PR tracking state.
-- Prefer the GitHub plugin for structured GitHub operations; use `gh` only for
-  gaps such as Project board commands, CLI auth checks, or wrapper validation.
+- Prefer the GitHub plugin for structured GitHub repository, issue, PR, review,
+  diff, commit, CI, comment, label, and merge operations; use `gh` only for
+  plugin gaps.
 - Use [docs/automation/git-conventions.md](docs/automation/git-conventions.md) before creating branches, commits, or PRs.
 - Follow [docs/standards/bdd-tdd.md](docs/standards/bdd-tdd.md) for behavior changes.
 - Follow [docs/standards/domain-driven-design.md](docs/standards/domain-driven-design.md) for domain boundaries.
@@ -40,8 +40,9 @@ direction.
   actions, secret handling, or changes outside the assigned scope.
 - Update ignored local `.worktrees/state/<worktree-slug>.md` records when
   creating, using, PR-opening, merging, or cleaning up worktrees.
-- Keep GitHub Projects lightweight: issues and PRs are durable, and the Project
-  is only a simple status board when remote tracker access is available.
+- Keep product state, plans, milestones, bugs, and status in repo docs. GitHub
+  issues and PRs are optional review and collaboration surfaces, not the source
+  of truth for project state.
 - Start branch names, commit subjects, and PR titles with the lowest-level
   available work identifier: task ID, bug ID, then story ID.
 - Local commits are allowed after relevant validation and should be small,

@@ -1,7 +1,7 @@
 # Bugs
 
-Use this folder for durable defect reports. GitHub Issues/Projects are the
-tracker source of truth for bug status, relationships, and PR state.
+Use this folder for durable defect reports. Repo docs are the source of truth
+for bug status and relationships.
 
 Start with [index.md](index.md).
 
@@ -15,7 +15,6 @@ Use [templates/bug-template.md](templates/bug-template.md) for new bug files.
 
 Bug fixes must update:
 
-- the GitHub bug issue and simple Project status when remote tracking is used
 - the bug file status
 - [index.md](index.md)
 - linked user stories if acceptance meaning changes in repo docs

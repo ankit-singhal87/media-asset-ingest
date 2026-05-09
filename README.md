@@ -61,7 +61,7 @@ make validate-summary
 It writes the full log under `/tmp` and prints only the command, exit code, key
 success or failure lines, and log path.
 
-Validation currently checks documentation, shell script syntax, GitHub tracker
+Validation currently checks documentation, shell script syntax, automation
 helper wrappers, and the .NET solution smoke-test targets. Runtime-specific
 checks such as local Compose validation are exposed as focused Make targets and
 can be run when that slice is in scope.
@@ -206,10 +206,8 @@ Enabled agent tools:
 - [GitHub plugin](https://github.com/openai/plugins): prefer it for structured
   repository, issue, PR, review, diff, commit, CI, comment, label, and merge
   operations.
-- `gh` and Make helpers: use these only when the plugin cannot cover the
-  action, especially GitHub Projects v2 fields, CLI auth checks, and tracker
-  validation commands such as
-  `make github-project-active`.
+- `gh`: use only when the plugin cannot cover a specific GitHub repository,
+  issue, or PR operation.
 
 ## Development Model
 
@@ -219,6 +217,6 @@ Enabled agent tools:
   UI infrastructure details.
 - Update quickstart, automation, status, product, milestone, and tooling docs
   when a task changes developer workflow or project behavior.
-- Keep GitHub issues and PRs as durable remote tracking. Use the GitHub Project
-  only as a lightweight status board; repo docs keep durable standards and
-  context.
+- Keep product state, plans, milestones, bugs, and status in repo docs. GitHub
+  issues and PRs may provide review context, but they are not the durable
+  planning source.

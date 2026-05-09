@@ -1,4 +1,4 @@
-.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check github-projects-script-test github-project-check github-project-summary github-project-hierarchy github-project-active github-project-audit-fields github-issue-body-lint summary-validation-script-test local-compose-check-script-test
+.PHONY: help agent-preflight pr-readiness-check check-tools install-tools install-optional-tools print-install-tools print-install-optional-tools up down local-compose-check local-runtime-smoke validate validate-summary validate-docs validate-docs-summary validate-automation validate-automation-summary test-dotnet test-dotnet-summary test-dotnet-foundation test-dotnet-contracts test-dotnet-watcher test-dotnet-api test-dotnet-persistence test-dotnet-outbox test-dotnet-workflow test-dotnet-observability test-dotnet-command-runner test-ui test-ui-summary docs-check docs-check-summary docs-fix scripts-check summary-validation-script-test local-compose-check-script-test
 
 help:
 	@printf '%s\n' "Available targets:"
@@ -27,13 +27,6 @@ help:
 	@printf '%s\n' "  make docs-check          Check docs for unfinished placeholders"
 	@printf '%s\n' "  make docs-fix            Apply safe docs formatting fixes"
 	@printf '%s\n' "  make scripts-check       Syntax-check shell scripts"
-	@printf '%s\n' "  make github-projects-script-test Test GitHub tracker helper wrappers"
-	@printf '%s\n' "  make github-project-check     Verify GitHub CLI auth and project access"
-	@printf '%s\n' "  make github-project-summary   Print lightweight tracker counts"
-	@printf '%s\n' "  make github-project-active    Print active story board items"
-	@printf '%s\n' "  make github-project-hierarchy Legacy hierarchy inspection"
-	@printf '%s\n' "  make github-project-audit-fields Legacy detailed field audit"
-	@printf '%s\n' "  make github-issue-body-lint   Legacy relationship metadata check"
 
 agent-preflight:
 	@sh scripts/dev/agent-preflight.sh
@@ -68,7 +61,7 @@ local-compose-check:
 local-runtime-smoke:
 	@sh scripts/dev/local-compose-check.sh --runtime-smoke
 
-validate: docs-check scripts-check github-projects-script-test summary-validation-script-test test-dotnet
+validate: docs-check scripts-check summary-validation-script-test test-dotnet
 
 validate-summary:
 	@sh scripts/dev/validation-summary.sh make validate
@@ -78,7 +71,7 @@ validate-docs: docs-check
 validate-docs-summary:
 	@sh scripts/dev/validation-summary.sh make validate-docs
 
-validate-automation: scripts-check github-projects-script-test summary-validation-script-test local-compose-check-script-test
+validate-automation: scripts-check summary-validation-script-test local-compose-check-script-test
 
 validate-automation-summary:
 	@sh scripts/dev/validation-summary.sh make validate-automation
@@ -141,34 +134,11 @@ scripts-check:
 	@sh -n scripts/dev/test-summary-validation.sh
 	@sh -n scripts/dev/test-local-compose-check.sh
 	@sh -n scripts/dev/test-dotnet.sh
-	@sh -n scripts/dev/github-projects.sh
-	@sh -n scripts/dev/test-github-projects.sh
 	@sh -n scripts/dev/local-e2e-smoke.sh
 	@sh -n scripts/dev/local-compose-check.sh
-
-github-projects-script-test:
-	@sh scripts/dev/test-github-projects.sh
 
 summary-validation-script-test:
 	@sh scripts/dev/test-summary-validation.sh
 
 local-compose-check-script-test:
 	@sh scripts/dev/test-local-compose-check.sh
-
-github-project-check:
-	@sh scripts/dev/github-projects.sh check-auth
-
-github-project-summary:
-	@sh scripts/dev/github-projects.sh summary
-
-github-project-hierarchy:
-	@sh scripts/dev/github-projects.sh hierarchy
-
-github-project-active:
-	@sh scripts/dev/github-projects.sh active
-
-github-project-audit-fields:
-	@sh scripts/dev/github-projects.sh audit-fields
-
-github-issue-body-lint:
-	@sh scripts/dev/github-projects.sh lint-issue-bodies

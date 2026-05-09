@@ -14,12 +14,11 @@ Low-token operating entrypoint for AI coding agents and local automation.
 8. [execution-checklist.md](execution-checklist.md)
 9. [parallelization.md](parallelization.md) when dispatching parallel agents
 10. [agent-handoff.md](agent-handoff.md) before reporting task results
-11. [github-projects.md](github-projects.md) when work changes issues, PRs, milestones, or project state
-12. [git-conventions.md](git-conventions.md) before creating branches, commits, or PRs
-13. [state-record-template.md](state-record-template.md) when creating or updating
+11. [git-conventions.md](git-conventions.md) before creating branches, commits, or PRs
+12. [state-record-template.md](state-record-template.md) when creating or updating
     local worktree state records
-14. [subagent-prompts.md](subagent-prompts.md) when dispatching review or worker subagents
-15. [terminal-scripts.md](terminal-scripts.md) when using local `.terminals/`
+13. [subagent-prompts.md](subagent-prompts.md) when dispatching review or worker subagents
+14. [terminal-scripts.md](terminal-scripts.md) when using local `.terminals/`
     helpers for parallel worktree launches
 
 ## Durable References
@@ -36,7 +35,6 @@ Low-token operating entrypoint for AI coding agents and local automation.
 - [definition-of-done.md](definition-of-done.md) - completion criteria by work type.
 - [conflict-protocol.md](conflict-protocol.md) - escalation rules for scope, architecture, parallel, and validation conflicts.
 - [pr-checklist.md](pr-checklist.md) - pull request creation and merge checklist.
-- [github-projects.md](github-projects.md) - GitHub tracking model, plugin preference, and CLI fallback commands.
 - [git-conventions.md](git-conventions.md) - branch, commit, and PR naming conventions.
 - [state-record-template.md](state-record-template.md) - local worktree checkpoint template.
 - [subagent-prompts.md](subagent-prompts.md) - compact subagent prompt templates.

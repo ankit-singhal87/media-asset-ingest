@@ -10,11 +10,8 @@ messages or paste command output unless it explains a decision.
   API selects raw Npgsql PostgreSQL persistence in Compose with guarded schema
   creation; OpenAPI, Problem Details errors, reviewer guide, and runtime smoke
   PostgreSQL state/outbox checks document the local review path.
-- Reduced GitHub Project guidance to a lightweight story-level visibility board:
-  repo docs, GitHub issues, PRs, commits, and status files remain the durable
-  record, while detailed Project fields, task-card backfills, validation fields,
-  dependency helpers, and relationship linting are legacy unless explicitly
-  revived.
+- Removed remote board guidance and kept repo docs as the durable source for
+  product state, plans, milestones, bugs, and status.
 
 ## 2026-05-06
 
@@ -112,27 +109,17 @@ messages or paste command output unless it explains a decision.
   definition of done, parallelization rules, PR checklist, and conflict protocol.
 - Added active worktree tracking and automatic PR authorization rules for
   parallel Codex execution.
-- Created GitHub Project `Media Asset Ingest Roadmap`, GitHub milestones,
-  milestone epic issues, user-story issues, and tracker labels.
-- Added initial GitHub sub-issue hierarchy, blocked-by dependencies, richer
-  issue bodies, and populated Project fields for type, lane, and status.
-- Removed duplicated relationship metadata from GitHub issue bodies and added
-  read-only Make/npm helpers for GitHub tracker verification.
-- Cleaned local plan, bug, checklist, and definition-of-done docs so GitHub
-  issues and PRs carry durable tracker history while repo docs keep durable
-  context.
-- Tightened PR checklist and active worktree coordination after GitHub Projects
+- Created early remote milestone and story tracking, later superseded by
+  repo-local docs as the durable planning source.
+- Cleaned local plan, bug, checklist, and definition-of-done docs so repo docs
+  carry durable project state and context.
+- Tightened PR checklist and active worktree coordination after remote tracking
   cleanup.
 - Created the first parallel execution task issues and local task files for
   .NET foundation, shared contracts, Dapr workflow, React UI, watcher,
   persistence/outbox, observability, and command execution lanes.
-- Added tested GitHub tracker helper commands for Project field updates,
-  native sub-issue links, and native blocked-by dependency links.
-- Added tested GitHub tracker helpers for required field audits, issue-body
-  relationship linting, and PR creation with Project plus local worktree-state
-  updates.
-- Documented serialized GitHub Project operations so parallel agents do not
-  exhaust the shared GraphQL rate-limit budget.
+- Added early remote board helper commands, later removed when repo docs
+  became the only durable planning and status surface.
 - Added the TASK-2-1 .NET solution skeleton with a dependency-free foundation
   smoke test and canonical `make test-dotnet` / `npm run dotnet:test`
   validation entrypoints.
@@ -160,10 +147,9 @@ messages or paste command output unless it explains a decision.
   coverage for the operator graph scenario.
 - Reconciled local status, backlog, milestone, and user-story docs after the
   TASK-3-1 through TASK-8-1 local merges.
-- Reconciled GitHub task issues and Project fields for #31 and #33 through #37
-  after the local task merges.
-- Simplified future GitHub tracking to issues, PRs, parent/child navigation when
-  useful, and simple Project status only.
+- Reconciled early remote task tracking for #31 and #33 through #37 after the
+  local task merges.
+- Simplified future durable tracking to repo docs.
 - Replaced the media-specific worker skeleton direction with generic command
   routing contracts and light, medium, or heavy execution classes.
 - Added focused .NET smoke-test targets, focused validation targets, an agent

@@ -6,18 +6,11 @@ Planned
 
 ## Linked Work
 
-- GitHub issue: #<number>
 - Milestone: MILESTONE-<number>
 - User stories:
   - USER-STORY-<number>
 - Bugs:
   - None
-
-Native GitHub relationships:
-
-- Parent issue: #<number>
-- Blocked by: #<number> or none
-- Blocks: #<number> or none
 
 ## Ownership
 
@@ -37,7 +30,6 @@ Agents may edit only these files unless they escalate:
 
 Read before editing:
 
-- GitHub issue #<number> and its parent/sub-issue/dependency relationships.
 - `<path>` - <why it matters>
 
 ## BDD Scenario
@@ -79,13 +71,6 @@ Minimal validation:
 <command>
 ```
 
-GitHub tracker validation:
-
-```bash
-make github-project-summary
-make github-project-hierarchy
-```
-
 ## Required Documentation Updates
 
 - `docs/plans/task-index.md`
@@ -95,15 +80,12 @@ make github-project-hierarchy
 ## Completion Checklist
 
 - [ ] Scope and ownership lane confirmed.
-- [ ] GitHub issue and Project item checked.
-- [ ] Parent/sub-issue/dependency relationships checked.
 - [ ] Investigation targets reviewed.
 - [ ] BDD scenario confirmed or updated.
 - [ ] Failing test observed before production code, unless exception documented.
 - [ ] Implementation completed within target files.
 - [ ] Validation command run and evidence recorded.
 - [ ] Required docs updated.
-- [ ] GitHub Projects updated when tracker state changed.
 - [ ] Handoff result prepared.
 
 ## Handoff Result
@@ -111,11 +93,6 @@ make github-project-hierarchy
 ```text
 status: completed | blocked | escalation-needed
 taskId: TASK-<milestone>-<number>
-github:
-  issues:
-    - #<number>
-  projectValidation:
-    - <command and evidence>
 stories:
   - USER-STORY-<number>
 filesChanged:

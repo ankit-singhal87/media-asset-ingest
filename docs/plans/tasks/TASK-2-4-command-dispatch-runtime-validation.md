@@ -107,7 +107,3 @@ Broad validation:
 make validate-summary
 git diff --check
 ```
-
-GitHub tracker validation:
-
-Issue #105 is completed by the PR for this task.

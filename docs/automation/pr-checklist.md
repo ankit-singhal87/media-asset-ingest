@@ -19,9 +19,7 @@ Automatic PR creation still requires all checks in this file.
 - [ ] `make docs-fix` was run when docs formatting/link checks reported fixable issues.
 - [ ] `make validate` passes.
 - [ ] `git diff --check` passes.
-- [ ] GitHub issue state is updated when tracker state changed.
-- [ ] Simple Project status is updated only when story-level board visibility changed.
-- [ ] Lightweight GitHub tracker validation runs when issues or board status changed.
+- [ ] Repo docs reflect any state, plan, milestone, bug, or status changes.
 - [ ] Product docs, status, and work log are updated when durable repo context changes.
 - [ ] Local task and bug mirrors are updated when local task or bug files change.
 - [ ] ADRs are updated when architecture decisions change.
@@ -43,8 +41,8 @@ The PR body must include:
 - risk
 - follow-up notes
 
-After creating the PR, update the issue state when useful. Update simple Project
-status only when story-level board visibility changes.
+After creating the PR, keep durable state in repo docs. Use GitHub comments or
+issue links only when they help review.
 
 ## PR Readiness Gate
 

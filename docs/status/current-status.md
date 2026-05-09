@@ -33,22 +33,16 @@
 - Agent execution templates, indexes, checklists, handoff, parallelization, and
   conflict guidance created.
 - Active worktree coordination and PR authorization rules created.
-- GitHub Projects roadmap created with milestone epics and numbered user-story
-  issues.
-- Initial GitHub issue hierarchy, dependencies, issue bodies, and Project fields
-  refined; later simplified to lightweight story-level board tracking.
-- Read-only GitHub tracker helper commands added for agent verification.
-- Local task, bug, checklist, and definition-of-done docs aligned with the
-  lightweight GitHub tracker model.
+- Early remote tracking was created for milestone epics and numbered user-story
+  issues, then superseded by repo-doc state as the durable planning source.
+- Local task, bug, checklist, and definition-of-done docs were aligned around
+  repo-doc planning and status.
 - Markdown link validation, safe docs fix commands, and Git branch/commit/PR
   naming conventions were merged in PR #29.
 - Task issues #30 through #37 were created for the first parallel execution
   lanes, with #30 and #32 active as the foundation worktrees.
-- Legacy GitHub tracker helper commands exist for Project field updates, native
-  sub-issue links, blocked-by dependency links, field audits, issue-body
-  relationship linting, and PR creation with local worktree-state updates, but
-  normal Project workflow is limited to lightweight summary, active-story
-  visibility, and simple status movement.
+- Legacy remote board helper commands were removed; repo docs now hold
+  durable state, plans, milestones, bugs, and status.
 - TASK-2-1 added the initial buildable .NET solution skeleton and canonical
   `make test-dotnet` validation entrypoint.
 - TASK-2-2 defined initial shared workflow graph, node detail, status, and
@@ -66,9 +60,8 @@
   worktree coordination now stays in ignored local `.worktrees/state/` records.
 - The tracked active worktree ledger was removed from planning docs to avoid
   conflicts across parallel PRs.
-- GitHub tracker state for task issues #31 and #33 through #37 was reconciled
-  to closed. Future Project tracking is lightweight story-level status only;
-  task issues do not require Project cards.
+- Early task tracking for #31 and #33 through #37 was reconciled after local
+  task merges; future durable state lives in repo docs.
 - Command routing now uses semantic command topics and light, medium, or heavy
   execution classes instead of media-specific command runner projects.
 - Agent execution tooling now includes focused .NET smoke-test targets, focused
@@ -165,10 +158,8 @@
   `/tmp` while printing command, exit code, key success or failure lines, and
   log path. Current task capsules live in ignored `.worktrees/state/` records
   for compact resume context.
-- GitHub Project guidance now treats the Project as a simple visibility board:
-  repo docs, issues, PRs, commits, and status files are authoritative; detailed
-  Project fields, task-card backfills, validation fields, dependency helpers,
-  and relationship linting are legacy unless explicitly revived.
+- Remote board guidance and helper commands were removed. Repo docs are the
+  source of truth for product state, plans, milestones, bugs, and status.
 - The reviewable local durable ingest slice now uses raw Npgsql-backed
   PostgreSQL persistence in Compose, guarded local startup schema creation,
   Problem Details for not-found and conflict API responses, static OpenAPI

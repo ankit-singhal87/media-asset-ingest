@@ -100,13 +100,6 @@ make validate
 git diff --check
 ```
 
-GitHub tracker validation:
-
-```bash
-make github-project-summary
-make github-project-hierarchy
-```
-
 ## Required Documentation Updates
 
 - `docs/plans/task-index.md`

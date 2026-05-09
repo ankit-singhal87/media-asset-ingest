@@ -114,22 +114,15 @@ make validate
 git diff --check
 ```
 
-GitHub tracker validation:
-
-Not run; this task has no GitHub issue or Project item.
-
 ## Completion Checklist
 
 - [x] Scope and ownership lane confirmed.
-- [x] GitHub issue and Project item checked or documented as absent.
-- [x] Parent/sub-issue/dependency relationships checked or documented as absent.
 - [x] Investigation targets reviewed.
 - [x] BDD scenario confirmed.
 - [x] Failing test observed before production code.
 - [x] Implementation completed within target files.
 - [x] Validation command run and evidence recorded.
 - [x] Required docs updated.
-- [x] GitHub Projects unchanged because no tracker state changed.
 - [x] Handoff result prepared.
 
 ## Handoff Result
@@ -137,10 +130,6 @@ Not run; this task has no GitHub issue or Project item.
 ```text
 status: completed
 taskId: TASK-3-2
-github:
-  issues: []
-  projectValidation:
-    - not run; no tracker state changed
 stories:
   - USER-STORY-1
   - USER-STORY-3
