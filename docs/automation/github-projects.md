@@ -1,7 +1,8 @@
 # GitHub Tracking
 
 GitHub is a lightweight visibility layer. Repo-local product, architecture,
-standards, and task docs remain the durable execution context.
+standards, issues, PRs, commits, and status files remain the durable execution
+record.
 
 ## Project
 
@@ -15,7 +16,11 @@ standards, and task docs remain the durable execution context.
 - Keep parent/child issue relationships only when they improve navigation.
 - Keep the GitHub Project as a simple status board: `Todo`, `In Progress`,
   `Done`, and optionally `Blocked`.
+- Keep the Project focused on milestone/story visibility items and the current
+  active story. Task issues are useful, but they do not need Project cards.
 - Let PRs link issues naturally with `Refs #<issue>` or `Closes #<issue>`.
+- Treat `docs/status/current-status.md` as the current execution snapshot. Stale
+  Project status must not override repo docs, issues, PRs, or commits.
 
 Do not require routine maintenance of:
 
@@ -24,6 +29,10 @@ Do not require routine maintenance of:
   worktree, or validation
 - Project field audits
 - worktree/branch metadata in GitHub
+
+Completed task issues, including closed tasks such as `#107` through `#110`,
+should stay closed issues. Do not create board maintenance work just to add,
+remove, or backfill task-level Project cards.
 
 ## Agent Rules
 
@@ -57,6 +66,22 @@ make github-project-active
 
 `make github-project-hierarchy` remains available when parent/child navigation
 needs inspection, but it is not required for every task.
+
+## Legacy Helper Surface
+
+Keep `make github-project-summary` and `make github-project-active` as the
+normal Project checks. Use status updates only for simple board movement.
+
+The following helpers are legacy compatibility commands. Do not use them as
+normal workflow unless a future task explicitly revives detailed Project
+tracking:
+
+- detailed Project field audits
+- task metadata field updates, including type, lane, target files, branch,
+  worktree, PR, or validation fields
+- blocked-by dependency helpers
+- issue relationship linting
+- relationship backfills for completed task issues
 
 ## Current Milestone Story Map
 

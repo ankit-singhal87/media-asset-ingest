@@ -12,18 +12,18 @@ Usage: scripts/dev/github-projects.sh <command>
 Commands:
   check-auth       Verify GitHub CLI auth and project access.
   summary          Print project, milestone, issue, and item counts.
-  hierarchy        Print epic sub-issue hierarchy.
-  active           Print in-progress project items.
-  audit-fields     Verify required Project fields are populated.
-  lint-issue-bodies Verify issue bodies avoid duplicated relationship metadata.
-  open-pr          Create a PR and update tracker/worktree PR state.
+  active           Print active story board items.
+  hierarchy        Legacy: print epic sub-issue hierarchy.
+  audit-fields     Legacy: verify detailed Project fields are populated.
+  lint-issue-bodies Legacy: check duplicated relationship metadata.
+  open-pr          Legacy: create a PR and update tracker/worktree PR state.
   set-status       Set GitHub Project Status for an issue.
-  set-type         Set GitHub Project Type for an issue.
-  set-lane         Set GitHub Project Lane for an issue.
-  set-text         Set a GitHub Project text field for an issue.
-  set-task-fields  Set common task Project fields in one serialized call.
-  add-sub-issue    Add a native GitHub sub-issue relationship.
-  add-blocked-by   Add a native GitHub blocked-by dependency.
+  set-type         Legacy: set GitHub Project Type for an issue.
+  set-lane         Legacy: set GitHub Project Lane for an issue.
+  set-text         Legacy: set a GitHub Project text field for an issue.
+  set-task-fields  Legacy: set common task Project fields.
+  add-sub-issue    Legacy: add a native GitHub sub-issue relationship.
+  add-blocked-by   Legacy: add a native GitHub blocked-by dependency.
 
 Environment overrides:
   GITHUB_PROJECT_OWNER
@@ -31,6 +31,8 @@ Environment overrides:
   GITHUB_PROJECT_NUMBER
 
 Write operations require explicit agent approval before running the command.
+Use only summary, active, and simple status movement for normal lightweight
+tracking unless a future task explicitly revives detailed Project maintenance.
 USAGE
 }
 

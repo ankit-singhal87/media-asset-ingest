@@ -3,6 +3,14 @@
 Use this log for concise human-readable progress notes. Do not duplicate commit
 messages or paste command output unless it explains a decision.
 
+## 2026-05-09
+
+- Reduced GitHub Project guidance to a lightweight story-level visibility board:
+  repo docs, GitHub issues, PRs, commits, and status files remain the durable
+  record, while detailed Project fields, task-card backfills, validation fields,
+  dependency helpers, and relationship linting are legacy unless explicitly
+  revived.
+
 ## 2026-05-06
 
 - Added TASK-5-3 workflow orchestrator boundary: the new
