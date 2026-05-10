@@ -305,6 +305,7 @@ static WatcherDbContext CreateContext()
 {
     var options = new DbContextOptionsBuilder<WatcherDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+        .UseSnakeCaseNamingConvention()
         .Options;
 
     return new WatcherDbContext(options);

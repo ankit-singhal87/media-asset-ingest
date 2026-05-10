@@ -12,6 +12,7 @@ internal sealed class WatcherDbContextFactory : IDesignTimeDbContextFactory<Watc
 
         var options = new DbContextOptionsBuilder<WatcherDbContext>()
             .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
             .Options;
 
         return new WatcherDbContext(options);
