@@ -168,6 +168,11 @@
   Problem Details for not-found and conflict API responses, static OpenAPI
   documentation, runnable outbox and command-runner host processes, and a
   reviewer guide with honest local/cloud boundaries.
+- USER-STORY-1 added a generic `MediaIngest.Worker.LocalFileSystemWatcher`
+  service boundary with EF Core/Npgsql-owned
+  `local_file_system_watcher` schema mappings and migrations, durable
+  idempotent control commands, filesystem event records, callback outbox
+  messages, strict callback template tokens, and supervisor reconciliation.
 
 ## Next
 

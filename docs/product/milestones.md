@@ -101,6 +101,7 @@ Ownership lanes:
 
 Components:
 
+- `src/MediaIngest.Worker.LocalFileSystemWatcher`
 - `src/MediaIngest.Worker.Watcher`
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Persistence`

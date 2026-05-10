@@ -3,6 +3,14 @@
 Use this log for concise human-readable progress notes. Do not duplicate commit
 messages or paste command output unless it explains a decision.
 
+## 2026-05-10
+
+- Added USER-STORY-1 local filesystem watcher service boundary:
+  `MediaIngest.Worker.LocalFileSystemWatcher` now owns EF Core/Npgsql mappings
+  and migrations for `local_file_system_watcher`, durable watch/control/event
+  records, callback outbox rows, strict callback template tokens, and
+  supervisor reconciliation tests without ingest-specific package logic.
+
 ## 2026-05-09
 
 - Migrated the canonical .NET solution from legacy `MediaIngest.sln` to

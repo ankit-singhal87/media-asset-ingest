@@ -46,6 +46,7 @@ requires it.
 | `make test-dotnet` | Build and smoke-test the .NET solution using host `dotnet` or the .NET SDK container. | moderate | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-summary` | Run .NET solution validation with compact summary output and a full `/tmp` log. | moderate | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-contracts` | Run the contracts smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
+| `make test-dotnet-local-file-system-watcher` | Run the generic local filesystem watcher service smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-watcher` | Run the ingest watcher smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-essence` | Run the essence checksum and classification smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |
 | `make test-dotnet-persistence` | Run the persistence smoke test project only. | cheap | yes when host `dotnet` is unavailable | no |

@@ -14,8 +14,9 @@ outbox_tests="tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Te
 workflow_tests="tests/MediaIngest.Workflow.Tests/MediaIngest.Workflow.Tests.csproj"
 observability_tests="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj"
 command_runner_tests="tests/MediaIngest.Worker.CommandRunner.Tests/MediaIngest.Worker.CommandRunner.Tests.csproj"
+local_file_system_watcher_tests="tests/MediaIngest.Worker.LocalFileSystemWatcher.Tests/MediaIngest.Worker.LocalFileSystemWatcher.Tests.csproj"
 
-all_test_projects="$contracts_tests $watcher_tests $api_tests $essence_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests $command_runner_tests"
+all_test_projects="$contracts_tests $watcher_tests $api_tests $essence_tests $persistence_tests $outbox_tests $workflow_tests $observability_tests $command_runner_tests $local_file_system_watcher_tests"
 test_projects=""
 scope="selected"
 
@@ -60,9 +61,12 @@ else
       command-runner)
         append_project "$command_runner_tests"
         ;;
+      local-file-system-watcher)
+        append_project "$local_file_system_watcher_tests"
+        ;;
       *)
         printf 'Unknown .NET test target: %s\n' "$target"
-        printf '%s\n' "Supported targets: all contracts watcher api essence persistence outbox workflow observability command-runner"
+        printf '%s\n' "Supported targets: all contracts watcher api essence persistence outbox workflow observability command-runner local-file-system-watcher"
         exit 2
         ;;
     esac

@@ -32,6 +32,9 @@ Use changed paths to pick the cheapest sufficient validation:
 - `src/MediaIngest.Worker.CommandRunner/*` or
   `tests/MediaIngest.Worker.CommandRunner.Tests/*`: run
   `make test-dotnet-command-runner`.
+- `src/MediaIngest.Worker.LocalFileSystemWatcher/*` or
+  `tests/MediaIngest.Worker.LocalFileSystemWatcher.Tests/*`: run
+  `make test-dotnet-local-file-system-watcher`.
 - `src/MediaIngest.Essence/*` or `tests/MediaIngest.Essence.Tests/*`: run
   `make test-dotnet-essence`.
 - Other `src/*` or `tests/*`: run the focused `make test-dotnet-*` target for
