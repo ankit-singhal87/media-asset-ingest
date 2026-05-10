@@ -3,6 +3,8 @@
 Planned structure:
 
 - `src/MediaIngest.Api` - API for the ingest control plane UI.
+- `src/MediaIngest.Worker.LocalFileSystemWatcher` - generic local filesystem
+  watcher service with EF-owned desired state, events, and callback outbox.
 - `src/MediaIngest.Worker.Watcher` - filesystem package watcher.
 - `src/MediaIngest.Worker.Outbox` - transactional outbox dispatcher.
 - `src/MediaIngest.Workflow` - Dapr workflow definitions and orchestration contracts.

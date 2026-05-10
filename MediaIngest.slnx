@@ -25,6 +25,7 @@
     <Project Path="src/MediaIngest.Persistence/MediaIngest.Persistence.csproj" />
     <Project Path="src/MediaIngest.Worker.CommandRunner.Host/MediaIngest.Worker.CommandRunner.Host.csproj" />
     <Project Path="src/MediaIngest.Worker.CommandRunner/MediaIngest.Worker.CommandRunner.csproj" />
+    <Project Path="src/MediaIngest.Worker.LocalFileSystemWatcher/MediaIngest.Worker.LocalFileSystemWatcher.csproj" />
     <Project Path="src/MediaIngest.Worker.Outbox.Host/MediaIngest.Worker.Outbox.Host.csproj" />
     <Project Path="src/MediaIngest.Worker.Outbox/MediaIngest.Worker.Outbox.csproj" />
     <Project Path="src/MediaIngest.Worker.Watcher/MediaIngest.Worker.Watcher.csproj" />
@@ -38,6 +39,7 @@
     <Project Path="tests/MediaIngest.Observability.Tests/MediaIngest.Observability.Tests.csproj" />
     <Project Path="tests/MediaIngest.Persistence.Tests/MediaIngest.Persistence.Tests.csproj" />
     <Project Path="tests/MediaIngest.Worker.CommandRunner.Tests/MediaIngest.Worker.CommandRunner.Tests.csproj" />
+    <Project Path="tests/MediaIngest.Worker.LocalFileSystemWatcher.Tests/MediaIngest.Worker.LocalFileSystemWatcher.Tests.csproj" />
     <Project Path="tests/MediaIngest.Worker.Outbox.Tests/MediaIngest.Worker.Outbox.Tests.csproj" />
     <Project Path="tests/MediaIngest.Worker.Watcher.Tests/MediaIngest.Worker.Watcher.Tests.csproj" />
     <Project Path="tests/MediaIngest.Workflow.Tests/MediaIngest.Workflow.Tests.csproj" />

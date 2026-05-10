@@ -44,6 +44,7 @@ Ownership lanes:
 
 Components involved:
 
+- `src/MediaIngest.Worker.LocalFileSystemWatcher`
 - `src/MediaIngest.Worker.Watcher`
 - `src/MediaIngest.Contracts`
 - `src/MediaIngest.Tests`
@@ -54,6 +55,8 @@ Acceptance themes:
 - Local development can use local filesystem storage.
 - Production storage backing is hidden behind the mount.
 - Package discovery emits durable business state or commands.
+- Generic local filesystem watcher desired state, events, and callback delivery
+  are persisted outside ingest-specific package behavior.
 
 Dependencies:
 

@@ -75,6 +75,10 @@ epic/story granularity; detailed implementation tasks belong in plans.
   OpenAPI documentation, Problem Details API errors, reviewer guide, and
   runtime smoke evidence for durable package state plus dispatched command
   outbox rows.
+- MILESTONE-3 / USER-STORY-1: add a generic local filesystem watcher service
+  boundary with EF-owned PostgreSQL desired state, durable control command
+  idempotency, event capture, supervisor reconciliation, and callback outbox
+  queuing without ingest-specific package logic.
 
 ## Ready For Planning
 
