@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace MediaIngest.Worker.LocalFileSystemWatcher;
 
-internal sealed class FileSystemWatcherRuntime(EventRecorder eventRecorder) : IWatcherRuntime, IDisposable
+internal sealed class FileSystemWatcherRuntime(IEventRecorder eventRecorder) : IWatcherRuntime, IDisposable
 {
     private readonly ConcurrentDictionary<string, FileSystemWatcher> watchers = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, bool> knownPathTypes = new(StringComparer.Ordinal);

@@ -10,6 +10,11 @@ messages or paste command output unless it explains a decision.
   and migrations for `local_file_system_watcher`, durable watch/control/event
   records, callback outbox rows, strict callback template tokens, and
   supervisor reconciliation tests without ingest-specific package logic.
+- Refactored `MediaIngest.Worker.LocalFileSystemWatcher` internals into
+  self-contained domain, application, persistence, and infrastructure layers:
+  control commands, supervisor reconciliation, event recording, and filesystem
+  runtime now depend on service-owned ports instead of leaking EF or filesystem
+  details inward.
 
 ## 2026-05-09
 

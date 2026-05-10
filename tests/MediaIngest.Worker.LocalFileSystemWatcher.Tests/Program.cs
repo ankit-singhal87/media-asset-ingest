@@ -2,15 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using MediaIngest.Worker.LocalFileSystemWatcher;
 
 await VerifyEfModelOwnsTheWatcherSchema();
+await VerifyControlCommandsRunAgainstAStorePort();
 await VerifyControlCommandsAreIdempotentAndUpdateDesiredState();
 VerifyCallbackTemplatesRejectUnsupportedTokens();
 VerifyCallbackTemplatesRenderAllowedTokens();
 VerifyCallbackPayloadRenderingEscapesJsonTokenValues();
 await VerifyEventsAndCallbackOutboxArePersistedTogether();
+await VerifyEventRecorderRunsAgainstAStorePort();
+await VerifySupervisorRunsAgainstAStorePort();
 await VerifySupervisorReconcilesPersistedDesiredState();
 await VerifyControlCommandsSignalReconciliation();
 await VerifySupervisorPollsForDesiredStateChanges();
-await VerifyFileSystemWatcherRuntimeRecordsLocalEvents();
+await VerifyFileSystemWatcherRuntimeSendsObservedEventsToRecorderPort();
 
 Console.WriteLine("MediaIngest local file system watcher smoke tests passed.");
 
@@ -29,11 +32,32 @@ static async Task VerifyEfModelOwnsTheWatcherSchema()
     AssertEntityTable<CallbackOutboxMessage>(context, "outbox_messages");
 }
 
+static async Task VerifyControlCommandsRunAgainstAStorePort()
+{
+    var now = new DateTimeOffset(2026, 5, 10, 9, 30, 0, TimeSpan.Zero);
+    var store = new InMemoryWatchStore();
+    var handler = new ControlCommandHandler(store, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
+    var definition = new WatchDefinition(
+        WatchId: "watch-port",
+        PathToWatch: "/mnt/watch/port",
+        CallbackUrlTemplate: "https://callback.test/{eventType}",
+        CallbackPayloadTemplate: "{}");
+
+    var firstCreate = await handler.HandleAsync("command-port-create", "create_watcher", definition);
+    var duplicateCreate = await handler.HandleAsync("command-port-create", "create_watcher", definition);
+
+    AssertEqual("applied", firstCreate.Result, "store port first create result");
+    AssertEqual("duplicate", duplicateCreate.Result, "store port duplicate create result");
+    AssertEqual("active", store.Watches.Single().Status, "store port desired watch status");
+    AssertEqual(1, store.ControlCommands.Count, "store port idempotent command count");
+}
+
 static async Task VerifyControlCommandsAreIdempotentAndUpdateDesiredState()
 {
     var now = new DateTimeOffset(2026, 5, 10, 10, 0, 0, TimeSpan.Zero);
     await using var context = CreateContext();
-    var handler = new ControlCommandHandler(context, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
+    var store = new EfWatchStore(context);
+    var handler = new ControlCommandHandler(store, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
     var definition = new WatchDefinition(
         WatchId: "watch-001",
         PathToWatch: "/mnt/watch/dropbox",
@@ -124,7 +148,8 @@ static async Task VerifyEventsAndCallbackOutboxArePersistedTogether()
     });
     await context.SaveChangesAsync();
 
-    var recorder = new EventRecorder(context, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
+    var store = new EfWatchStore(context);
+    var recorder = new EventRecorder(store, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
 
     var recorded = await recorder.RecordAsync(new ObservedFileSystemEvent(
         WatchId: "watch-events",
@@ -146,6 +171,59 @@ static async Task VerifyEventsAndCallbackOutboxArePersistedTogether()
         "recorded callback url");
 }
 
+static async Task VerifyEventRecorderRunsAgainstAStorePort()
+{
+    var now = new DateTimeOffset(2026, 5, 10, 11, 30, 0, TimeSpan.Zero);
+    var store = new InMemoryWatchStore();
+    store.Watches.Add(new Watch
+    {
+        WatchId = "watch-event-port",
+        PathToWatch = "/mnt/watch/dropbox",
+        Status = "active",
+        CallbackUrlTemplate = "https://callback.test/{eventType}",
+        CallbackPayloadTemplate = """{"path":"{targetEventSourcePath}"}""",
+        Version = 1,
+        CreatedAt = now,
+        UpdatedAt = now
+    });
+    var recorder = new EventRecorder(store, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
+
+    var recorded = await recorder.RecordAsync(new ObservedFileSystemEvent(
+        WatchId: "watch-event-port",
+        EventType: "created",
+        IsFile: true,
+        TargetEventSourcePath: "/mnt/watch/dropbox/source.mov",
+        OccurredAt: now.AddSeconds(1)));
+
+    AssertEqual(1, store.Events.Count, "store port persisted filesystem event count");
+    AssertEqual(1, store.OutboxMessages.Count, "store port persisted outbox count");
+    AssertEqual(recorded.EventId, store.Events.Single().EventId, "store port recorded event id");
+    AssertEqual(recorded.EventId, store.OutboxMessages.Single().EventId, "store port outbox event id");
+}
+
+static async Task VerifySupervisorRunsAgainstAStorePort()
+{
+    var now = new DateTimeOffset(2026, 5, 10, 11, 45, 0, TimeSpan.Zero);
+    var store = new InMemoryWatchStore();
+    store.Watches.Add(new Watch
+    {
+        WatchId = "watch-supervisor-port",
+        PathToWatch = "/mnt/watch/supervisor-port",
+        Status = "active",
+        CallbackUrlTemplate = "https://callback.test/{eventType}",
+        CallbackPayloadTemplate = "{}",
+        Version = 1,
+        CreatedAt = now,
+        UpdatedAt = now
+    });
+    var runtime = new RecordingWatcherRuntime();
+    var supervisor = new Supervisor(store, runtime);
+
+    await supervisor.ReconcileAsync();
+
+    AssertSequenceEqual(["watch-supervisor-port"], runtime.StartedWatchIds.ToArray(), "store port supervisor started active watch ids");
+}
+
 static async Task VerifySupervisorReconcilesPersistedDesiredState()
 {
     var now = new DateTimeOffset(2026, 5, 10, 12, 0, 0, TimeSpan.Zero);
@@ -164,7 +242,7 @@ static async Task VerifySupervisorReconcilesPersistedDesiredState()
     await context.SaveChangesAsync();
 
     var runtime = new RecordingWatcherRuntime();
-    var supervisor = new Supervisor(context, runtime);
+    var supervisor = new Supervisor(new EfWatchStore(context), runtime);
 
     await supervisor.ReconcileAsync();
 
@@ -195,7 +273,7 @@ static async Task VerifyControlCommandsSignalReconciliation()
     var now = new DateTimeOffset(2026, 5, 10, 13, 0, 0, TimeSpan.Zero);
     await using var context = CreateContext();
     var signal = new RecordingReconciliationSignal();
-    var handler = new ControlCommandHandler(context, new CallbackTemplateRenderer(), new FixedTimeProvider(now), signal);
+    var handler = new ControlCommandHandler(new EfWatchStore(context), new CallbackTemplateRenderer(), new FixedTimeProvider(now), signal);
     var definition = new WatchDefinition(
         WatchId: "watch-signal",
         PathToWatch: "/mnt/watch/signal",
@@ -212,7 +290,7 @@ static async Task VerifySupervisorPollsForDesiredStateChanges()
     var now = new DateTimeOffset(2026, 5, 10, 14, 0, 0, TimeSpan.Zero);
     await using var context = CreateContext();
     var runtime = new RecordingWatcherRuntime();
-    var supervisor = new Supervisor(context, runtime);
+    var supervisor = new Supervisor(new EfWatchStore(context), runtime);
     using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
     var running = supervisor.RunAsync(TimeSpan.FromMilliseconds(20), cancellation.Token);
 
@@ -236,31 +314,16 @@ static async Task VerifySupervisorPollsForDesiredStateChanges()
     AssertSequenceEqual(["watch-polled"], runtime.StartedWatchIds.ToArray(), "polled active watch ids");
 }
 
-static async Task VerifyFileSystemWatcherRuntimeRecordsLocalEvents()
+static async Task VerifyFileSystemWatcherRuntimeSendsObservedEventsToRecorderPort()
 {
     var watchPath = Path.Combine(Path.GetTempPath(), "media-ingest-local-fs-watcher-tests", Guid.NewGuid().ToString("N"));
     Directory.CreateDirectory(watchPath);
 
     try
     {
-        var now = new DateTimeOffset(2026, 5, 10, 15, 0, 0, TimeSpan.Zero);
         var preexistingFilePath = Path.Combine(watchPath, "preexisting.mov");
         File.WriteAllText(preexistingFilePath, "not-real-media");
-        await using var context = CreateContext();
-        context.Watches.Add(new Watch
-        {
-            WatchId = "watch-runtime",
-            PathToWatch = watchPath,
-            Status = "active",
-            CallbackUrlTemplate = "https://callback.test/{eventType}",
-            CallbackPayloadTemplate = """{"path":"{targetEventSourcePath}"}""",
-            Version = 1,
-            CreatedAt = now,
-            UpdatedAt = now
-        });
-        await context.SaveChangesAsync();
-
-        var recorder = new EventRecorder(context, new CallbackTemplateRenderer(), new FixedTimeProvider(now));
+        var recorder = new RecordingEventRecorder();
         var runtime = new FileSystemWatcherRuntime(recorder);
 
         await runtime.StartAsync(new WatchDefinition(
@@ -271,29 +334,25 @@ static async Task VerifyFileSystemWatcherRuntimeRecordsLocalEvents()
         File.WriteAllText(Path.Combine(watchPath, "source.mov"), "not-real-media");
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await WaitUntilAsync(() => context.Events.Any(), cancellation.Token);
+        await WaitUntilAsync(() => recorder.ObservedEvents.Any(watchEvent => watchEvent.EventType == "created"), cancellation.Token);
         File.Delete(preexistingFilePath);
         await WaitUntilAsync(
-            () => context.Events.Any(watchEvent => watchEvent.EventType == "deleted" && watchEvent.TargetEventSourcePath == preexistingFilePath),
+            () => recorder.ObservedEvents.Any(watchEvent => watchEvent.EventType == "deleted" && watchEvent.TargetEventSourcePath == preexistingFilePath),
             cancellation.Token);
         File.Delete(Path.Combine(watchPath, "source.mov"));
-        await WaitUntilAsync(() => context.Events.Any(watchEvent => watchEvent.EventType == "deleted"), cancellation.Token);
+        await WaitUntilAsync(() => recorder.ObservedEvents.Any(watchEvent => watchEvent.EventType == "deleted"), cancellation.Token);
         await runtime.StopAsync("watch-runtime");
 
-        AssertTrue(context.Events.Any(watchEvent => watchEvent.EventType == "created"), "runtime recorded created event");
+        AssertTrue(recorder.ObservedEvents.Any(watchEvent => watchEvent.EventType == "created"), "runtime observed created event");
         AssertTrue(
-            context.Events.Any(watchEvent => watchEvent.EventType == "deleted" && watchEvent.IsFile),
-            "runtime recorded deleted file event");
+            recorder.ObservedEvents.Any(watchEvent => watchEvent.EventType == "deleted" && watchEvent.IsFile),
+            "runtime observed deleted file event");
         AssertTrue(
-            context.Events.Any(watchEvent =>
+            recorder.ObservedEvents.Any(watchEvent =>
                 watchEvent.EventType == "deleted" &&
                 watchEvent.IsFile &&
                 watchEvent.TargetEventSourcePath == preexistingFilePath),
             "runtime classified preexisting deleted file event");
-        AssertEqual(
-            context.Events.Count(),
-            context.OutboxMessages.Count(),
-            "runtime queued one callback outbox message per event");
     }
     finally
     {
@@ -398,6 +457,101 @@ internal sealed class RecordingReconciliationSignal : IReconciliationSignal
     public void RequestReconciliation()
     {
         RequestCount++;
+    }
+}
+
+internal sealed class RecordingEventRecorder : IEventRecorder
+{
+    public List<ObservedFileSystemEvent> ObservedEvents { get; } = [];
+
+    public Task<WatchEvent> RecordAsync(
+        ObservedFileSystemEvent observedEvent,
+        CancellationToken cancellationToken = default)
+    {
+        ObservedEvents.Add(observedEvent);
+
+        return Task.FromResult(new WatchEvent
+        {
+            EventId = $"event-{ObservedEvents.Count}",
+            WatchId = observedEvent.WatchId,
+            EventType = observedEvent.EventType,
+            IsFile = observedEvent.IsFile,
+            TargetEventSourcePath = observedEvent.TargetEventSourcePath,
+            OccurredAt = observedEvent.OccurredAt,
+            CallbackUrl = "https://callback.test",
+            CallbackPayloadJson = "{}",
+            CreatedAt = observedEvent.OccurredAt
+        });
+    }
+}
+
+internal sealed class InMemoryWatchStore : IWatchStore
+{
+    public List<Watch> Watches { get; } = [];
+
+    public List<ControlCommand> ControlCommands { get; } = [];
+
+    public List<WatchEvent> Events { get; } = [];
+
+    public List<CallbackOutboxMessage> OutboxMessages { get; } = [];
+
+    public Task<ControlCommand?> FindControlCommandAsync(string commandId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(ControlCommands.SingleOrDefault(command => command.CommandId == commandId));
+    }
+
+    public Task<Watch?> FindWatchAsync(string watchId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Watches.SingleOrDefault(watch => watch.WatchId == watchId));
+    }
+
+    public Task<IReadOnlyList<Watch>> ListDesiredWatchesAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IReadOnlyList<Watch>>(
+            Watches
+                .OrderBy(watch => watch.WatchId)
+                .Select(CloneWatch)
+                .ToArray());
+    }
+
+    public void AddWatch(Watch watch)
+    {
+        Watches.Add(watch);
+    }
+
+    public void AddControlCommand(ControlCommand command)
+    {
+        ControlCommands.Add(command);
+    }
+
+    public Task SaveWatchEventWithOutboxAsync(
+        WatchEvent watchEvent,
+        CallbackOutboxMessage outboxMessage,
+        CancellationToken cancellationToken = default)
+    {
+        Events.Add(watchEvent);
+        OutboxMessages.Add(outboxMessage);
+        return Task.CompletedTask;
+    }
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    private static Watch CloneWatch(Watch watch)
+    {
+        return new Watch
+        {
+            WatchId = watch.WatchId,
+            PathToWatch = watch.PathToWatch,
+            Status = watch.Status,
+            CallbackUrlTemplate = watch.CallbackUrlTemplate,
+            CallbackPayloadTemplate = watch.CallbackPayloadTemplate,
+            Version = watch.Version,
+            CreatedAt = watch.CreatedAt,
+            UpdatedAt = watch.UpdatedAt
+        };
     }
 }
 

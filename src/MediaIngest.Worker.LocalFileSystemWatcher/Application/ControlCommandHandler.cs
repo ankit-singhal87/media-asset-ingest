@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace MediaIngest.Worker.LocalFileSystemWatcher;
 
 internal sealed class ControlCommandHandler(
-    WatcherDbContext context,
+    IWatchStore store,
     CallbackTemplateRenderer templateRenderer,
     TimeProvider timeProvider,
     IReconciliationSignal? reconciliationSignal = null)
@@ -18,7 +16,7 @@ internal sealed class ControlCommandHandler(
         ArgumentException.ThrowIfNullOrWhiteSpace(commandType);
         ArgumentNullException.ThrowIfNull(definition);
 
-        var existingCommand = await context.ControlCommands.FindAsync([commandId], cancellationToken);
+        var existingCommand = await store.FindControlCommandAsync(commandId, cancellationToken);
         if (existingCommand is not null)
         {
             return new ControlCommand
@@ -38,9 +36,7 @@ internal sealed class ControlCommandHandler(
             $"watch {definition.WatchId}");
 
         var now = timeProvider.GetUtcNow();
-        var watch = await context.Watches.SingleOrDefaultAsync(
-            candidate => candidate.WatchId == definition.WatchId,
-            cancellationToken);
+        var watch = await store.FindWatchAsync(definition.WatchId, cancellationToken);
 
         var result = ApplyCommand(commandType, definition, watch, now);
         var command = new ControlCommand
@@ -53,8 +49,8 @@ internal sealed class ControlCommandHandler(
             Result = result
         };
 
-        context.ControlCommands.Add(command);
-        await context.SaveChangesAsync(cancellationToken);
+        store.AddControlCommand(command);
+        await store.SaveChangesAsync(cancellationToken);
         reconciliationSignal?.RequestReconciliation();
 
         return command;
@@ -71,7 +67,7 @@ internal sealed class ControlCommandHandler(
             case "create_watcher":
                 if (watch is null)
                 {
-                    context.Watches.Add(new Watch
+                    store.AddWatch(new Watch
                     {
                         WatchId = definition.WatchId,
                         PathToWatch = definition.PathToWatch,

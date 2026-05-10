@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace MediaIngest.Worker.LocalFileSystemWatcher;
 
 internal interface IWatcherRuntime
@@ -14,7 +12,7 @@ internal interface IReconciliationSignal
     void RequestReconciliation();
 }
 
-internal sealed class Supervisor(WatcherDbContext context, IWatcherRuntime runtime) : IReconciliationSignal
+internal sealed class Supervisor(IWatchStore store, IWatcherRuntime runtime) : IReconciliationSignal
 {
     private readonly Dictionary<string, LocalWatchState> localWatches = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim reconciliationRequested = new(0, int.MaxValue);
@@ -52,10 +50,7 @@ internal sealed class Supervisor(WatcherDbContext context, IWatcherRuntime runti
 
     public async Task ReconcileAsync(CancellationToken cancellationToken = default)
     {
-        var desiredWatches = await context.Watches
-            .AsNoTracking()
-            .OrderBy(watch => watch.WatchId)
-            .ToListAsync(cancellationToken);
+        var desiredWatches = await store.ListDesiredWatchesAsync(cancellationToken);
 
         foreach (var watch in desiredWatches)
         {

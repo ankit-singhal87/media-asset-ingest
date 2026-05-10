@@ -179,10 +179,13 @@ inline from the filesystem watcher callback.
 ## Implementation Status
 
 Implemented in `MediaIngest.Worker.LocalFileSystemWatcher` as a local service
-boundary with EF Core/Npgsql schema ownership, initial EF migration files,
-durable watch desired state, idempotent control command records, filesystem
-event records, callback outbox rows, strict callback template token handling,
-and supervisor reconciliation against persisted watch state.
+boundary with self-contained domain, application, persistence, and
+infrastructure folders inside the same project. EF Core/Npgsql schema ownership,
+initial EF migration files, durable watch desired state, idempotent control
+command records, filesystem event records, callback outbox rows, strict
+callback template token handling, and supervisor reconciliation stay owned by
+the service. Application services depend on service-owned ports; the EF store
+adapter and filesystem watcher runtime remain replaceable composition details.
 
 The implementation remains local-runtime scoped. It does not add Dapr pub/sub
 hosting, HTTP control APIs, Azure storage watching, horizontal lease ownership,
